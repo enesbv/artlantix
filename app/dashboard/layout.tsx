@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import AccessGate from '@/components/AccessGate';
 import { getCurrentUser } from '@/lib/services/auth';
 import { UserProfile } from '@/lib/types';
 import {
@@ -85,7 +86,7 @@ export default function DashboardLayout({
           {/* Sub Navigation Tabs */}
           <nav className="flex space-x-6 overflow-x-auto border-t border-[#EAE8E3]/60 pt-1 pb-2">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(`${item.href}/`));
               const Icon = item.icon;
               return (
                 <Link
@@ -107,7 +108,7 @@ export default function DashboardLayout({
       </div>
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        {children}
+        <AccessGate>{children}</AccessGate>
       </main>
     </div>
   );

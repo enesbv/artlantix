@@ -17,6 +17,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmationRequired, setConfirmationRequired] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +27,8 @@ export default function SignUpPage() {
       const res = await signUpWithEmail(email, fullName, password, accountType, companyName);
       if (res.error) {
         setError(res.error);
+      } else if (res.confirmationRequired) {
+        setConfirmationRequired(true);
       } else {
         router.push('/dashboard');
       }
@@ -83,6 +86,7 @@ export default function SignUpPage() {
             </button>
           </div>
 
+          {confirmationRequired && <p role="status" className="mt-4 rounded bg-emerald-50 p-3 text-xs text-emerald-700">Check your email to confirm your account, then sign in.</p>}
           {error && (
             <div className="mt-4 rounded bg-red-50 p-3 text-xs text-red-700 font-medium">
               {error}

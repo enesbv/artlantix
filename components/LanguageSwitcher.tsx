@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Globe } from 'lucide-react';
+import { persistLocale } from '@/lib/locale';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', short: 'EN', flag: '🇬🇧' },
@@ -66,7 +67,11 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale?: st
       newPath = targetLocale === 'en' ? '/' : `/${targetLocale}`;
     }
 
-    router.push(newPath);
+    if (!['/', '/quote'].includes(unlocalizedPath)) {
+      newPath = targetLocale === 'en' ? '/' : `/${targetLocale}`;
+    }
+    persistLocale(targetLocale);
+    router.push(`${newPath}${window.location.search}${window.location.hash}`);
   };
 
   return (
@@ -89,7 +94,7 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale?: st
             Language
           </div>
           {LANGUAGES.map((lang) => {
-            const isSelected = lang.code === currentLocale;
+            const isSelected = lang.code === activeLocale;
             return (
               <button
                 key={lang.code}

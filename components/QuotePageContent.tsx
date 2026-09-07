@@ -32,11 +32,7 @@ import {
   Building,
 } from 'lucide-react';
 
-interface QuotePageContentProps {
-  locale?: string;
-}
-
-export default function QuotePageContent({ locale = 'en' }: QuotePageContentProps) {
+export default function QuotePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tQuote = useTranslations('quote');
@@ -53,13 +49,16 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
   // File Upload State
   const [uploadedFile, setUploadedFile] = useState<UploadedFileData | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const submitLock = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form Configuration State
   const [projectName, setProjectName] = useState('My Vector Project');
   const [artworkType, setArtworkType] = useState<ArtworkType>('ai_logo');
   const [complexity, setComplexity] = useState<ComplexityTier>(
-    (searchParams?.get('tier') as ComplexityTier) || 'standard'
+    ['simple', 'standard', 'complex'].includes(searchParams?.get('tier') || '')
+      ? searchParams.get('tier') as ComplexityTier : 'standard'
   );
   const [hasText, setHasText] = useState(true);
   const [reconstructionOption, setReconstructionOption] = useState<'clean' | 'moderate' | 'heavy'>('moderate');
@@ -109,6 +108,7 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setIsUploading(true);
+      setFormError(null);
       try {
         const processed = await processClientFileUpload(file);
         setUploadedFile(processed);
@@ -116,6 +116,8 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
           const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
           setProjectName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
         }
+      } catch (error) {
+        setFormError(error instanceof Error ? error.message : 'Upload failed.');
       } finally {
         setIsUploading(false);
       }
@@ -127,6 +129,7 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       setIsUploading(true);
+      setFormError(null);
       try {
         const processed = await processClientFileUpload(file);
         setUploadedFile(processed);
@@ -134,6 +137,8 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
           const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
           setProjectName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
         }
+      } catch (error) {
+        setFormError(error instanceof Error ? error.message : 'Upload failed.');
       } finally {
         setIsUploading(false);
       }
@@ -143,6 +148,14 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
   // Submit Order & Convert Quote
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitLock.current) return;
+    if (!uploadedFile || isUploading) {
+      setFormError('Please upload your artwork before submitting.');
+      setCurrentStep(1);
+      return;
+    }
+    submitLock.current = true;
+    setFormError(null);
     setIsSubmitting(true);
 
     try {
@@ -150,7 +163,8 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
       if (!activeUser) {
         const emailToUse = customerEmail.trim() || 'client-order@artlantix.com';
         const nameToUse = customerName.trim() || 'Valued Client';
-        const { user } = await signUpWithEmail(emailToUse, nameToUse);
+        const { user, error } = await signUpWithEmail(emailToUse, nameToUse);
+        if (error || !user) throw new Error(error || 'Please sign in to continue.');
         activeUser = user;
         setCurrentUser(user);
       }
@@ -168,7 +182,7 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
         turnaround: turnaround,
         estimated_price: pricing.total,
         final_price: pricing.total,
-        status: (pricing.needsManualReview ? 'quote_requested' : 'in_progress') as OrderStatus,
+        status: (pricing.needsManualReview || paymentOption === 'pay_after_quote_review' ? 'quote_requested' : 'in_progress') as OrderStatus,
         notes: notes,
         needs_manual_review: pricing.needsManualReview,
       };
@@ -193,9 +207,11 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
         paymentMethod: pricing.needsManualReview ? 'pay_after_quote_review' : paymentOption,
       });
 
-      router.push(locale && locale !== 'en' ? `/${locale}/dashboard/orders/${created.id}` : `/dashboard/orders/${created.id}`);
+      router.push(`/dashboard/orders/${created.id}`);
     } catch (err) {
-      console.error(err);
+      setFormError(err instanceof Error ? err.message : 'Order submission failed. Please try again.');
+    } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   };
@@ -205,6 +221,7 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
       <Navbar />
 
       <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        {formError && <p role="alert" className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">{formError}</p>}
         {/* Studio Questionnaire Header */}
         <div className="text-center max-w-2xl mx-auto">
           <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#E05328]">
@@ -310,7 +327,7 @@ export default function QuotePageContent({ locale = 'en' }: QuotePageContentProp
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  accept="image/*,.pdf,.heic"
+                  accept=".jpg,.jpeg,.png,.webp,.pdf"
                   className="hidden"
                 />
               </div>

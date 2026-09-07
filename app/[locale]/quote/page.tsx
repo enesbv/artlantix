@@ -23,7 +23,7 @@ export default async function LocalizedQuotePage({
         </div>
       }
     >
-      <QuotePageContent locale={locale} />
+      <QuotePageContent />
     </Suspense>
   );
 }

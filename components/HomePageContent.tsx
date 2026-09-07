@@ -303,9 +303,14 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                       {currentMode === 'after' ? (
                         <div className="flex h-full w-full items-center justify-center animate-in fade-in duration-200">
                           {card.vectorSvgContent ? (
-                            <div
-                              className="h-44 w-44 flex items-center justify-center drop-shadow-xs"
-                              dangerouslySetInnerHTML={{ __html: card.vectorSvgContent }}
+                            <img
+                              className="h-44 w-44 object-contain drop-shadow-xs"
+                              src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(card.vectorSvgContent)}`}
+                              alt={`${card.title} vector artwork`}
+                              width={176}
+                              height={176}
+                              loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             <svg viewBox="0 0 200 200" className="h-40 w-40 drop-shadow-xs">
@@ -321,6 +326,10 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                           {card.rasterUrl ? (
                             <img
                               src={card.rasterUrl}
+                              width={160}
+                              height={160}
+                              loading="lazy"
+                              decoding="async"
                               alt={card.title}
                               className="h-40 w-40 object-contain"
                             />

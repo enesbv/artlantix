@@ -131,7 +131,7 @@
     "step2": "02. Geometrie",
     "step3": "03. Bestätigung",
     "uploadTitle": "Schritt 01 / Vorlage Hochladen",
-    "uploadDesc": "Ziehen Sie Ihre Rastergrafik hierher (JPG, PNG, WEBP, HEIC oder PDF bis 25MB).",
+    "uploadDesc": "Ziehen Sie eine JPG-, PNG-, WebP- oder PDF-Datei hierher. In dieser Version maximal 2 MB pro Datei.",
     "dropzone": "Datei hier ablegen oder zum Auswählen klicken",
     "dropzoneSub": "KI-Bilder, Handskizzen, unscharfe Scans oder Etiketten-Fotos",
     "projectName": "Projektname / Markenbezeichnung",

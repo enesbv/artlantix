@@ -1,5 +1,7 @@
 # Artlantix · Manual Vectorization & Artwork Reconstruction Studio
 
+AI assistants and new contributors: start with [llm.md](llm.md) and [AGENTS.md](AGENTS.md). See [REVIEW.md](REVIEW.md) for the current audit, implemented fixes, and remaining production blockers. Feature descriptions below include demo behavior, not only completed live integrations.
+
 Artlantix is a premium manual vectorization, logo reconstruction, and production artwork studio platform. Engineered for commercial printers, screen printing & DTF apparel shops, signage makers, and brand creators who need pristine, mathematically clean vector files (AI, EPS, SVG, PDF, high-res PNG) from AI concepts, degraded scans, and raster sketches.
 
 > **"AI creates the concept. We make it production-ready."**

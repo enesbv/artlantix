@@ -67,7 +67,7 @@ export function calculatePricing(
     ...BASE_PRICES,
     ...(customBasePrices || {}),
   };
-  const basePrice = activeBasePrices[input.complexity] || activeBasePrices.simple;
+  const basePrice = activeBasePrices[input.complexity] ?? activeBasePrices.simple;
   const breakdown: { label: string; amount: number }[] = [
     {
       label: `${input.complexity.charAt(0).toUpperCase() + input.complexity.slice(1)} Geometry Base`,
@@ -120,7 +120,7 @@ export function calculatePricing(
   const speedMultiplier = isExpress ? SPEED_CONFIG.EXPRESS_MULTIPLIER : SPEED_CONFIG.STANDARD_MULTIPLIER;
 
   if (isExpress) {
-    const expressSurcharge = Math.round(subtotal * 0.35);
+    const expressSurcharge = Math.round(subtotal * speedMultiplier) - subtotal;
     breakdown.push({
       label: `Priority Express Dispatch (${SPEED_CONFIG.EXPRESS_HOURS})`,
       amount: expressSurcharge,

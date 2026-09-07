@@ -131,7 +131,7 @@
     "step2": "02. Geometry",
     "step3": "03. Order",
     "uploadTitle": "Step 01 / Upload Artwork",
-    "uploadDesc": "Drag and drop your raster image (JPG, PNG, WEBP, HEIC, or scanned PDF, up to 25MB).",
+    "uploadDesc": "Drag and drop a JPG, PNG, WebP or PDF file. Maximum 2 MB per file in this version.",
     "dropzone": "Drop your artwork here, or click to browse",
     "dropzoneSub": "AI concept outputs, sketches, blurry scans, or photograph labels",
     "projectName": "Project Title / Brand Mark Name",

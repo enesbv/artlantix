@@ -131,7 +131,7 @@
     "step2": "02. Geometri",
     "step3": "03. Sipariş",
     "uploadTitle": "Adım 01 / Görsel Dosyasını Yükleyin",
-    "uploadDesc": "Piksel formatındaki görselinizi sürükleyip bırakın (JPG, PNG, WEBP, HEIC veya PDF, maks 25MB).",
+    "uploadDesc": "JPG, PNG, WebP veya PDF dosyanızı sürükleyip bırakın. Bu sürümde dosya sınırı 2 MB.",
     "dropzone": "Görseli buraya bırakın veya seçmek için tıklayın",
     "dropzoneSub": "Yapay zeka taslakları, el çizimleri, bulanık taramalar veya etiket fotoğrafları",
     "projectName": "Proje Adı / Marka İsmi",

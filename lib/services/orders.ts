@@ -1,6 +1,7 @@
 import { Order, OrderStatus, OrderMessage, OrderFile, FileFormat } from '../types';
 import { INITIAL_ORDERS } from '../mock-data';
 import { isSupabaseConfigured, createClient } from '../supabase/client';
+import { getCurrentUser } from './auth';
 
 const STORAGE_KEY_ORDERS = 'artlantix_orders_data';
 
@@ -21,7 +22,11 @@ function getStoredOrders(): Order[] {
 
 function saveOrders(orders: Order[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(orders));
+  try {
+    localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(orders));
+  } catch {
+    throw new Error('Browser storage is full or unavailable. Your changes were not saved. Try a smaller file.');
+  }
 }
 
 export async function getOrders(userId?: string, isAdmin: boolean = false): Promise<Order[]> {
@@ -39,13 +44,14 @@ export async function getOrders(userId?: string, isAdmin: boolean = false): Prom
     } catch {
       // Fallback
     }
+    return [];
   }
 
   const all = getStoredOrders();
   if (isAdmin) {
     return all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
-  if (!userId) return all;
+  if (!userId) return [];
   return all
     .filter((o) => o.user_id === userId)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -66,21 +72,23 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     } catch {
       // Fallback
     }
+    return null;
   }
 
   const all = getStoredOrders();
   const found = all.find((o) => o.id === orderId || o.order_number === orderId);
-  return found || null;
+  const user = await getCurrentUser();
+  return found && user && (user.is_admin || found.user_id === user.id) ? found : null;
 }
 
 export async function createOrder(
   orderInput: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at' | 'files' | 'messages'>,
   uploadedFile?: { name: string; size: number; format: string; url?: string }
 ): Promise<Order> {
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  const randomSuffix = crypto.randomUUID();
   const orderNumber = `ATX-${randomSuffix}`;
   const now = new Date().toISOString();
-  const orderId = `ord_atx_${randomSuffix}`;
+  const orderId = randomSuffix;
 
   const initialFiles: OrderFile[] = uploadedFile
     ? [
@@ -142,6 +150,7 @@ export async function createOrder(
           notes: newOrder.notes,
         }]);
 
+        if (error) throw new Error(error.message);
         if (!error) {
           if (uploadedFile) {
             await supabase.from('order_files').insert([{
@@ -157,9 +166,10 @@ export async function createOrder(
           return newOrder;
         }
       }
-    } catch {
-      // Fallback
+    } catch (error) {
+      throw error;
     }
+    throw new Error('Unable to save the order. Please try again.');
   }
 
   const all = getStoredOrders();
@@ -169,6 +179,17 @@ export async function createOrder(
 }
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus, finalPrice?: number): Promise<Order | null> {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    if (!supabase) throw new Error('Database unavailable.');
+    const { error } = await supabase.from('orders').update({
+      status,
+      ...(finalPrice !== undefined ? { final_price: finalPrice } : {}),
+      updated_at: new Date().toISOString(),
+    }).eq('id', orderId);
+    if (error) throw new Error(error.message);
+    return getOrderById(orderId);
+  }
   const all = getStoredOrders();
   const index = all.findIndex((o) => o.id === orderId);
   if (index === -1) return null;

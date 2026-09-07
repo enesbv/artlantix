@@ -325,6 +325,17 @@ export default function BeforeAfterSlider({
 
         {/* SLEEK TACTILE DRAGGING HANDLE */}
         <div
+          role="slider"
+          tabIndex={0}
+          aria-label="Before and after comparison"
+          aria-valuemin={2}
+          aria-valuemax={98}
+          aria-valuenow={Math.round(sliderPosition)}
+          onKeyDown={(event) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            setSliderPosition((value) => event.key === 'Home' ? 2 : event.key === 'End' ? 98 : Math.min(98, Math.max(2, value + (event.key === 'ArrowRight' ? 2 : -2))));
+          }}
           className="absolute top-0 bottom-0 z-20 flex w-px items-center justify-center bg-[#141414] cursor-ew-resize"
           style={{ left: `${sliderPosition}%` }}
         >

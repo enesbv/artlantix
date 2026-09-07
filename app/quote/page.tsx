@@ -16,7 +16,7 @@ export default async function RootQuotePage() {
           </div>
         }
       >
-        <QuotePageContent locale="en" />
+        <QuotePageContent />
       </Suspense>
     </NextIntlClientProvider>
   );

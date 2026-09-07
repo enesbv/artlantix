@@ -33,9 +33,18 @@ export interface UploadedFileData {
 
 export async function processClientFileUpload(file: File): Promise<UploadedFileData> {
   const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+  if (!['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext)) {
+    throw new Error('Please upload a JPG, PNG, WebP or PDF file.');
+  }
+  // Demo uploads are persisted as base64 in localStorage, which has a small quota.
+  if (file.size === 0 || file.size > 2 * 1024 * 1024) {
+    throw new Error('Please select a non-empty file up to 2 MB.');
+  }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    reader.onerror = () => reject(new Error('The file could not be read. Please try again.'));
+    reader.onabort = () => reject(new Error('File reading was cancelled.'));
     reader.onload = (e) => {
       const result = e.target?.result as string;
 

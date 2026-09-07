@@ -26,14 +26,15 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
             email: user.email || '',
             full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
             account_type: 'individual',
-            is_admin: user.user_metadata?.is_admin || false,
+            is_admin: false,
             created_at: user.created_at,
           };
         }
       }
     } catch {
-      // Fall through to mock storage
+      return null;
     }
+    return null;
   }
 
   // Fallback to local storage
@@ -54,7 +55,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
 export function setCurrentUserMock(user: UserProfile | null): void {
   if (typeof window === 'undefined') return;
   if (!user) {
-    localStorage.removeItem(STORAGE_KEY_AUTH);
+    localStorage.setItem(STORAGE_KEY_AUTH, 'null');
   } else {
     localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(user));
   }
@@ -62,6 +63,7 @@ export function setCurrentUserMock(user: UserProfile | null): void {
 
 export async function signInWithEmail(email: string, password?: string): Promise<{ user: UserProfile | null; error?: string }> {
   if (isSupabaseConfigured()) {
+    if (!password) return { user: null, error: 'Password is required.' };
     try {
       const supabase = createClient();
       if (supabase && password) {
@@ -78,6 +80,8 @@ export async function signInWithEmail(email: string, password?: string): Promise
     }
   }
 
+  if (isSupabaseConfigured()) return { user: null, error: 'Unable to sign in. Please try again.' };
+
   // Mock sign-in logic
   if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('operator')) {
     setCurrentUserMock(MOCK_OPERATOR);
@@ -93,8 +97,9 @@ export async function signInWithEmail(email: string, password?: string): Promise
   return { user: customCustomer };
 }
 
-export async function signUpWithEmail(email: string, fullName: string, password?: string, accountType: 'individual' | 'business' = 'individual', companyName?: string): Promise<{ user: UserProfile | null; error?: string }> {
+export async function signUpWithEmail(email: string, fullName: string, password?: string, accountType: 'individual' | 'business' = 'individual', companyName?: string): Promise<{ user: UserProfile | null; error?: string; confirmationRequired?: boolean }> {
   if (isSupabaseConfigured()) {
+    if (!password) return { user: null, error: 'Please create an account or sign in before ordering.' };
     try {
       const supabase = createClient();
       if (supabase && password) {
@@ -120,7 +125,7 @@ export async function signUpWithEmail(email: string, fullName: string, password?
             is_admin: false,
             created_at: new Date().toISOString(),
           };
-          return { user: profile };
+          return { user: data.session ? profile : null, confirmationRequired: !data.session };
         }
       }
     } catch (e: unknown) {
@@ -128,6 +133,8 @@ export async function signUpWithEmail(email: string, fullName: string, password?
       return { user: null, error: msg };
     }
   }
+
+  if (isSupabaseConfigured()) return { user: null, error: 'Unable to create the account. Please try again.' };
 
   const newUser: UserProfile = {
     id: `usr_${Date.now()}`,
@@ -163,6 +170,8 @@ export async function signInWithGoogle(): Promise<{ user: UserProfile | null; er
     }
   }
 
+  if (isSupabaseConfigured()) return { user: null, error: 'Unable to start Google sign-in.' };
+
   // Mock fallback: simulate Google sign-in
   const googleUser: UserProfile = {
     id: `google_${Date.now()}`,
@@ -192,6 +201,7 @@ export async function signOutUser(): Promise<void> {
 }
 
 export function switchDemoPersona(type: 'customer' | 'operator'): UserProfile {
+  if (isSupabaseConfigured()) throw new Error('Demo accounts are disabled when connected to Supabase.');
   const target = type === 'operator' ? MOCK_OPERATOR : MOCK_CUSTOMER;
   setCurrentUserMock(target);
   return target;

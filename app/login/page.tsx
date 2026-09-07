@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { signInWithEmail, switchDemoPersona, signInWithGoogle } from '@/lib/services/auth';
 import { Layers, User, ShieldCheck, Lock } from 'lucide-react';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 
 
 export default function LoginPage() {
@@ -15,7 +16,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +90,7 @@ export default function LoginPage() {
           </div>
 
           {/* Quick 1-Click Zero-Config Demo Switchers for immediate evaluator testing */}
-          <div className="mt-6 rounded-lg border border-[#E6E4DF] bg-[#FAFAF8] p-3 text-center">
+          {!isSupabaseConfigured() && <div className="mt-6 rounded-lg border border-[#E6E4DF] bg-[#FAFAF8] p-3 text-center">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#888888]">
               Instant Demo Access (Zero Config)
             </span>
@@ -117,17 +117,13 @@ export default function LoginPage() {
             </div>
           </div>
 
+          }
           {error && (
             <div className="mt-4 rounded bg-red-50 p-3 text-xs text-red-700 font-medium">
               {error}
             </div>
           )}
 
-          {resetSent && (
-            <div className="mt-4 rounded bg-emerald-50 p-3 text-xs text-emerald-700 font-medium">
-              Password reset link sent to your email.
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
@@ -147,7 +143,7 @@ export default function LoginPage() {
                 <label className="text-xs font-bold text-[#111111]">Password</label>
                 <button
                   type="button"
-                  onClick={() => setResetSent(true)}
+                  onClick={() => setError('Password recovery is not configured yet. Please contact the studio for assistance.')}
                   className="text-[11px] text-[#666666] hover:text-[#E25C34]"
                 >
                   Forgot password?

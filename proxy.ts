@@ -15,6 +15,6 @@ export const config = {
     // Match locales explicitly
     '/(en|de|tr)/:path*',
     // Match all pathnames except for static files, api, admin, dashboard, etc.
-    '/((?!api|_next|_vercel|admin|dashboard|mock-assets|.*\\..*).*)',
+    '/((?!api|_next|_vercel|admin|dashboard|login|signup|auth|mock-assets|.*\\..*).*)',
   ],
 };
