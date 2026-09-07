@@ -1,0 +1,198 @@
+import { UserProfile } from '../types';
+import { MOCK_CUSTOMER, MOCK_OPERATOR } from '../mock-data';
+import { isSupabaseConfigured, createClient } from '../supabase/client';
+
+const STORAGE_KEY_AUTH = 'artlantix_auth_user';
+
+export async function getCurrentUser(): Promise<UserProfile | null> {
+  if (typeof window === 'undefined') return null;
+
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (profile) return profile as UserProfile;
+
+          return {
+            id: user.id,
+            email: user.email || '',
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            account_type: 'individual',
+            is_admin: user.user_metadata?.is_admin || false,
+            created_at: user.created_at,
+          };
+        }
+      }
+    } catch {
+      // Fall through to mock storage
+    }
+  }
+
+  // Fallback to local storage
+  const stored = localStorage.getItem(STORAGE_KEY_AUTH);
+  if (stored) {
+    try {
+      return JSON.parse(stored) as UserProfile;
+    } catch {
+      // Parse error, reset to default
+    }
+  }
+
+  // Default demo user is the customer
+  localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(MOCK_CUSTOMER));
+  return MOCK_CUSTOMER;
+}
+
+export function setCurrentUserMock(user: UserProfile | null): void {
+  if (typeof window === 'undefined') return;
+  if (!user) {
+    localStorage.removeItem(STORAGE_KEY_AUTH);
+  } else {
+    localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(user));
+  }
+}
+
+export async function signInWithEmail(email: string, password?: string): Promise<{ user: UserProfile | null; error?: string }> {
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = createClient();
+      if (supabase && password) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return { user: null, error: error.message };
+        if (data.user) {
+          const profile = await getCurrentUser();
+          return { user: profile };
+        }
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Authentication error';
+      return { user: null, error: msg };
+    }
+  }
+
+  // Mock sign-in logic
+  if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('operator')) {
+    setCurrentUserMock(MOCK_OPERATOR);
+    return { user: MOCK_OPERATOR };
+  }
+
+  const customCustomer: UserProfile = {
+    ...MOCK_CUSTOMER,
+    email,
+    full_name: email.split('@')[0],
+  };
+  setCurrentUserMock(customCustomer);
+  return { user: customCustomer };
+}
+
+export async function signUpWithEmail(email: string, fullName: string, password?: string, accountType: 'individual' | 'business' = 'individual', companyName?: string): Promise<{ user: UserProfile | null; error?: string }> {
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = createClient();
+      if (supabase && password) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              account_type: accountType,
+              company_name: companyName,
+            },
+          },
+        });
+        if (error) return { user: null, error: error.message };
+        if (data.user) {
+          const profile: UserProfile = {
+            id: data.user.id,
+            email,
+            full_name: fullName,
+            account_type: accountType,
+            company_name: companyName,
+            is_admin: false,
+            created_at: new Date().toISOString(),
+          };
+          return { user: profile };
+        }
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Registration error';
+      return { user: null, error: msg };
+    }
+  }
+
+  const newUser: UserProfile = {
+    id: `usr_${Date.now()}`,
+    email,
+    full_name: fullName,
+    account_type: accountType,
+    company_name: companyName,
+    is_admin: false,
+    created_at: new Date().toISOString(),
+  };
+  setCurrentUserMock(newUser);
+  return { user: newUser };
+}
+
+export async function signInWithGoogle(): Promise<{ user: UserProfile | null; error?: string }> {
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
+          },
+        });
+        if (error) return { user: null, error: error.message };
+        // OAuth redirects; user will be set after callback
+        return { user: null };
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Google authentication error';
+      return { user: null, error: msg };
+    }
+  }
+
+  // Mock fallback: simulate Google sign-in
+  const googleUser: UserProfile = {
+    id: `google_${Date.now()}`,
+    email: 'google_user@artlantix-demo.com',
+    full_name: 'Google Demo User',
+    account_type: 'individual',
+    is_admin: false,
+    avatar_url: 'https://lh3.googleusercontent.com/a/default-user',
+    created_at: new Date().toISOString(),
+  };
+  setCurrentUserMock(googleUser);
+  return { user: googleUser };
+}
+
+export async function signOutUser(): Promise<void> {
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+    } catch {
+      // Ignore error
+    }
+  }
+  setCurrentUserMock(null);
+}
+
+export function switchDemoPersona(type: 'customer' | 'operator'): UserProfile {
+  const target = type === 'operator' ? MOCK_OPERATOR : MOCK_CUSTOMER;
+  setCurrentUserMock(target);
+  return target;
+}

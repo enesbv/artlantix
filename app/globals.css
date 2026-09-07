@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8FAFC;
+  --color-bg-tertiary: #F1F5F9;
+  --color-surface: #FFFFFF;
+  --color-slate-900: #0F172A;
+  --color-slate-600: #475569;
+  --color-slate-400: #94A3B8;
+  --color-border: #E2E8F0;
+  --color-accent: #D94A26;
+  --color-accent-hover: #B93816;
+  --color-accent-light: #FEF2EE;
+  --color-accent-border: #FBCAB9;
+}
+
+:root {
+  --background: #FFFFFF;
+  --foreground: #0F172A;
+}
+
+body {
+  background-color: #FFFFFF;
+  color: #0F172A;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Enterprise utility classes */
+.bg-primary {
+  background-color: #FFFFFF;
+}
+
+.bg-secondary {
+  background-color: #F8FAFC;
+}
+
+.bg-tertiary {
+  background-color: #F1F5F9;
+}
+
+.border-enterprise {
+  border-color: #E2E8F0;
+}
+
+.text-slate-900 {
+  color: #0F172A;
+}
+
+.text-slate-600 {
+  color: #475569;
+}
+
+.bg-accent {
+  background-color: #D94A26;
+}
+
+.bg-accent:hover {
+  background-color: #B93816;
+}
+
+.text-accent {
+  color: #D94A26;
+}
+
+.border-accent {
+  border-color: #D94A26;
+}
