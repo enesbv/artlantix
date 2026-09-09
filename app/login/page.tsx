@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { signInWithEmail, switchDemoPersona, signInWithGoogle } from '@/lib/services/auth';
+import { requestPasswordReset, signInWithEmail, switchDemoPersona, signInWithGoogle } from '@/lib/services/auth';
 import { Layers, User, ShieldCheck, Lock } from 'lucide-react';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 
@@ -71,6 +71,14 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    setLoading(true);
+    setError(null);
+    const result = await requestPasswordReset(email);
+    setLoading(false);
+    setError(result.success ? 'Password reset link sent. Check your inbox.' : result.error || 'Password recovery failed.');
+  };
+
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#111111]">
       <Navbar />
@@ -79,7 +87,7 @@ export default function LoginPage() {
         <div className="rounded-xl border border-[#E6E4DF] bg-white p-8 shadow-xs">
           <div className="text-center">
             <div className="mx-auto flex h-10 w-10 items-center justify-center rounded border border-[#111111] bg-[#111111] text-white">
-              <Layers className="h-5 w-5 text-[#E25C34]" />
+              <Layers className="h-5 w-5 text-[#18794E]" />
             </div>
             <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#111111]">
               Sign in to Artlantix
@@ -108,9 +116,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => handleDemoLogin('operator')}
-                className="flex flex-col items-center justify-center rounded border border-[#E6E4DF] bg-white p-2 text-center hover:border-[#E25C34] transition-colors"
+                className="flex flex-col items-center justify-center rounded border border-[#E6E4DF] bg-white p-2 text-center hover:border-[#18794E] transition-colors"
               >
-                <ShieldCheck className="h-4 w-4 text-[#E25C34]" />
+                <ShieldCheck className="h-4 w-4 text-[#18794E]" />
                 <span className="mt-1 text-[11px] font-bold text-[#111111]">Demo Operator</span>
                 <span className="text-[9px] text-[#777777]">Production Queue</span>
               </button>
@@ -143,8 +151,9 @@ export default function LoginPage() {
                 <label className="text-xs font-bold text-[#111111]">Password</label>
                 <button
                   type="button"
-                  onClick={() => setError('Password recovery is not configured yet. Please contact the studio for assistance.')}
-                  className="text-[11px] text-[#666666] hover:text-[#E25C34]"
+                  onClick={handlePasswordReset}
+                  disabled={loading}
+                  className="text-[11px] text-[#666666] hover:text-[#18794E]"
                 >
                   Forgot password?
                 </button>
@@ -194,7 +203,7 @@ export default function LoginPage() {
 
           <div className="mt-6 border-t border-[#E6E4DF] pt-4 text-center text-xs text-[#666666]">
             Don&apos;t have an account yet?{' '}
-            <Link href="/signup" className="font-bold text-[#E25C34] hover:underline">
+            <Link href="/signup" className="font-bold text-[#18794E] hover:underline">
               Create Account
             </Link>
           </div>

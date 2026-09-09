@@ -24,7 +24,7 @@ export default function ArtworkVaultPage() {
   useEffect(() => {
     async function load() {
       const user = await getCurrentUser();
-      const all = await getOrders(user?.id);
+      const all = await getOrders(user?.id, false, true);
       const masters = all.filter((o) => o.status === 'completed' || o.files?.some((f) => f.file_category === 'final_master'));
       setCompletedOrders(masters);
     }
@@ -50,7 +50,7 @@ export default function ArtworkVaultPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAE8E3] pb-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <Archive className="h-5 w-5 text-[#E05328]" />
+            <Archive className="h-5 w-5 text-[#18794E]" />
             <h1 className="text-xl font-bold tracking-tight text-[#141414]">
               Artwork Vault &amp; Digital Asset Archive
             </h1>
@@ -62,7 +62,7 @@ export default function ArtworkVaultPage() {
 
         <Link
           href="/quote"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#E05328] px-4 py-2 text-xs font-bold text-white hover:bg-[#C8461D] transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-4 py-2 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
           <span>Upload New Asset</span>
@@ -140,7 +140,7 @@ export default function ArtworkVaultPage() {
                   {/* Vector visual icon render */}
                   <svg viewBox="0 0 200 200" className="h-32 w-32 drop-shadow-xs">
                     <circle cx="100" cy="100" r="70" fill="#FFFFFF" stroke="#141414" strokeWidth="4" />
-                    <circle cx="100" cy="100" r="58" fill="none" stroke="#E05328" strokeWidth="2" strokeDasharray="4 3" />
+                    <circle cx="100" cy="100" r="58" fill="none" stroke="#18794E" strokeWidth="2" strokeDasharray="4 3" />
                     <path d="M 100 45 L 115 80 L 155 80 L 125 105 L 135 145 L 100 120 L 65 145 L 75 105 L 45 80 L 85 80 Z" fill="#141414" />
                   </svg>
                 </div>
@@ -173,8 +173,8 @@ export default function ArtworkVaultPage() {
                       onClick={() => triggerMasterBundleZip(order)}
                       className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#141414] py-2 text-xs font-bold text-white hover:bg-black transition-colors"
                     >
-                      <Download className="h-3.5 w-3.5 text-[#E05328]" />
-                      <span>Download Master Bundle (.ZIP)</span>
+                      <Download className="h-3.5 w-3.5 text-[#18794E]" />
+                      <span>Download Demo Package Manifest</span>
                     </button>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -191,7 +191,7 @@ export default function ArtworkVaultPage() {
 
                       <Link
                         href={`/quote?reorder=${order.id}`}
-                        className="flex items-center justify-center gap-1 rounded-lg border border-[#E05328] bg-[#FDF3F0] py-1.5 text-xs font-semibold text-[#E05328] hover:bg-[#F6CEBF]"
+                        className="flex items-center justify-center gap-1 rounded-lg border border-[#18794E] bg-[#E9F9EE] py-1.5 text-xs font-semibold text-[#18794E] hover:bg-[#B4DFC4]"
                       >
                         <span>Order Variation</span>
                       </Link>

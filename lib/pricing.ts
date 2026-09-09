@@ -54,6 +54,7 @@ export interface PricingInput {
   colorCount: '1-2' | '3-5' | '6+' | 'gradient';
   turnaround: TurnaroundSpeed;
   artworkType?: string;
+  artistReviewRequested?: boolean;
 }
 
 /**
@@ -134,8 +135,10 @@ export function calculatePricing(
   const hasSevereReconstruction = input.heavyReconstruction || input.reconstructionNeeded;
   const hasCustomText = input.hasText;
 
-  const needsManualReview = isHighComplexity && hasSevereReconstruction && hasCustomText;
-  const manualReviewReason = needsManualReview ? THRESHOLD_GUARD.MESSAGE : undefined;
+  const needsManualReview = Boolean(input.artistReviewRequested || (isHighComplexity && hasSevereReconstruction && hasCustomText));
+  const manualReviewReason = input.artistReviewRequested
+    ? 'Customer requested an artist assessment. Complexity and price are provisional until reviewed.'
+    : needsManualReview ? THRESHOLD_GUARD.MESSAGE : undefined;
 
   return {
     basePrice,

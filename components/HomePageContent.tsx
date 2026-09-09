@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BeforeAfterSlider from '@/components/BeforeAfterSlider';
@@ -14,6 +15,7 @@ import {
   getPortfolioItems,
 } from '@/lib/services/content';
 import { useTranslations } from 'next-intl';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 import {
   ArrowRight,
   ChevronDown,
@@ -38,6 +40,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
   const tPricing = useTranslations('pricing');
   const tCta = useTranslations('cta');
   const tServices = useTranslations('services');
+  const demoMode = !isSupabaseConfigured();
 
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS);
   const [portfolioItems, setPortfolioItems] = useState<BeforeAfterShowcase[]>([]);
@@ -121,7 +124,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
             <div className="mx-auto max-w-4xl text-center">
               {/* Quiet Single-Line Meta Strip */}
               <div className="inline-flex items-center gap-2 text-xs font-mono tracking-wider uppercase text-[#737373]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#E05328]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[#18794E]" />
                 <span>{tHero('eyebrow')}</span>
               </div>
 
@@ -132,7 +135,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                 ) : (
                   <>
                     {tHero('titlePrefix')}{' '}
-                    <span className="text-[#E05328]">{tHero('titleAccent')}</span>{' '}
+                    <span className="text-[#18794E]">{tHero('titleAccent')}</span>{' '}
                     {tHero('titleSuffix')}
                   </>
                 )}
@@ -165,7 +168,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
                   href={quoteHref}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#E05328] px-7 py-3.5 text-xs font-bold text-white shadow-xs hover:bg-[#C8461D] transition-colors"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#18794E] px-7 py-3.5 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors"
                 >
                   <span>{tHero('getQuoteCta')}</span>
                   <ArrowRight className="h-4 w-4" />
@@ -200,7 +203,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                 <div className="mt-0.5 text-xs text-[#737373]">{tMetrics('methodDesc')}</div>
               </div>
 
-              <div className="border-l-2 border-[#E05328] pl-4">
+              <div className="border-l-2 border-[#18794E] pl-4">
                 <div className="font-mono text-[11px] uppercase tracking-wider text-[#737373]">Quality Assurance</div>
                 <div className="mt-1 text-sm font-bold text-[#141414]">{tMetrics('qaTitle')}</div>
                 <div className="mt-0.5 text-xs text-[#737373]">{tMetrics('qaDesc')}</div>
@@ -226,7 +229,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#EAE8E3] pb-8">
               <div>
-                <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#E05328]">
+                <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#18794E]">
                   {tShowcase('proofTitle')}
                 </span>
                 <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#141414] sm:text-4xl">
@@ -235,6 +238,11 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                 <p className="mt-2 text-sm text-[#737373] max-w-xl">
                   {tShowcase('subheadline')}
                 </p>
+                {demoMode && (
+                  <p className="mt-3 inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-900">
+                    {tShowcase('demoNotice')}
+                  </p>
+                )}
               </div>
 
               {/* Category Filter Tabs */}
@@ -256,6 +264,11 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
             </div>
 
             {/* Gallery Cards Grid */}
+            {filteredShowcases.length === 0 && (
+              <div className="mt-12 rounded-2xl border border-dashed border-[#D9D6CE] bg-white p-10 text-center text-sm text-[#737373]">
+                {tShowcase('empty')}
+              </div>
+            )}
             <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
               {filteredShowcases.map((card) => {
                 const currentMode = galleryViewMode[card.id] || 'after';
@@ -283,7 +296,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                           onClick={() => toggleCardView(card.id, 'after')}
                           className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors ${
                             currentMode === 'after'
-                              ? 'bg-[#E05328] text-white'
+                              ? 'bg-[#18794E] text-white'
                               : 'text-[#737373] hover:text-[#141414]'
                           }`}
                         >
@@ -302,8 +315,18 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                       {/* Graphic Depiction */}
                       {currentMode === 'after' ? (
                         <div className="flex h-full w-full items-center justify-center animate-in fade-in duration-200">
-                          {card.vectorSvgContent ? (
-                            <img
+                          {card.vectorUrl ? (
+                            <Image
+                              className="h-44 w-44 object-contain drop-shadow-xs"
+                              src={card.vectorUrl}
+                              alt={`${card.title} vector artwork`}
+                              width={176}
+                              height={176}
+                              loading="lazy"
+                              unoptimized
+                            />
+                          ) : card.vectorSvgContent ? (
+                            <Image
                               className="h-44 w-44 object-contain drop-shadow-xs"
                               src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(card.vectorSvgContent)}`}
                               alt={`${card.title} vector artwork`}
@@ -311,25 +334,27 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                               height={176}
                               loading="lazy"
                               decoding="async"
+                              unoptimized
                             />
                           ) : (
                             <svg viewBox="0 0 200 200" className="h-40 w-40 drop-shadow-xs">
                               <circle cx="100" cy="100" r="75" fill="#F9F8F6" stroke="#141414" strokeWidth="4" />
-                              <circle cx="100" cy="100" r="62" fill="none" stroke="#E05328" strokeWidth="2" strokeDasharray="4 3" />
+                              <circle cx="100" cy="100" r="62" fill="none" stroke="#18794E" strokeWidth="2" strokeDasharray="4 3" />
                               <path d="M 100 45 L 120 85 L 165 85 L 130 112 L 142 155 L 100 130 L 58 155 L 70 112 L 35 85 L 80 85 Z" fill="#141414" />
-                              <circle cx="100" cy="100" r="12" fill="#E05328" />
+                              <circle cx="100" cy="100" r="12" fill="#18794E" />
                             </svg>
                           )}
                         </div>
                       ) : (
                         <div className="flex h-full w-full items-center justify-center filter blur-[1.5px] opacity-75 animate-in fade-in duration-200">
                           {card.rasterUrl ? (
-                            <img
+                            <Image
                               src={card.rasterUrl}
                               width={160}
                               height={160}
                               loading="lazy"
                               decoding="async"
+                              unoptimized
                               alt={card.title}
                               className="h-40 w-40 object-contain"
                             />
@@ -390,7 +415,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
         <section id="services" className="py-24 sm:py-32 border-t border-[#EAE8E3] bg-[#F5F4F0]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
-              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#E05328]">
+              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#18794E]">
                 {tServices('eyebrow')}
               </span>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#141414] sm:text-4xl">
@@ -405,7 +430,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               {/* Capability 1 */}
               <div className="rounded-2xl border border-[#EAE8E3] bg-white p-8 shadow-xs hover:border-[#141414] transition-all">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F4F0] text-[#141414]">
-                  <Sparkles className="h-5 w-5 text-[#E05328]" />
+                  <Sparkles className="h-5 w-5 text-[#18794E]" />
                 </div>
                 <h3 className="mt-5 text-base font-bold text-[#141414]">
                   {tServices('c01Title')}
@@ -437,7 +462,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               {/* Capability 3 */}
               <div className="rounded-2xl border border-[#EAE8E3] bg-white p-8 shadow-xs hover:border-[#141414] transition-all">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F4F0] text-[#141414]">
-                  <FileCode className="h-5 w-5 text-[#E05328]" />
+                  <FileCode className="h-5 w-5 text-[#18794E]" />
                 </div>
                 <h3 className="mt-5 text-base font-bold text-[#141414]">
                   {tServices('c03Title')}
@@ -469,7 +494,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               {/* Capability 5 */}
               <div className="rounded-2xl border border-[#EAE8E3] bg-white p-8 shadow-xs hover:border-[#141414] transition-all">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F4F0] text-[#141414]">
-                  <Scissors className="h-5 w-5 text-[#E05328]" />
+                  <Scissors className="h-5 w-5 text-[#18794E]" />
                 </div>
                 <h3 className="mt-5 text-base font-bold text-[#141414]">
                   {tServices('c05Title')}
@@ -505,7 +530,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
         <section id="how-it-works" className="py-24 sm:py-32 bg-white">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
-              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#E05328]">
+              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#18794E]">
                 {tHow('eyebrow')}
               </span>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#141414] sm:text-4xl">
@@ -520,7 +545,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               {/* Step 1 */}
               <div className="rounded-2xl border border-[#EAE8E3] bg-[#F9F8F6] p-6 flex flex-col justify-between">
                 <div>
-                  <span className="font-mono text-xs font-bold text-[#E05328]">STEP 01</span>
+                  <span className="font-mono text-xs font-bold text-[#18794E]">STEP 01</span>
                   <h3 className="mt-3 text-base font-bold text-[#141414]">{tHow('step1Title')}</h3>
                   <p className="mt-2 text-xs leading-relaxed text-[#737373]">
                     {tHow('step1Desc')}
@@ -531,7 +556,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               {/* Step 2 */}
               <div className="rounded-2xl border border-[#EAE8E3] bg-[#F9F8F6] p-6 flex flex-col justify-between">
                 <div>
-                  <span className="font-mono text-xs font-bold text-[#E05328]">STEP 02</span>
+                  <span className="font-mono text-xs font-bold text-[#18794E]">STEP 02</span>
                   <h3 className="mt-3 text-base font-bold text-[#141414]">{tHow('step2Title')}</h3>
                   <p className="mt-2 text-xs leading-relaxed text-[#737373]">
                     {tHow('step2Desc')}
@@ -542,7 +567,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               {/* Step 3 */}
               <div className="rounded-2xl border border-[#EAE8E3] bg-[#F9F8F6] p-6 flex flex-col justify-between">
                 <div>
-                  <span className="font-mono text-xs font-bold text-[#E05328]">STEP 03</span>
+                  <span className="font-mono text-xs font-bold text-[#18794E]">STEP 03</span>
                   <h3 className="mt-3 text-base font-bold text-[#141414]">{tHow('step3Title')}</h3>
                   <p className="mt-2 text-xs leading-relaxed text-[#737373]">
                     {tHow('step3Desc')}
@@ -564,7 +589,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
         <section id="moat" className="py-24 sm:py-32 border-t border-[#EAE8E3] bg-[#F5F4F0]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
-              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#E05328]">
+              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#18794E]">
                 {tMoat('eyebrow')}
               </span>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#141414] sm:text-4xl">
@@ -611,7 +636,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               <div className="rounded-2xl border-2 border-[#141414] bg-white p-8 sm:p-10 shadow-sm">
                 <div className="flex items-center justify-between border-b border-[#141414] pb-4">
                   <h3 className="text-base font-bold text-[#141414]">{tMoat('humanTitle')}</h3>
-                  <span className="font-mono text-xs font-semibold text-[#E05328]">
+                  <span className="font-mono text-xs font-semibold text-[#18794E]">
                     {tMoat('humanSub')}
                   </span>
                 </div>
@@ -635,7 +660,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                   </div>
                 </div>
 
-                <div className="mt-8 rounded-xl bg-[#FDF3F0] p-4 text-[11px] text-[#E05328] font-semibold border border-[#F6CEBF]">
+                <div className="mt-8 rounded-xl bg-[#E9F9EE] p-4 text-[11px] text-[#18794E] font-semibold border border-[#B4DFC4]">
                   {tMoat('humanResult')}
                 </div>
               </div>
@@ -647,7 +672,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
         <section id="pricing" className="py-24 sm:py-32 border-t border-[#EAE8E3] bg-[#F5F4F0]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
-              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#E05328]">
+              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#18794E]">
                 {tPricing('eyebrow')}
               </span>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#141414] sm:text-4xl">
@@ -699,15 +724,15 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               </div>
 
               {/* Tier 2 (Featured) */}
-              <div className="rounded-2xl border-2 border-[#E05328] bg-white p-8 flex flex-col justify-between relative shadow-sm">
+              <div className="rounded-2xl border-2 border-[#18794E] bg-white p-8 flex flex-col justify-between relative shadow-sm">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-[#E05328] px-3.5 py-0.5 font-mono text-[10px] font-bold text-white uppercase tracking-wider">
+                  <span className="rounded-full bg-[#18794E] px-3.5 py-0.5 font-mono text-[10px] font-bold text-white uppercase tracking-wider">
                     {tPricing('tier2Badge')}
                   </span>
                 </div>
 
                 <div>
-                  <div className="font-mono text-xs font-bold text-[#E05328] uppercase tracking-wider">Tier 2</div>
+                  <div className="font-mono text-xs font-bold text-[#18794E] uppercase tracking-wider">Tier 2</div>
                   <h3 className="mt-1 text-xl font-bold text-[#141414]">{tPricing('tier2Title')}</h3>
                   <div className="mt-4 flex items-baseline gap-1">
                     <span className="text-3xl font-extrabold text-[#141414]">
@@ -736,7 +761,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                 <div className="mt-8">
                   <Link
                     href={`${quoteHref}?tier=standard`}
-                    className="flex w-full items-center justify-center rounded-lg bg-[#E05328] py-2.5 text-xs font-bold text-white hover:bg-[#C8461D] transition-colors"
+                    className="flex w-full items-center justify-center rounded-lg bg-[#18794E] py-2.5 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
                   >
                     {tPricing('tier2Btn')}
                   </Link>
@@ -789,7 +814,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
         <section id="faq" className="py-24 sm:py-32 border-t border-[#EAE8E3] bg-white">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#E05328]">
+              <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#18794E]">
                 Studio Answers
               </span>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[#141414] sm:text-4xl">
@@ -810,7 +835,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                     <span>{faq.q}</span>
                     <ChevronDown
                       className={`h-4 w-4 text-[#737373] transition-transform ${
-                        openFaq === idx ? 'rotate-180 text-[#E05328]' : ''
+                        openFaq === idx ? 'rotate-180 text-[#18794E]' : ''
                       }`}
                     />
                   </button>
@@ -828,7 +853,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
         {/* 9. BOTTOM CALL TO ACTION */}
         <section className="py-20 bg-[#141414] text-white">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
-            <span className="font-mono text-xs uppercase tracking-widest text-[#E05328]">
+            <span className="font-mono text-xs uppercase tracking-widest text-[#18794E]">
               {tCta('eyebrow')}
             </span>
             <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -840,7 +865,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href={quoteHref}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#E05328] px-7 py-3 text-xs font-bold text-white hover:bg-[#C8461D] transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-7 py-3 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
               >
                 <span>{tCta('primaryBtn')}</span>
                 <ArrowRight className="h-4 w-4" />

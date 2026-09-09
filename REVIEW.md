@@ -1,4 +1,4 @@
-# Artlantix incelemesi — 7 Eylül 2026
+# Artlantix incelemesi — 10 Eylül 2026
 
 ## Genel değerlendirme
 
@@ -8,6 +8,7 @@ Ancak mevcut ürün çalışan bir demo/prototip. Supabase anahtarlarını eklem
 
 ## Bu incelemede yapılan düzeltmeler
 
+- Turuncu marka vurguları erişilebilir koyu yeşil, hover, açık yüzey ve kenarlık tonlarından oluşan tutarlı bir palete taşındı; bekleme/uyarı anlamındaki amber renkler semantik amaçla korundu.
 - `/login`, `/signup` ve `/auth` yolları dil yönlendirmesinden çıkarıldı. Bu sayfaların `/tr/login` gibi bulunmayan adreslere gitmesi engellendi.
 - Türkçe/Almanca teklif tamamlanınca bulunmayan dil önekli sipariş adresi yerine mevcut `/dashboard/orders/[id]` adresine gidiliyor.
 - Çıkıştan sonra varsayılan demo müşterisinin yeniden otomatik açılması düzeltildi.
@@ -25,7 +26,18 @@ Ancak mevcut ürün çalışan bir demo/prototip. Supabase anahtarlarını eklem
 - Olmayan `#b2b` bağlantısı gerçek B2B sayfasına bağlandı. Sipariş detayı açıldığında siparişler sekmesi aktif kalıyor.
 - Önce/sonra kaydırıcısına klavye ve ekran okuyucu desteği eklendi.
 - Ekspres ücret kırılımı toplam fiyatla aynı hesaplamayı kullanıyor; sıfır özel fiyat yanlışlıkla varsayılana dönmüyor.
-- Şifre sıfırlama düğmesinin e-posta göndermeden “gönderildi” demesi kaldırıldı. Gerçek şifre kurtarma hâlâ yapılmalı.
+- Supabase OAuth dönüş adresi, şifre sıfırlama isteği ve veritabanına profil kaydı tamamlandı; canlı proje üzerinde doğrulama hâlâ gerekli.
+- Teklif seçeneklerini anlatan görsel karmaşıklık kartları ve “çizer değerlendirsin” akışı eklendi. Bu seçim ödeme almadan manuel inceleme kaydı açıyor.
+- Teklif taslağı tarayıcıya otomatik kaydediliyor; önceki sipariş ayarları yeni teklife kopyalanabiliyor.
+- Tahmini teslim tarihi, sonraki adım açıklaması, durum geçmişi ve dakikada bir yenilenen portal bildirimleri eklendi. Sabit SLA yüzdesi gerçek tamamlanma verisinden hesaplanıyor.
+- Önizleme üzerinde yüzde tabanlı revizyon işaretleri ve her işaret için not ekleme eklendi.
+- Müşteri onayı artık işi doğrudan tamamlamıyor; `approved` durumunda master hazırlanmasını bekliyor. İndirmeler yalnızca operatör teslimi tamamladığında açılıyor.
+- Liste sorguları ayrıntı dosyalarını/mesajlarını gereksiz yere çekmiyor; sipariş listesine sayfalama ve mobil kart görünümü eklendi.
+- Görseller `next/image` ile boyutlandırıldı; önceki dört lint uyarısı giderildi.
+- Demo ödeme, B2B parti kaydı ve sözde ZIP çıktısı gerçekte yapmadıkları işlemleri açıkça belirtiyor. Demo portföyü doğrulanmış müşteri işi olarak sunulmuyor.
+- Supabase modunda müşteri, önizleme ve master dosyaları kullanıcı/sipariş klasörüne yükleniyor; önizleme kovası özel hale getirildi ve indirmeler süreli bağlantı kullanıyor.
+- CMS tabloları, portföy kovası ve yönetici politikaları şemaya eklendi. Gerçek servis yazma hataları artık yerel başarıya çevrilmiyor.
+- Türkçe/Almanca teklif, menü, alt bilgi, panel kabuğu ve sipariş listesi tamamlandı; dil seçimi panelden çıkmadan uygulanıyor ve HTML dili tercihi izliyor.
 
 ## Veritabanı güvenlik düzeltmesi
 
@@ -33,38 +45,38 @@ Ancak mevcut ürün çalışan bir demo/prototip. Supabase anahtarlarını eklem
 
 Bu dosya kayıt metadata'sından yönetici olmayı, profil güncellemesinden rol/kimlik değiştirmeyi, başka kullanıcının siparişine mesaj/dosya eklemeyi, müşterinin master dosya kaydı oluşturmasını ve sipariş güncellemesinde fiyat/sahiplik değiştirmesini sınırlar. Müşteri onay/revizyon geçişini önizleme durumuyla sınırlar. Mevcut veritabanındaki yönetici hesapları ayrıca gözden geçirilmelidir; düzeltme geçmişte verilmiş yetkileri kaldırmaz.
 
-Bu tam bir ödeme yetkilendirmesi değildir: müşteri tarafından ilk sipariş oluşturulurken gönderilen fiyat ve durum hâlâ sunucuda hesaplanmalı/doğrulanmalıdır. SQL dosyasını uygulamak tek başına sistemi üretime hazır yapmaz.
+Migration uygulandığında ilk sipariş fiyatı veritabanında CMS taban fiyatları ve seçeneklerden yeniden hesaplanır; istemcinin gönderdiği fiyat/durum üzerine yazılır. Doğrulanmış ödeme webhook'u bulunmadığı için tüm gerçek servis siparişleri güvenli biçimde `quote_requested` başlar. Bu yine tam ödeme yetkilendirmesi değildir ve SQL dosyasını uygulamak tek başına sistemi üretime hazır yapmaz.
 
 ## Öncelikli kalan işler
 
 | Öncelik | Bulgu / kanıt | Önerilen sonuç |
 | --- | --- | --- |
-| P0 | `lib/services/payments.ts`: tüm ödeme seçenekleri simülasyon; gerçek tahsilat yapılmadan `paid` dönebiliyor. Fiyat tarayıcıda hesaplanıp gönderiliyor. | Sunucuda fiyat hesaplama, gerçek ödeme oturumu, doğrulanmış webhook, kalıcı ödeme durumu ve tekrar isteklerinde tek sipariş/tek tahsilat garantisi. |
-| P0 | `lib/services/storage.ts`: AI/PDF/PNG indirme bazı durumlarda gerçek dosya yerine metin üretiyor; ZIP düğmesi `.txt` manifest indiriyor. Teklif dosyaları base64 olarak yerel depoya veya metin alanına gidiyor. | Gerçek özel dosya depolaması, önizleme/final dosyaların ayrı tutulması, ödeme ve sahiplik kontrolüyle süreli indirme; gerçek ZIP paketi. |
-| P0 | `supabase/schema.sql`: önizleme kovası herkese açık. Sipariş INSERT politikası fiyat/durum doğrulamıyor. CMS tabloları ve portföy kovası bu şemada yok. | Müşteri görsellerini özel tutma, sunucu sipariş işlemi, CMS şeması ve eksiksiz RLS entegrasyon testleri. |
-| P1 | Auth servisinde `/auth/callback` hedefi var ama bu route yok. Şifre kurtarma tamamlanmamış. | OAuth kod değişimi, oturum yenileme ve uçtan uca e-posta doğrulama/kurtarma akışı. |
-| P1 | Profil sayfası `setCurrentUserMock` ile kaydediyor; CMS ve mesaj/dosya servislerinde bazı hatalar hâlâ yutuluyor. Sipariş ve ek dosya kaydı tek işlem değil. | Gerçek profil kaydı, demo ve gerçek veri katmanlarının açık ayrımı, tutarlı hata durumları ve atomik sipariş oluşturma. |
-| P1 | B2B kuyruğu sadece başarı mesajı gösteriyor; dosya adları tutuluyor. SLA ve Net-30 durumu sabit gösteriliyor. | Gerçek toplu yükleme, dosya başına teklif, işlem kuyruğu, şirket onayı ve ölçülmüş SLA. |
-| P1 | Türkçe/Almanca sayfalarda birçok metin İngilizce; panel İngilizce. Kök HTML dili sabit `en`. | Tüm metinleri mesaj dosyalarına taşıma, sayfa diline uygun HTML lang ve metadata, panelde dil değiştirme. |
-| P2 | `getOrders` bütün dosyaları ve mesajları liste ekranları için de çekiyor; tüm sonuçlar tek seferde alınıyor. | Özet alanlar + sayfalama; dosyaları/mesajları sadece detay ekranında yükleme. |
+| P0 | Ödeme seçenekleri hâlâ simülasyon. Migration fiyatı veritabanında yeniden hesaplayıp başlangıç durumunu kilitliyor ve ödeme doğrulanana kadar işi teklif kuyruğunda tutuyor; fakat gerçek tahsilat yok. | Gerçek ödeme oturumu, doğrulanmış webhook, kalıcı ödeme durumu ve idempotency. |
+| P0 | Dosyalar özel depoya gidebiliyor fakat yükleme + sipariş + dosya satırı tek işlem değil; gerçek ZIP üretimi yok. | Atomik sunucu işlemi, başarısızlık temizliği, arşiv üretimi ve canlı RLS/depolama entegrasyon testi. |
+| P0 | SQL şeması ve migration hazırlandı fakat canlı Supabase projesine uygulanmadı. | Migration'ı kontrollü ortamda uygulama; sahiplik, rol, OAuth ve dosya erişimi için entegrasyon testleri. |
+| P1 | B2B bölümü yalnızca dürüstçe etiketlenmiş yerel parti taslağıdır. | Gerçek toplu yükleme, dosya başına teklif, işlem kuyruğu, şirket onayı ve faturalama. |
+| P1 | Teklif/menü/alt bilgi/panel kabuğu/sipariş listesi çevrildi; sipariş detayı, hesap, B2B ve yönetici içeriklerinin bir bölümü İngilizce. | Kalan metinleri mesaj dosyalarına taşıma ve yerelleştirilmiş metadata. |
+| P2 | Liste ayrıntı yükleri ayrıldı ve istemci sayfalaması eklendi; uzak sorgu yine tüm özet siparişleri tek seferde alıyor. | Veritabanı düzeyinde sayfalama, arama ve filtreleme. |
 | P2 | Ana sayfa geniş bir client component; içerik yüklemesi tarayıcı effect'lerine bağlı. | Statik pazarlama bölümlerini sunucuda oluşturma, etkileşimli parçaları ayırma, CMS içeriklerinin kontrollü önbelleği. |
 | P2 | Görsellerde henüz gerçek boyutlandırılmış küçük resim/CDN akışı yok. | Yüklemede küçük resim üretimi, uygun boyutlar ve WebP/AVIF varyantları; ardından gerçek LCP/INP ölçümü. |
 
 ## Ürün için öneriler
 
-1. **Önce güvenilir sipariş çekirdeği:** Gerçek ödeme, dosya saklama, müşteri sahipliği ve operatör teslim akışı. Kullanıcı bir siparişi başka cihazdan açtığında aynı dosyaları ve durumu görmeli.
-2. **Teklif taslağını kaydetme:** Kullanıcı sayfayı kapatıp geri geldiğinde çizim seçenekleri ve dosyası kaybolmasın. Girişe yönlendirilirken teklif korunsun.
-3. **Ölçülebilir üretim takibi:** Tahmini teslim tarihi, atanmış çizer, durum geçmişi ve gecikme bildirimi. Sabit yüzde göstergesi yerine gerçek veriden hesaplama.
-4. **Görsel üstüne revizyon notu:** Dosyanın sürümünü ve işaretlenen konumu notla bağlamak, “şurayı değiştir” mesajlarını anlaşılır yapar.
-5. **B2B tekrar sipariş:** Önceki işten üretim ayarlarını kopyalama, toplu yükleme, şirket üyeleri ve satın alma referansı.
-6. **Gerçek örneklerle güven:** Aynı örnek SVG yerine gerçek önce/sonra işleri; teslim edilen format ve izin verilen kullanım konusunda doğrulanabilir açıklamalar.
+Önerilerin uygulanma durumu:
+
+1. **Güvenilir sipariş çekirdeği — kısmi:** özel depolama, gerçek dosya yükleme, onay/teslim ayrımı ve hata görünürlüğü eklendi; gerçek ödeme ve atomik sunucu işlemi dış servis olmadan tamamlanamaz.
+2. **Teklif taslağı — tamamlandı:** form seçenekleri ve küçük demo dosyası korunuyor; üretim depolamasında tarayıcı yenilenirse güvenlik nedeniyle dosya yeniden seçilebilir.
+3. **Ölçülebilir üretim takibi — büyük ölçüde tamamlandı:** teslim tahmini, atanmış çizer, geçmiş, sonraki adım, gecikme/eylem bildirimi ve gerçek veriden SLA oranı var. Harici e-posta/SMS otomasyonu yok.
+4. **Görsel üstüne revizyon notu — tamamlandı:** konum ve açıklama siparişle kaydediliyor; gerçek önizleme varsa onun üzerinde gösteriliyor.
+5. **B2B tekrar sipariş — kısmi:** önceki ayarları kopyalama tamam; toplu bölüm artık yalnızca yerel taslak olduğunu söylüyor. Şirket üyeleri ve gerçek kuyruk yok.
+6. **Gerçek örneklerle güven — güvenli sunum tamamlandı:** demo örnekleri açıkça yer tutucu olarak etiketlendi. Gerçek müşteri örnekleri ancak izinli içerik sağlandığında eklenebilir.
 
 ## Doğrulama ve sınırlar
 
 - Üretim derlemesi ve TypeScript kontrolü geçti.
-- `tests/regressions.mjs`: çıkış, gerçek oturumun demo admin'e düşmemesi, fiyat seçeneklerinin tutarlılığı, dosya doğrulama ve okuma hatası için 5 test.
-- Tarayıcıda `/login` açılması, müşteriyle `/admin/orders` ziyaretinin `/dashboard` yönlendirmesi ve Türkçe teklif sayfasının geçersiz tier ile açılması kontrol edildi.
-- Lint: hata yok; native `<img>` için 4 performans uyarısı var. SVG'yi görsel olarak yalıtma bilinçli; otomatik görsel optimizasyonu ayrıca ele alınmalı.
+- `tests/regressions.mjs`: kimlik, fiyat, dosya doğrulama, sanatçı değerlendirmesi, teslim tarihi ve dallanan durum geçmişi için 8 test geçti.
+- Tarayıcıda Türkçe teklif adımları, çevrilmiş alt bilgi/menü, panelde yerinde dil değiştirme ve dar ekranda sipariş kartları kontrol edildi.
+- Lint: hata ve uyarı yok. Üretim derlemesi ve TypeScript kontrolü geçti.
 - Gerçek Supabase hesabı, ödeme sağlayıcısı ve canlı dosya altyapısıyla uçtan uca test yapılmadı. Veritabanı migration'ı uygulanmadı.
 - Lighthouse veya gerçek kullanıcı ölçümü yapılmadı; sayısal hız artışı iddia edilmiyor. Tam mobil/erişilebilirlik denetimi yapılmadı.
 - Bu rapor inceleme düzeltmeleriyle birlikte sürümlenir; commit ve uzak depo durumunun kaynağı Git geçmişidir.

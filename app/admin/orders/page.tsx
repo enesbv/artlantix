@@ -11,6 +11,7 @@ import {
   addOperatorDeliverable,
 } from '@/lib/services/orders';
 import { getCurrentUser } from '@/lib/services/auth';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { Order, OrderStatus, UserProfile } from '@/lib/types';
 import {
   ShieldCheck,
@@ -35,15 +36,17 @@ export default function AdminOrdersPage() {
   const [operatorMessage, setOperatorMessage] = useState('');
   const [selectedDeliverableFormat, setSelectedDeliverableFormat] = useState<'svg' | 'ai' | 'eps' | 'pdf'>('svg');
   const [deliverableFilename, setDeliverableFilename] = useState('');
+  const [deliverableFile, setDeliverableFile] = useState<File | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       const u = await getCurrentUser();
       setCurrentUser(u);
       // Admin sees ALL orders
-      const list = await getOrders(undefined, true);
+      const list = await getOrders(undefined, true, true);
       setOrders(list);
     }
     load();
@@ -54,6 +57,8 @@ export default function AdminOrdersPage() {
     setNewStatus(order.status);
     setAdjustedPrice(order.final_price || order.estimated_price);
     setDeliverableFilename(`${order.project_name.replace(/\s+/g, '-')}-Master.svg`);
+    setDeliverableFile(null);
+    setActionError(null);
     setOperatorMessage('');
     setModalOpen(true);
   };
@@ -61,13 +66,28 @@ export default function AdminOrdersPage() {
   const handleApplyOperatorUpdates = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
+    if (isSupabaseConfigured() && ['preview_ready', 'completed'].includes(newStatus) && !deliverableFile) {
+      setActionError('Choose the real preview or master file before setting this delivery status.');
+      return;
+    }
     setIsSubmittingAction(true);
+    setActionError(null);
 
     try {
-      // 1. Update status and final price
-      await updateOrderStatus(selectedOrder.id, newStatus, adjustedPrice);
+      // Upload first so a delivery status is never shown without its file.
+      if (deliverableFile || (!isSupabaseConfigured() && deliverableFilename.trim())) {
+        const category = newStatus === 'completed' ? 'final_master' : 'preview_watermarked';
+        await addOperatorDeliverable(
+          selectedOrder.id,
+          category,
+          selectedDeliverableFormat,
+          deliverableFilename.trim() || deliverableFile?.name || `deliverable.${selectedDeliverableFormat}`,
+          deliverableFile || undefined
+        );
+      }
 
-      // 2. Post message if entered
+      await updateOrderStatus(selectedOrder.id, newStatus, adjustedPrice, undefined, currentUser?.full_name);
+
       if (operatorMessage.trim()) {
         await addOrderMessage(
           selectedOrder.id,
@@ -78,23 +98,14 @@ export default function AdminOrdersPage() {
         );
       }
 
-      // 3. If operator attached a deliverable file
-      if (deliverableFilename.trim()) {
-        const category = newStatus === 'completed' ? 'final_master' : 'preview_watermarked';
-        await addOperatorDeliverable(
-          selectedOrder.id,
-          category,
-          selectedDeliverableFormat,
-          deliverableFilename.trim()
-        );
-      }
-
       // Refresh orders
-      const updatedList = await getOrders(undefined, true);
+      const updatedList = await getOrders(undefined, true, true);
       setOrders(updatedList);
       setActionNotice(`Order ${selectedOrder.order_number} successfully updated!`);
       setTimeout(() => setActionNotice(null), 3000);
       setModalOpen(false);
+    } catch (error: unknown) {
+      setActionError(error instanceof Error ? error.message : 'The operator update could not be saved.');
     } finally {
       setIsSubmittingAction(false);
     }
@@ -121,7 +132,7 @@ export default function AdminOrdersPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <div className="flex h-7 w-7 items-center justify-center rounded bg-[#111111] text-white">
-                <ShieldCheck className="h-4 w-4 text-[#E25C34]" />
+                <ShieldCheck className="h-4 w-4 text-[#18794E]" />
               </div>
               <div>
                 <h1 className="text-base font-bold text-[#111111]">
@@ -145,7 +156,7 @@ export default function AdminOrdersPage() {
           <nav className="flex space-x-6 border-t border-[#EAE8E3]/60 pt-1 pb-1 font-mono text-xs mt-3">
             <Link
               href="/admin/orders"
-              className="inline-flex items-center gap-1.5 border-b-2 border-[#E05328] py-2 font-bold text-[#E05328] transition-colors"
+              className="inline-flex items-center gap-1.5 border-b-2 border-[#18794E] py-2 font-bold text-[#18794E] transition-colors"
             >
               <Layers className="h-3.5 w-3.5" />
               <span>Production Queue</span>
@@ -228,7 +239,8 @@ export default function AdminOrdersPage() {
                     quote_requested: { label: 'Quote Requested', bg: 'bg-amber-50 text-amber-800 border-amber-200 font-bold' },
                     in_review: { label: 'In Review', bg: 'bg-blue-50 text-blue-800 border-blue-200' },
                     in_progress: { label: 'In Progress', bg: 'bg-purple-50 text-purple-800 border-purple-200' },
-                    preview_ready: { label: 'Preview Ready', bg: 'bg-orange-50 text-[#E25C34] border-orange-200 font-bold' },
+                    preview_ready: { label: 'Preview Ready', bg: 'bg-[#E9F9EE] text-[#18794E] border-[#B4DFC4] font-bold' },
+                    approved: { label: 'Approved · Packaging', bg: 'bg-blue-50 text-blue-800 border-blue-200 font-bold' },
                     revision_requested: { label: 'Revision Requested', bg: 'bg-yellow-50 text-yellow-800 border-yellow-200 font-bold' },
                     completed: { label: 'Completed', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
                     cancelled: { label: 'Cancelled', bg: 'bg-gray-100 text-gray-700 border-gray-200' },
@@ -264,7 +276,7 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-6 py-4 text-[#555555]">
                         {order.turnaround === 'express' ? (
-                          <span className="font-bold text-[#E25C34]">Express (&lt;16h)</span>
+                          <span className="font-bold text-[#18794E]">Express (&lt;16h)</span>
                         ) : (
                           'Standard'
                         )}
@@ -282,7 +294,7 @@ export default function AdminOrdersPage() {
                             onClick={() => openOperatorModal(order)}
                             className="inline-flex items-center gap-1 rounded bg-[#111111] px-3 py-1.5 text-xs font-bold text-white hover:bg-black transition-colors"
                           >
-                            <PenTool className="h-3 w-3 text-[#E25C34]" />
+                            <PenTool className="h-3 w-3 text-[#18794E]" />
                             <span>Operator Action</span>
                           </button>
                         </div>
@@ -303,7 +315,7 @@ export default function AdminOrdersPage() {
             <div className="flex items-center justify-between border-b border-[#E6E4DF] pb-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-[#E25C34]" />
+                  <ShieldCheck className="h-4 w-4 text-[#18794E]" />
                   <h3 className="text-sm font-bold text-[#111111]">
                     Operator Action: {selectedOrder.order_number}
                   </h3>
@@ -332,6 +344,7 @@ export default function AdminOrdersPage() {
                   <option value="in_review">In Review (Verifying artwork feasibility)</option>
                   <option value="in_progress">In Progress (Designer actively redrawing paths)</option>
                   <option value="preview_ready">Preview Ready (Watermarked draft uploaded to portal)</option>
+                  <option value="approved">Approved (Preparing master package)</option>
                   <option value="revision_requested">Revision Requested (Client adjusting feedback)</option>
                   <option value="completed">Completed (Unlock full master vectors)</option>
                 </select>
@@ -353,7 +366,7 @@ export default function AdminOrdersPage() {
                 </span>
               </div>
 
-              {/* Deliverable File Upload Simulation */}
+              {/* Deliverable file */}
               <div className="border-t border-[#E6E4DF] pt-3">
                 <label className="block font-bold text-[#111111]">
                   Attach Vector Deliverable / Preview File
@@ -377,7 +390,28 @@ export default function AdminOrdersPage() {
                     className="flex-1 rounded border border-[#E6E4DF] bg-white p-2 text-xs text-[#111111]"
                   />
                 </div>
+                <input
+                  type="file"
+                  accept=".svg,.ai,.eps,.pdf,.png"
+                  onChange={(event) => {
+                    const nextFile = event.target.files?.[0] || null;
+                    setDeliverableFile(nextFile);
+                    if (nextFile) {
+                      setDeliverableFilename(nextFile.name);
+                      const extension = nextFile.name.split('.').pop()?.toLowerCase();
+                      if (extension && ['svg', 'ai', 'eps', 'pdf'].includes(extension)) {
+                        setSelectedDeliverableFormat(extension as 'svg' | 'ai' | 'eps' | 'pdf');
+                      }
+                    }
+                  }}
+                  className="mt-2 block w-full text-[11px] text-[#666] file:mr-3 file:rounded file:border-0 file:bg-[#141414] file:px-3 file:py-2 file:text-[11px] file:font-bold file:text-white"
+                />
+                <p className="mt-1 text-[10px] text-[#888]">
+                  {isSupabaseConfigured() ? 'A real file is required for preview-ready and completed statuses.' : 'Demo mode can create a placeholder from the filename.'}
+                </p>
               </div>
+
+              {actionError && <p role="alert" className="rounded bg-red-50 p-3 text-[11px] font-medium text-red-700">{actionError}</p>}
 
               {/* Message to Customer */}
               <div className="border-t border-[#E6E4DF] pt-3">
@@ -405,7 +439,7 @@ export default function AdminOrdersPage() {
                 <button
                   type="submit"
                   disabled={isSubmittingAction}
-                  className="inline-flex items-center gap-1.5 rounded bg-[#E25C34] px-5 py-2 text-xs font-bold text-white hover:bg-[#D94A26] disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded bg-[#18794E] px-5 py-2 text-xs font-bold text-white hover:bg-[#18794E] disabled:opacity-50"
                 >
                   <span>{isSubmittingAction ? 'Saving...' : 'Apply Updates & Notify Client'}</span>
                 </button>

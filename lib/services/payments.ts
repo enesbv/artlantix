@@ -33,23 +33,15 @@ export async function processCheckout(input: CheckoutSessionInput): Promise<Chec
       success: true,
       transactionId: `INV-B2B-${Date.now()}`,
       status: 'invoice_issued',
-      message: 'Order added to your corporate monthly invoice account (Net-30 terms). Production starts immediately.',
+      message: 'Demo invoice recorded. No real invoice was issued; connect a billing provider before production use.',
     };
   }
 
-  // Simulated instant card payment
+  // Demo-only card result. No payment provider is called by this repository.
   return {
     success: true,
     transactionId: `tx_mock_${Date.now()}`,
     status: 'paid',
-    message: `Payment of $${input.amount} processed successfully. Your order is queued for production.`,
-    receiptUrl: `https://artlantix.com/receipts/${input.orderNumber}`,
+    message: `Demo checkout recorded for $${input.amount}. No card was charged.`,
   };
-}
-
-export function isStripeConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
-    !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.includes('placeholder')
-  );
 }

@@ -14,8 +14,20 @@
     "portal": "Kundenportal",
     "signOut": "Abmelden",
     "persona": "Rolle",
-    "guarantee": "100% Handgezeichnete Vektoren · Keine automatische Nachzeichnung"
+    "guarantee": "100% Handgezeichnete Vektoren · Keine automatische Nachzeichnung",
+    "studio": "Artwork-Studio", "demoOperator": "Elena (Demo-QA)", "demoCustomer": "Alex (Demo-Kunde)", "guest": "Gastmodus", "switchDemo": "Demo-Konto wechseln", "clientAccount": "Kundenkonto", "clientDescription": "Alex Morgan (Portal und Archiv)", "operatorAccount": "Operator / QA", "operatorDescription": "Elena Vance (Produktionswarteschlange)", "toggleMenu": "Menü öffnen oder schließen", "language": "Sprache"
   },
+  "footer": {
+    "description": "Artlantix ist ein Workflow für ein Studio zur manuellen Vektorisierung und Bildrekonstruktion – von Angebot und Prüfung bis Revision und Lieferung.",
+    "craftsmanship": "Manueller Rekonstruktionsprozess · Keine Auto-Trace-Behauptung",
+    "deliverables": "Geplante Formate", "capabilities": "Leistungen", "aiLogo": "Rekonstruktion von KI-Logoentwürfen", "raster": "Rastergrafik zu sauberem Vektor", "typography": "Schrift- und Typografie-Neuaufbau", "screenPrint": "Siebdruck- und DTF-Farbseparation", "cnc": "Folienplot- und CNC-Vorbereitung", "platform": "Plattform", "quote": "Angebotsrechner", "portal": "Kundenportal", "vault": "Artwork-Archiv", "business": "B2B-Planungsbereich", "operator": "Operator-Warteschlange", "standards": "Studio-Ziele", "deliveryTarget": "24–48 Std. Standard-Lieferziel", "revisionPolicy": "Vor Bestellung erklärte Revisionsrichtlinie", "curves": "Pfad- und Kurvenqualitätsprüfung", "rights": "Nutzungsrechte werden je Projekt bestätigt", "privacy": "Private Kunden- und Lieferdateien", "copyright": "Workflow für manuelle Vektorproduktion.", "terms": "Bedingungen", "license": "Kommerzielle Lizenz", "privacyPolicy": "Datenschutz", "security": "Sicherheit"
+  },
+  "dashboard": {
+    "title": "Kunden-Produktionsportal", "partner": "B2B-Geschäftspartner", "loggedIn": "Angemeldet als", "client": "Kunde", "adminDesk": "Produktionsbereich (Admin)", "newQuote": "Neues Projektangebot", "overview": "Übersicht", "orders": "Meine Aufträge", "vault": "Artwork-Archiv", "business": "B2B-Studio", "account": "Konto und Abrechnung", "notificationCount": "{count} Auftragsmeldungen", "updates": "Auftragsaktualisierungen", "caughtUp": "Alle Meldungen sind gelesen.", "dismissNotification": "Meldung für {project} schließen", "overdue": "Voraussichtlicher Liefertermin überschritten"
+  },
+  "orderStatus": {"quote_requested":"Angebot angefragt","in_review":"In Prüfung","in_progress":"In Bearbeitung","preview_ready":"Vorschau bereit","approved":"Freigegeben · Wird verpackt","revision_requested":"Revision angefragt","completed":"Abgeschlossen","cancelled":"Storniert"},
+  "ordersPage": {"title":"Auftragsverlauf und Projekte","description":"Rekonstruktionen prüfen, Revisionen verfolgen und Produktionsdateien abrufen.","newQuote":"Neues Projektangebot","all":"Alle Aufträge","active":"Aktiv","preview":"Vorschau bereit","review":"In Prüfung","completed":"Abgeschlossene Master","search":"Auftragsnummer oder Titel suchen...","emptyTitle":"Keine Aufträge gefunden","emptySearch":"Keine Aufträge entsprechen der Suche.","emptyCategory":"In dieser Kategorie gibt es keine Aufträge.","startProject":"Neues Projekt starten","expected":"Voraussichtlich","manage":"Verwalten","orderNumber":"Auftrag #","project":"Projekt","type":"Typ","complexity":"Komplexität","status":"Status","turnaround":"Lieferzeit","price":"Preis","details":"Details","express":"Express (<16 Std.)","standard":"Standard (24–48 Std.)","showing":"{start}–{end} von {total}","previous":"Vorherige Seite","next":"Nächste Seite"},
+  "passwordReset": {"title":"Neues Passwort wählen","description":"Öffnen Sie diese Seite über den sicheren Wiederherstellungslink in Ihrer E-Mail.","newPassword":"Neues Passwort","confirm":"Passwort bestätigen","update":"Passwort aktualisieren","updating":"Wird aktualisiert…","return":"Zurück zur Anmeldung","lengthError":"Verwenden Sie mindestens 8 Zeichen.","matchError":"Die Passwörter stimmen nicht überein.","demoError":"Die Passwortwiederherstellung ist im Demo-Modus nicht verfügbar.","success":"Ihr Passwort wurde aktualisiert."},
   "hero": {
     "eyebrow": "Kreativ-Produktionsstudio · Manuelle Vektorkonstruktion",
     "titlePrefix": "Verwandeln Sie KI-Entwürfe & unscharfe Vorlagen in",
@@ -45,7 +57,9 @@
     "vectorMaster": "Vektor-Master",
     "pointsLabel": "Geometrie:",
     "toleranceLabel": "Toleranz:",
-    "uploadCta": "Vorlage zur Rekonstruktion hochladen"
+    "uploadCta": "Vorlage zur Rekonstruktion hochladen",
+    "demoNotice": "Demo-Galerie — diese Beispiele sind Platzhalter und keine verifizierten Kundenarbeiten.",
+    "empty": "Es wurden noch keine verifizierten Portfolio-Beispiele veröffentlicht."
   },
   "services": {
     "eyebrow": "Leistungsspektrum & Fachbereiche",
@@ -152,6 +166,33 @@
     "fullName": "Vollständiger Name",
     "workEmail": "Geschäftliche E-Mail (für Vorschaubenachrichtigung)",
     "paymentTitle": "Zahlungs- & Freigabemethode",
-    "submitBtn": "Auftrag Bestätigen & Absenden"
+    "submitBtn": "Auftrag Bestätigen & Absenden",
+    "complexityGuide": {
+      "title": "Wie detailreich ist Ihre Vorlage?",
+      "intro": "Wählen Sie das ähnlichste Beispiel. Wenn Sie unsicher sind, lassen Sie einen Zeichner entscheiden.",
+      "simpleTitle": "Einfach",
+      "simpleDescription": "Ein Symbol oder flaches Logo mit wenigen Details. Beispiel: ein einfarbiges Markenzeichen.",
+      "standardTitle": "Mittel",
+      "standardDescription": "Ein Logo oder Abzeichen aus mehreren Teilen. Beispiel: ein Vereinswappen mit Stern.",
+      "complexTitle": "Komplex",
+      "complexDescription": "Viele feine Linien und kleine Details. Beispiel: eine botanische Gravur oder ein detailliertes Maskottchen.",
+      "from": "Ab ${price}",
+      "examples": "Die Zeichnungen zeigen beispielhafte Detailstufen. Schriftkorrektur, Farben und Lieferzeit können den Preis ändern.",
+      "reviewTitle": "Unsicher — vom Zeichner bewerten lassen",
+      "reviewDescription": "Wir prüfen Ihre Vorlage und bestimmen Aufwand und Preis. Der angezeigte Betrag ist nur eine vorläufige Schätzung. Jetzt wird nichts berechnet; vor Produktionsbeginn müssen Sie den Preis bestätigen.",
+      "estimate": "Vorläufige Schätzung",
+      "priceNote": "USD · Schätzung anhand Ihrer Auswahl",
+      "zeroDue": "Jetzt fällig: $0",
+      "submitReview": "Bewertung anfordern"
+    },
+    "draft": {
+      "restored": "Ihr gespeicherter Angebotsentwurf wurde wiederhergestellt.",
+      "reorder": "Die Produktionseinstellungen des vorherigen Auftrags wurden in eine neue Variante kopiert.",
+      "saved": "Ihr Angebotsentwurf wurde automatisch in diesem Browser gespeichert.",
+      "clear": "Entwurf löschen"
+    },
+    "ui": {
+      "aiLogo": "KI-Logoentwurf", "lowRes": "Niedrig aufgelöste Vorlage", "lowResDesc": "Rastergrafik in geringer Qualität", "handDrawing": "Handzeichnung", "handDrawingDesc": "Skizze auf Papier", "typography": "Schrift und Typografie", "typographyDesc": "Individueller Schriftzug", "mascot": "Maskottchen oder Wappen", "mascotDesc": "Detaillierter Charakter", "apparel": "Textil oder Beschilderung", "apparelDesc": "Druck- oder Schnittkontur", "clean": "Saubere Vorlage", "cleanDesc": "Scharfe Kanten; Pfade können direkt nachgezeichnet werden", "moderate": "Mittlere Reparatur", "moderateDesc": "Unscharfe Kanten und fehlende Teile werden rekonstruiert", "heavy": "Intensive Restaurierung", "heavyDesc": "Starke Pixelbildung und manuelle Neuzeichnung", "oneTwoColors": "1–2 Volltonfarben", "threeFiveColors": "3–5 Farben", "sixPlusColors": "6+ Farben", "gradients": "Verläufe oder Mesh", "included": "Inklusive", "standard": "Standardlieferung", "standardDesc": "24–48 Stunden", "express": "Prioritäts-Express", "expressDesc": "Lieferung innerhalb 12–16 Stunden", "notesPlaceholder": "Produktionsverfahren, minimale Linienstärke, Farbcodes oder weitere Anforderungen...", "backUpload": "Zurück zum Upload", "continueReview": "Weiter zur Prüfung und Bestellung", "deliverables": "Enthaltene Formate:", "card": "Kredit- oder Debitkarte", "cardDesc": "Die Produktion beginnt nach der Zahlung", "payAfter": "Nach Künstlerprüfung bezahlen", "payAfterDesc": "Jetzt keine Zahlung; Preis nach der Prüfung bestätigen", "b2b": "Geschäftskonto / Zahlungsziel", "b2bDesc": "Abrechnung über ein genehmigtes Firmenkonto", "net30": "30-Tage-Rechnung", "backSpecs": "Zurück zu den Angaben", "submitting": "Auftrag wird gesendet...", "demoCheckout": "Demo-Zahlung: In dieser Version werden keine Karten belastet und keine echten Rechnungen erstellt. Vor dem Produktiveinsatz muss ein Zahlungsanbieter verbunden werden.", "defaultProject": "Mein Vektorprojekt", "ready": "Bereit zum manuellen Nachzeichnen", "uploaded": "Hochgeladen", "changeFile": "Datei ändern", "projectPlaceholder": "z. B. Rekonstruktion eines Falkenwappens", "namePlaceholder": "z. B. Alex Morgan", "emailPlaceholder": "z. B. alex@designstudio.de", "geometryBase": "Geometrie-Grundpreis", "fontRebuild": "Schrift- und Buchstabenrekonstruktion", "heavyRebuild": "Intensive Geometrie-Rekonstruktion", "missingRebuild": "Rekonstruktion fehlender oder unscharfer Details", "gradientSeparation": "Komplexe Verlaufsseparation", "colorSeparation": "{count} Farbseparation", "expressDispatch": "Prioritäts-Expressbearbeitung"
+    }
   }
 }

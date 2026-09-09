@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import AccessGate from '@/components/AccessGate';
+import OrderNotifications from '@/components/OrderNotifications';
 import { getCurrentUser } from '@/lib/services/auth';
 import { UserProfile } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 import {
   LayoutDashboard,
   Layers,
@@ -23,6 +25,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const t = useTranslations('dashboard');
   const [user, setUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -32,11 +35,11 @@ export default function DashboardLayout({
   }, [pathname]);
 
   const navItems = [
-    { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'My Orders', href: '/dashboard/orders', icon: Layers },
-    { label: 'Artwork Vault', href: '/dashboard/artwork', icon: Archive },
-    { label: 'B2B Studio Hub', href: '/dashboard/business', icon: Building2 },
-    { label: 'Account & Billing', href: '/dashboard/account', icon: User },
+    { label: t('overview'), href: '/dashboard', icon: LayoutDashboard },
+    { label: t('orders'), href: '/dashboard/orders', icon: Layers },
+    { label: t('vault'), href: '/dashboard/artwork', icon: Archive },
+    { label: t('business'), href: '/dashboard/business', icon: Building2 },
+    { label: t('account'), href: '/dashboard/account', icon: User },
   ];
 
   return (
@@ -49,36 +52,37 @@ export default function DashboardLayout({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold tracking-tight text-[#141414]">
-                  Client Production Portal
+                  {t('title')}
                 </h1>
                 {user?.account_type === 'business' && (
-                  <span className="rounded-full bg-[#FDF3F0] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#E05328] border border-[#F6CEBF]">
-                    B2B Commercial Partner
+                  <span className="rounded-full bg-[#E9F9EE] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#18794E] border border-[#B4DFC4]">
+                    {t('partner')}
                   </span>
                 )}
               </div>
               <p className="text-xs text-[#737373] mt-1">
-                Logged in as <strong className="text-[#141414]">{user?.full_name || 'Client'}</strong> ({user?.email})
+                {t('loggedIn')} <strong className="text-[#141414]">{user?.full_name || t('client')}</strong> ({user?.email})
               </p>
             </div>
 
             <div className="flex items-center gap-3">
+              <OrderNotifications />
               {user?.is_admin && (
                 <Link
                   href="/admin/orders"
                   className="inline-flex items-center gap-1.5 rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2 text-xs font-bold text-[#141414] hover:border-[#141414] transition-colors"
                 >
-                  <ShieldCheck className="h-4 w-4 text-[#E05328]" />
-                  <span>Production Desk (Admin)</span>
+                  <ShieldCheck className="h-4 w-4 text-[#18794E]" />
+                  <span>{t('adminDesk')}</span>
                 </Link>
               )}
 
               <Link
                 href="/quote"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#E05328] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#C8461D] transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span>New Project Quote</span>
+                <span>{t('newQuote')}</span>
               </Link>
             </div>
           </div>
@@ -94,7 +98,7 @@ export default function DashboardLayout({
                   href={item.href}
                   className={`inline-flex items-center gap-1.5 border-b-2 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
                     isActive
-                      ? 'border-[#E05328] text-[#E05328] font-bold'
+                      ? 'border-[#18794E] text-[#18794E] font-bold'
                       : 'border-transparent text-[#737373] hover:border-[#CCCCCC] hover:text-[#141414]'
                   }`}
                 >

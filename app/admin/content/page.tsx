@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import {
@@ -56,6 +57,7 @@ export default function AdminContentPage() {
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [isCreatingShowcase, setIsCreatingShowcase] = useState(false);
   const [showcaseNotice, setShowcaseNotice] = useState<string | null>(null);
+  const [operationError, setOperationError] = useState<string | null>(null);
 
   const rasterInputRef = useRef<HTMLInputElement>(null);
   const vectorInputRef = useRef<HTMLInputElement>(null);
@@ -65,11 +67,13 @@ export default function AdminContentPage() {
       const u = await getCurrentUser();
       setCurrentUser(u);
 
-      const s = await getSiteSettings();
-      setSettings(s);
-
-      const items = await getPortfolioItems(false);
-      setShowcases(items);
+      try {
+        const [s, items] = await Promise.all([getSiteSettings(), getPortfolioItems(false)]);
+        setSettings(s);
+        setShowcases(items);
+      } catch (error: unknown) {
+        setOperationError(error instanceof Error ? error.message : 'Content could not be loaded.');
+      }
     }
     loadData();
   }, []);
@@ -78,11 +82,14 @@ export default function AdminContentPage() {
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingSettings(true);
+    setOperationError(null);
     try {
       const saved = await updateSiteSettings(settings);
       setSettings(saved);
       setSettingsNotice('Homepage copy and baseline rates published successfully.');
       setTimeout(() => setSettingsNotice(null), 3500);
+    } catch (error: unknown) {
+      setOperationError(error instanceof Error ? error.message : 'Settings could not be saved.');
     } finally {
       setIsSavingSettings(false);
     }
@@ -91,10 +98,14 @@ export default function AdminContentPage() {
   // Reset site settings
   const handleResetSettings = async () => {
     if (!confirm('Reset all copy and rates to studio defaults?')) return;
-    const reset = await resetSiteSettings();
-    setSettings(reset);
-    setSettingsNotice('Restored studio default settings.');
-    setTimeout(() => setSettingsNotice(null), 3000);
+    try {
+      const reset = await resetSiteSettings();
+      setSettings(reset);
+      setSettingsNotice('Restored studio default settings.');
+      setTimeout(() => setSettingsNotice(null), 3000);
+    } catch (error: unknown) {
+      setOperationError(error instanceof Error ? error.message : 'Settings could not be reset.');
+    }
   };
 
   // Handle Raster file selection
@@ -104,6 +115,8 @@ export default function AdminContentPage() {
       try {
         const url = await uploadShowcaseMedia(e.target.files[0], 'raster');
         setNewRasterUrl(url);
+      } catch (error: unknown) {
+        setOperationError(error instanceof Error ? error.message : 'Original image upload failed.');
       } finally {
         setIsUploadingMedia(false);
       }
@@ -117,6 +130,8 @@ export default function AdminContentPage() {
       try {
         const url = await uploadShowcaseMedia(e.target.files[0], 'vector');
         setNewVectorUrl(url);
+      } catch (error: unknown) {
+        setOperationError(error instanceof Error ? error.message : 'Vector preview upload failed.');
       } finally {
         setIsUploadingMedia(false);
       }
@@ -140,6 +155,7 @@ export default function AdminContentPage() {
         badge: newBadge.trim(),
         description: newDesc.trim() || 'Precision manual reconstruction from degraded concept into press-ready curves.',
         rasterUrl: newRasterUrl,
+        vectorUrl: newVectorUrl || undefined,
         active: newActive,
       });
 
@@ -152,6 +168,8 @@ export default function AdminContentPage() {
       setNewVectorUrl('');
       setShowcaseNotice('New Before/After showcase added to homepage catalog.');
       setTimeout(() => setShowcaseNotice(null), 3500);
+    } catch (error: unknown) {
+      setOperationError(error instanceof Error ? error.message : 'Showcase could not be created.');
     } finally {
       setIsCreatingShowcase(false);
     }
@@ -159,17 +177,23 @@ export default function AdminContentPage() {
 
   // Toggle active status
   const handleToggleActive = async (id: string, currentActive: boolean) => {
-    const updated = await updatePortfolioItem(id, { active: !currentActive });
-    if (updated) {
-      setShowcases(showcases.map((s) => (s.id === id ? { ...s, active: !currentActive } : s)));
+    try {
+      const updated = await updatePortfolioItem(id, { active: !currentActive });
+      if (updated) setShowcases(showcases.map((s) => (s.id === id ? { ...s, active: !currentActive } : s)));
+    } catch (error: unknown) {
+      setOperationError(error instanceof Error ? error.message : 'Showcase could not be updated.');
     }
   };
 
   // Delete showcase
   const handleDeleteShowcase = async (id: string) => {
     if (!confirm('Are you sure you want to remove this showcase from the catalog?')) return;
-    await deletePortfolioItem(id);
-    setShowcases(showcases.filter((s) => s.id !== id));
+    try {
+      await deletePortfolioItem(id);
+      setShowcases(showcases.filter((s) => s.id !== id));
+    } catch (error: unknown) {
+      setOperationError(error instanceof Error ? error.message : 'Showcase could not be deleted.');
+    }
   };
 
   return (
@@ -182,7 +206,7 @@ export default function AdminContentPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between py-6 gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-[#E05328]" />
+                <ShieldCheck className="h-5 w-5 text-[#18794E]" />
                 <h1 className="text-xl font-bold tracking-tight text-[#141414]">
                   Production Studio Admin Desk
                 </h1>
@@ -219,7 +243,7 @@ export default function AdminContentPage() {
 
             <Link
               href="/admin/content"
-              className="inline-flex items-center gap-1.5 border-b-2 border-[#E05328] py-2 font-bold text-[#E05328] transition-colors"
+              className="inline-flex items-center gap-1.5 border-b-2 border-[#18794E] py-2 font-bold text-[#18794E] transition-colors"
             >
               <FileText className="h-3.5 w-3.5" />
               <span>Visual Content CMS</span>
@@ -273,6 +297,11 @@ export default function AdminContentPage() {
             ✓ {settingsNotice}
           </div>
         )}
+        {operationError && (
+          <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700">
+            {operationError}
+          </div>
+        )}
 
         {/* TAB 1: PORTFOLIO & BEFORE/AFTER MANAGER */}
         {activeTab === 'showcases' && (
@@ -287,7 +316,7 @@ export default function AdminContentPage() {
 
               <button
                 onClick={() => setModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#E05328] px-4 py-2 text-xs font-bold text-white hover:bg-[#C8461D] transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-4 py-2 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Add New Showcase Pair</span>
@@ -340,15 +369,18 @@ export default function AdminContentPage() {
                       {/* Image Preview Box */}
                       <div className="relative mt-4 h-40 w-full rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] overflow-hidden flex items-center justify-center p-2">
                         {item.rasterUrl && item.rasterUrl.startsWith('data:') ? (
-                          <img
+                          <Image
                             src={item.rasterUrl}
                             alt={item.title}
-                            className="max-h-full max-w-full object-contain"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            unoptimized
+                            className="object-contain p-2"
                           />
                         ) : (
                           <svg viewBox="0 0 200 200" className="h-28 w-28">
                             <circle cx="100" cy="100" r="65" fill="#FFFFFF" stroke="#141414" strokeWidth="3" />
-                            <circle cx="100" cy="100" r="50" fill="none" stroke="#E05328" strokeWidth="2" strokeDasharray="4 3" />
+                            <circle cx="100" cy="100" r="50" fill="none" stroke="#18794E" strokeWidth="2" strokeDasharray="4 3" />
                             <path d="M 100 50 L 115 80 L 150 80 L 122 102 L 132 135 L 100 115 L 68 135 L 78 102 L 50 80 L 85 80 Z" fill="#141414" />
                           </svg>
                         )}
@@ -437,10 +469,10 @@ export default function AdminContentPage() {
                   <p className="mt-2 text-[10px] text-[#737373]">Single-color, basic shapes</p>
                 </div>
 
-                <div className="rounded-xl border-2 border-[#E05328] bg-[#FDF3F0] p-5">
-                  <span className="font-mono text-xs font-bold uppercase text-[#E05328]">Tier 2: Standard</span>
+                <div className="rounded-xl border-2 border-[#18794E] bg-[#E9F9EE] p-5">
+                  <span className="font-mono text-xs font-bold uppercase text-[#18794E]">Tier 2: Standard</span>
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="font-mono text-lg font-bold text-[#E05328]">$</span>
+                    <span className="font-mono text-lg font-bold text-[#18794E]">$</span>
                     <input
                       type="number"
                       required
@@ -448,7 +480,7 @@ export default function AdminContentPage() {
                       max={500}
                       value={settings.standard_tier_price}
                       onChange={(e) => setSettings({ ...settings, standard_tier_price: Number(e.target.value) })}
-                      className="w-full rounded border border-[#F6CEBF] bg-white px-3 py-1.5 font-mono text-sm font-bold text-[#141414] focus:border-[#E05328]"
+                      className="w-full rounded border border-[#B4DFC4] bg-white px-3 py-1.5 font-mono text-sm font-bold text-[#141414] focus:border-[#18794E]"
                     />
                   </div>
                   <p className="mt-2 text-[10px] text-[#737373]">Multi-color badges &amp; logos</p>
@@ -487,7 +519,7 @@ export default function AdminContentPage() {
               <button
                 type="submit"
                 disabled={isSavingSettings}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#E05328] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#C8461D] transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors disabled:opacity-50"
               >
                 <Check className="h-4 w-4" />
                 <span>{isSavingSettings ? 'Publishing...' : 'Publish Changes to Homepage'}</span>
@@ -502,7 +534,7 @@ export default function AdminContentPage() {
             <div className="w-full max-w-xl rounded-2xl border border-[#EAE8E3] bg-white p-8 shadow-xl animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-4">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#E05328]" />
+                  <Sparkles className="h-4 w-4 text-[#18794E]" />
                   <h3 className="text-base font-bold text-[#141414]">Add New Before/After Showcase Pair</h3>
                 </div>
                 <button
@@ -582,7 +614,7 @@ export default function AdminContentPage() {
                       className="hidden"
                       onChange={handleRasterUpload}
                     />
-                    <UploadCloud className="h-5 w-5 text-[#E05328]" />
+                    <UploadCloud className="h-5 w-5 text-[#18794E]" />
                     <span className="mt-1 text-xs font-medium text-[#141414]">
                       {newRasterUrl ? 'File selected (Click to change)' : 'Upload blurry or AI raster image'}
                     </span>
@@ -639,7 +671,7 @@ export default function AdminContentPage() {
                       type="checkbox"
                       checked={newActive}
                       onChange={(e) => setNewActive(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#E05328]"
+                      className="h-4 w-4 rounded accent-[#18794E]"
                     />
                     <span className="text-xs font-semibold text-[#141414]">Publish immediately to live homepage</span>
                   </label>
@@ -655,7 +687,7 @@ export default function AdminContentPage() {
                     <button
                       type="submit"
                       disabled={isCreatingShowcase || isUploadingMedia}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#E05328] px-5 py-2 text-xs font-bold text-white hover:bg-[#C8461D] disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-5 py-2 text-xs font-bold text-white hover:bg-[#115C3B] disabled:opacity-50"
                     >
                       <span>{isCreatingShowcase ? 'Adding...' : 'Add Showcase'}</span>
                     </button>

@@ -29,6 +29,7 @@ export interface UploadedFileData {
   format: string;
   url: string;
   dimensions?: { width: number; height: number };
+  file?: File;
 }
 
 export async function processClientFileUpload(file: File): Promise<UploadedFileData> {
@@ -57,6 +58,7 @@ export async function processClientFileUpload(file: File): Promise<UploadedFileD
             format: ext,
             url: result,
             dimensions: { width: img.width, height: img.height },
+            file,
           });
         };
         img.onerror = () => {
@@ -65,6 +67,7 @@ export async function processClientFileUpload(file: File): Promise<UploadedFileD
             size: file.size,
             format: ext,
             url: result,
+            file,
           });
         };
         img.src = result;
@@ -74,6 +77,7 @@ export async function processClientFileUpload(file: File): Promise<UploadedFileD
           size: file.size,
           format: ext,
           url: result || URL.createObjectURL(file),
+          file,
         });
       }
     };
@@ -138,10 +142,22 @@ export async function uploadToStorageBucket(
   return { path: destinationPath, url: processed.url };
 }
 
-export function triggerFileDownload(file: OrderFile): void {
+export async function triggerFileDownload(file: OrderFile): Promise<void> {
   if (typeof window === 'undefined') return;
 
-  // Generate vector content payload for SVG, or mock payload blob
+  if (isSupabaseConfigured()) {
+    const signedUrl = await getSignedDownloadUrl(file);
+    const link = document.createElement('a');
+    link.href = signedUrl;
+    link.download = file.filename;
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return;
+  }
+
+  // Demo mode generates representative files so the workflow can be evaluated offline.
   let content = `/* Artlantix Production Master - ${file.filename} */\n/* Generated for professional print & CNC output */\n`;
 
   if (file.format === 'svg') {
@@ -150,14 +166,14 @@ export function triggerFileDownload(file: OrderFile): void {
   <!-- Clean mathematical bezier curves · Closed paths · 0.01mm tolerance -->
   <defs>
     <linearGradient id="artlantixGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#E25C34" />
+      <stop offset="0%" stop-color="#18794E" />
       <stop offset="100%" stop-color="#111111" />
     </linearGradient>
   </defs>
   <rect width="800" height="800" fill="#FAFAF8"/>
   <circle cx="400" cy="400" r="280" fill="none" stroke="#111111" stroke-width="8"/>
-  <circle cx="400" cy="400" r="240" fill="none" stroke="#E25C34" stroke-width="3" stroke-dasharray="8 6"/>
-  <path d="M 400 200 L 460 360 L 630 360 L 490 460 L 540 620 L 400 520 L 260 620 L 310 460 L 170 360 L 340 360 Z" fill="#111111" stroke="#E25C34" stroke-width="4"/>
+  <circle cx="400" cy="400" r="240" fill="none" stroke="#18794E" stroke-width="3" stroke-dasharray="8 6"/>
+  <path d="M 400 200 L 460 360 L 630 360 L 490 460 L 540 620 L 400 520 L 260 620 L 310 460 L 170 360 L 340 360 Z" fill="#111111" stroke="#18794E" stroke-width="4"/>
   <text x="400" y="720" font-family="sans-serif" font-size="20" font-weight="700" letter-spacing="4" text-anchor="middle" fill="#111111">ARTLANTIX MASTER VECTOR</text>
 </svg>`;
   }
@@ -184,26 +200,28 @@ export function triggerFileDownload(file: OrderFile): void {
 export function triggerMasterBundleZip(order: Order): void {
   if (typeof window === 'undefined') return;
 
-  const manifest = `ARTLANTIX MASTER VECTOR PRODUCTION BUNDLE
+  const manifest = `ARTLANTIX DEMO PACKAGE MANIFEST
 =============================================
 Order Number: ${order.order_number}
 Project: ${order.project_name}
-Format Specifications:
+This text file represents a future downloadable archive. It is not a ZIP file
+and does not contain production artwork.
+
+Planned format specifications:
 - AI (Adobe Illustrator CC / CS6 compatible, layered)
 - EPS (Illustrator 10 EPS, unflattened CMYK, bounding box strict)
 - SVG (W3C standard, closed bezier paths, zero raster effects)
 - PDF (PDF/X-1a:2001 high quality print press profile)
 - PNG (4000x4000px 300 DPI transparent raster preview)
 
-Quality Assurance Sign-Off: Approved by Senior Vector Specialist
-Artlantix Studio · https://artlantix.com
+Demo data only. Connect private object storage and archive generation before production use.
 =============================================`;
 
   const blob = new Blob([manifest], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${order.order_number}-Production-Package-ZIP-Bundle.txt`;
+  a.download = `${order.order_number}-demo-package-manifest.txt`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

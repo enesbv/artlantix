@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import confetti from 'canvas-confetti';
 import {
   getOrderById,
@@ -10,10 +11,13 @@ import {
   requestRevision,
   addOrderMessage,
 } from '@/lib/services/orders';
-import { triggerFileDownload, triggerMasterBundleZip } from '@/lib/services/storage';
+import { getSignedDownloadUrl, triggerFileDownload, triggerMasterBundleZip } from '@/lib/services/storage';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { getCurrentUser } from '@/lib/services/auth';
-import { Order, UserProfile } from '@/lib/types';
+import { Order, RevisionAnnotation, UserProfile } from '@/lib/types';
 import DeliverableBadge, { DeliverableFormat } from '@/components/DeliverableBadge';
+import RevisionAnnotator from '@/components/RevisionAnnotator';
+import { getExpectedDelivery, getNextOrderAction, getStatusHistory, ORDER_STATUS_LABELS } from '@/lib/order-status';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -33,10 +37,13 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [customerArtworkUrl, setCustomerArtworkUrl] = useState<string | null>(null);
+  const [previewArtworkUrl, setPreviewArtworkUrl] = useState<string | null>(null);
 
   // Revision Modal State
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [revisionFeedback, setRevisionFeedback] = useState('');
+  const [revisionAnnotations, setRevisionAnnotations] = useState<RevisionAnnotation[]>([]);
   const [isSubmittingRevision, setIsSubmittingRevision] = useState(false);
 
   // New Message State
@@ -53,6 +60,14 @@ export default function OrderDetailPage() {
       if (orderId) {
         const found = await getOrderById(orderId);
         setOrder(found);
+        if (found) {
+          const customerFile = found.files?.find((file) => file.file_category === 'customer_upload');
+          const previewFile = found.files?.find((file) => file.file_category === 'preview_watermarked');
+          if (customerFile?.url) setCustomerArtworkUrl(customerFile.url);
+          else if (customerFile && isSupabaseConfigured()) setCustomerArtworkUrl(await getSignedDownloadUrl(customerFile));
+          if (previewFile?.url) setPreviewArtworkUrl(previewFile.url);
+          else if (previewFile && isSupabaseConfigured()) setPreviewArtworkUrl(await getSignedDownloadUrl(previewFile));
+        }
       }
       setLoading(false);
     }
@@ -91,13 +106,13 @@ export default function OrderDetailPage() {
         particleCount: 80,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#E05328', '#141414', '#10B981'],
+        colors: ['#18794E', '#141414', '#10B981'],
       });
 
       const updated = await approveOrder(order.id, currentUser?.full_name || 'Alex Morgan');
       if (updated) {
         setOrder(updated);
-        setActionSuccess('Artwork approved! Master vector deliverables unlocked below.');
+        setActionSuccess('Artwork approved. The studio is preparing the production master files.');
       }
     } catch (err) {
       console.error(err);
@@ -107,18 +122,21 @@ export default function OrderDetailPage() {
   // Handle Request Revision
   const handleSubmitRevision = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!revisionFeedback.trim() || !order) return;
+    const completeAnnotations = revisionAnnotations.filter((annotation) => annotation.message.trim());
+    if ((!revisionFeedback.trim() && completeAnnotations.length === 0) || !order) return;
     setIsSubmittingRevision(true);
     try {
       const updated = await requestRevision(
         order.id,
         revisionFeedback,
-        currentUser?.full_name || 'Alex Morgan'
+        currentUser?.full_name || 'Alex Morgan',
+        completeAnnotations
       );
       if (updated) {
         setOrder(updated);
         setRevisionModalOpen(false);
         setRevisionFeedback('');
+        setRevisionAnnotations([]);
         setActionSuccess('Revision request sent to the production artist.');
       }
     } finally {
@@ -156,11 +174,15 @@ export default function OrderDetailPage() {
     quote_requested: { label: 'Quote Requested', color: 'text-amber-800 bg-amber-50 border-amber-200' },
     in_review: { label: 'Feasibility Review', color: 'text-blue-800 bg-blue-50 border-blue-200' },
     in_progress: { label: 'Artist Actively Redrawing', color: 'text-purple-800 bg-purple-50 border-purple-200' },
-    preview_ready: { label: 'Watermarked Preview Ready for Review', color: 'text-[#E05328] bg-[#FDF3F0] border-[#F6CEBF] font-bold' },
+    preview_ready: { label: 'Watermarked Preview Ready for Review', color: 'text-[#18794E] bg-[#E9F9EE] border-[#B4DFC4] font-bold' },
+    approved: { label: 'Approved · Masters Being Prepared', color: 'text-blue-800 bg-blue-50 border-blue-200 font-bold' },
     revision_requested: { label: 'Revision In Progress (Round 1 of 2)', color: 'text-yellow-800 bg-yellow-50 border-yellow-200' },
     completed: { label: 'Approved & Master Vectors Unlocked', color: 'text-emerald-800 bg-emerald-50 border-emerald-200 font-bold' },
     cancelled: { label: 'Cancelled', color: 'text-gray-700 bg-gray-100 border-gray-200' },
   }[order.status] || { label: order.status, color: 'text-gray-700 bg-gray-100 border-gray-200' };
+  const nextAction = getNextOrderAction(order);
+  const expectedDelivery = getExpectedDelivery(order);
+  const statusHistory = getStatusHistory(order);
 
   return (
     <div className="space-y-8">
@@ -209,6 +231,27 @@ export default function OrderDetailPage() {
         </div>
       )}
 
+      <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]" aria-label="Order progress">
+        <div className="rounded-2xl border-2 border-[#18794E] bg-[#E9F9EE] p-5">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">Your next step</span>
+          <h2 className="mt-2 text-lg font-bold text-[#141414]">{nextAction.title}</h2>
+          <p className="mt-1 text-sm text-[#555]">{nextAction.detail}</p>
+          <p className="mt-4 text-xs text-[#737373]">Estimated delivery: <strong className="text-[#141414]">{new Date(expectedDelivery).toLocaleString()}</strong></p>
+          {order.assigned_artist && <p className="mt-1 text-xs text-[#737373]">Assigned artist: <strong className="text-[#141414]">{order.assigned_artist}</strong></p>}
+        </div>
+        <div className="rounded-2xl border border-[#EAE8E3] bg-white p-5">
+          <h2 className="text-sm font-bold">Status history</h2>
+          <ol className="mt-3 space-y-3">
+            {statusHistory.map((event, index) => (
+              <li key={event.id} className="flex gap-3 text-xs">
+                <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${index === statusHistory.length - 1 ? 'bg-[#18794E]' : 'bg-emerald-500'}`} />
+                <span><strong className="block text-[#141414]">{ORDER_STATUS_LABELS[event.status]}</strong><span className="text-[10px] text-[#737373]">{new Date(event.created_at).toLocaleString()}</span></span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
       {/* 1. DUAL VIEW COMPARISON: ORIGINAL VS COMPLETED/PREVIEW */}
       <div className="rounded-2xl border border-[#EAE8E3] bg-white p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EAE8E3] pb-4">
@@ -234,10 +277,13 @@ export default function OrderDetailPage() {
             </div>
 
             <div className="flex h-72 w-full items-center justify-center p-6 bg-[#F9F8F6]">
-              {customerUpload?.url ? (
-                <img
-                  src={customerUpload.url}
+              {customerArtworkUrl ? (
+                <Image
+                  src={customerArtworkUrl}
                   alt="Original Artwork"
+                  width={800}
+                  height={600}
+                  unoptimized
                   className="max-h-full max-w-full object-contain rounded filter contrast-90"
                 />
               ) : (
@@ -263,21 +309,27 @@ export default function OrderDetailPage() {
           <div className="flex flex-col rounded-xl border-2 border-[#141414] bg-white overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#141414] bg-[#141414] px-4 py-2 text-xs font-bold text-white">
               <span>B. Artlantix Reconstructed Vector</span>
-              <span className="text-[10px] text-[#E05328] uppercase font-mono">
+              <span className="text-[10px] text-[#18794E] uppercase font-mono">
                 {order.status === 'completed' ? 'Master Approved' : 'Watermarked Preview'}
               </span>
             </div>
 
             <div className="relative flex h-72 w-full items-center justify-center p-6 bg-[#F9F8F6]">
-              <svg viewBox="0 0 400 400" className="h-56 w-56 drop-shadow-xs">
+              {previewArtworkUrl ? (
+                <Image src={previewArtworkUrl} alt={`${order.project_name} preview`} fill sizes="(max-width: 768px) 100vw, 50vw" unoptimized className="object-contain p-6" />
+              ) : <svg viewBox="0 0 400 400" className="h-56 w-56 drop-shadow-xs">
                 <circle cx="200" cy="200" r="150" fill="#FFFFFF" stroke="#141414" strokeWidth="6" />
-                <circle cx="200" cy="200" r="130" fill="none" stroke="#E05328" strokeWidth="2.5" strokeDasharray="6 4" />
+                <circle cx="200" cy="200" r="130" fill="none" stroke="#18794E" strokeWidth="2.5" strokeDasharray="6 4" />
                 <path d="M 200 80 L 235 150 L 310 150 L 250 195 L 270 270 L 200 225 L 130 270 L 150 195 L 90 150 L 165 150 Z" fill="#141414" />
-                <circle cx="200" cy="200" r="22" fill="#E05328" />
+                <circle cx="200" cy="200" r="22" fill="#18794E" />
                 <text x="200" y="325" fontFamily="sans-serif" fontWeight="800" fontSize="16" letterSpacing="4" fill="#141414" textAnchor="middle">
                   {order.project_name.toUpperCase().slice(0, 16)}
                 </text>
-              </svg>
+              </svg>}
+
+              {order.revision_annotations?.map((annotation, index) => (
+                <span key={annotation.id} title={annotation.message} className="absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-[#18794E] text-xs font-bold text-white shadow-md" style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}>{index + 1}</span>
+              ))}
 
               {order.status !== 'completed' && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
@@ -297,14 +349,14 @@ export default function OrderDetailPage() {
 
         {/* ACTION BAR FOR PREVIEW APPROVAL OR REVISION */}
         {order.status === 'preview_ready' && (
-          <div className="mt-8 rounded-2xl border-2 border-[#E05328] bg-[#FDF3F0] p-6 sm:p-8">
+          <div className="mt-8 rounded-2xl border-2 border-[#18794E] bg-[#E9F9EE] p-6 sm:p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h3 className="text-sm font-bold text-[#141414]">
                   Do you approve this reconstructed vector draft?
                 </h3>
                 <p className="text-xs text-[#737373] mt-1 max-w-xl">
-                  Approving immediately unlocks your full master package (AI, EPS, SVG, PDF, and high-res transparent PNG). If adjustments are needed, you have 2 included revision rounds with our senior artist.
+                  Approval confirms the artwork and sends it to final packaging and quality control. Downloads appear only after the studio uploads and completes the master delivery.
                 </p>
               </div>
 
@@ -319,10 +371,10 @@ export default function OrderDetailPage() {
 
                 <button
                   onClick={handleApprove}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#E05328] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#C8461D] transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors"
                 >
                   <CheckCircle2 className="h-4 w-4" />
-                  <span>Approve &amp; Unlock Master Files</span>
+                  <span>Approve Artwork</span>
                 </button>
               </div>
             </div>
@@ -336,8 +388,14 @@ export default function OrderDetailPage() {
               <span>Revision Request Received</span>
             </div>
             <p className="mt-1 text-[11px] text-yellow-800">
-              Your senior vector artist is applying your feedback. You will receive an email and portal update once the revised draft is ready.
+              Your senior vector artist is applying your feedback. The portal will show an update once the revised draft is ready.
             </p>
+          </div>
+        )}
+        {order.status === 'approved' && (
+          <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900">
+            <div className="flex items-center gap-2 font-bold"><CheckCircle2 className="h-4 w-4" /><span>Artwork Approved</span></div>
+            <p className="mt-1 text-[11px]">The studio is packaging and quality-checking your master files. Downloads appear only after the operator completes delivery.</p>
           </div>
         )}
       </div>
@@ -362,8 +420,8 @@ export default function OrderDetailPage() {
               onClick={() => triggerMasterBundleZip(order)}
               className="inline-flex items-center gap-2 rounded-lg bg-[#141414] px-5 py-2.5 text-xs font-bold text-white hover:bg-black transition-colors"
             >
-              <Download className="h-4 w-4 text-[#E05328]" />
-              <span>Download Master Bundle (.ZIP)</span>
+              <Download className="h-4 w-4 text-[#18794E]" />
+              <span>Download Demo Package Manifest</span>
             </button>
           </div>
 
@@ -386,7 +444,7 @@ export default function OrderDetailPage() {
       {/* 3. ACTIVITY LOG & MESSAGING THREAD */}
       <div className="rounded-2xl border border-[#EAE8E3] bg-white p-6 sm:p-8 shadow-xs">
         <div className="flex items-center gap-2 border-b border-[#EAE8E3] pb-4">
-          <MessageSquare className="h-4 w-4 text-[#E05328]" />
+          <MessageSquare className="h-4 w-4 text-[#18794E]" />
           <h2 className="text-sm font-bold text-[#141414]">
             Production Activity &amp; Artist Communications
           </h2>
@@ -406,7 +464,7 @@ export default function OrderDetailPage() {
                   className={`flex flex-col rounded-xl p-4 text-xs ${
                     isOperator
                       ? 'border border-[#EAE8E3] bg-[#F5F4F0] ml-0 sm:mr-12'
-                      : 'border border-[#F6CEBF] bg-[#FDF3F0] mr-0 sm:ml-12'
+                      : 'border border-[#B4DFC4] bg-[#E9F9EE] mr-0 sm:ml-12'
                   }`}
                 >
                   <div className="flex items-center justify-between text-[11px]">
@@ -448,10 +506,10 @@ export default function OrderDetailPage() {
       {/* REVISION REQUEST MODAL */}
       {revisionModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-[#EAE8E3] bg-white p-6 sm:p-8 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-[#EAE8E3] bg-white p-6 sm:p-8 shadow-xl animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-4">
               <div className="flex items-center gap-2">
-                <RotateCcw className="h-4 w-4 text-[#E05328]" />
+                <RotateCcw className="h-4 w-4 text-[#18794E]" />
                 <h3 className="text-sm font-bold text-[#141414]">Request Artwork Revision</h3>
               </div>
               <button
@@ -467,12 +525,13 @@ export default function OrderDetailPage() {
                 Detail the precise adjustments required. Your senior artist will refine the vector contours (Round 1 of 2 included).
               </p>
 
+              <RevisionAnnotator annotations={revisionAnnotations} onChange={setRevisionAnnotations} imageUrl={previewArtworkUrl || undefined} />
+
               <div>
                 <label className="block text-xs font-bold text-[#141414]">
                   Revision Details &amp; Path Feedback
                 </label>
                 <textarea
-                  required
                   rows={4}
                   value={revisionFeedback}
                   onChange={(e) => setRevisionFeedback(e.target.value)}
@@ -491,8 +550,8 @@ export default function OrderDetailPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmittingRevision || !revisionFeedback.trim()}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#E05328] px-5 py-2 text-xs font-bold text-white hover:bg-[#C8461D] disabled:opacity-50"
+                  disabled={isSubmittingRevision || (!revisionFeedback.trim() && !revisionAnnotations.some((annotation) => annotation.message.trim()))}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-5 py-2 text-xs font-bold text-white hover:bg-[#115C3B] disabled:opacity-50"
                 >
                   <span>{isSubmittingRevision ? 'Submitting...' : 'Submit Revision Request'}</span>
                 </button>

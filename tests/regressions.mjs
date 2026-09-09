@@ -77,9 +77,45 @@ test('uploads reject unsupported, empty and oversized files before reading', asy
   await assert.rejects(processClientFileUpload({ name: 'large.png', size: 3 * 1024 * 1024 }), /2 MB/);
 });
 
+test('artist assessment forces review even for simple artwork and clears when deselected', () => {
+  const { calculatePricing } = load('lib/pricing.ts');
+  const input = { complexity: 'simple', turnaround: 'standard', colorCount: '1-2', hasText: false, reconstructionNeeded: false };
+  const normal = calculatePricing(input);
+  const review = calculatePricing({ ...input, artistReviewRequested: true });
+  assert.equal(normal.needsManualReview, false);
+  assert.equal(review.needsManualReview, true);
+  assert.match(review.manualReviewReason, /Customer requested/);
+  assert.equal(review.total, normal.total);
+  assert.equal(calculatePricing({ ...input, artistReviewRequested: false }).needsManualReview, false);
+});
+
 test('file reader failure rejects instead of leaving upload pending', async () => {
   const { processClientFileUpload } = load('lib/services/storage.ts', {
     '../supabase/client': {},
   }, { FileReader: class { readAsDataURL() { this.onerror(); } } });
   await assert.rejects(processClientFileUpload({ name: 'valid.png', size: 100 }), /could not be read/);
+});
+
+test('delivery dates and branched status history stay consistent', () => {
+  const status = load('lib/order-status.ts', { './types': {} });
+  assert.equal(status.calculateExpectedDelivery('2026-09-10T00:00:00.000Z', 'express'), '2026-09-10T16:00:00.000Z');
+  const revisionOrder = {
+    id: 'order-1', status: 'revision_requested', turnaround: 'standard',
+    created_at: '2026-09-10T00:00:00.000Z', updated_at: '2026-09-11T00:00:00.000Z',
+  };
+  const history = status.getStatusHistory(revisionOrder);
+  assert.deepEqual(Array.from(history, (event) => event.status), [
+    'quote_requested', 'in_review', 'in_progress', 'preview_ready', 'revision_requested',
+  ]);
+  assert.equal(history.at(-1).created_at, revisionOrder.updated_at);
+});
+
+test('stored history adds the current status when older records are incomplete', () => {
+  const status = load('lib/order-status.ts', { './types': {} });
+  const history = status.getStatusHistory({
+    id: 'order-2', status: 'approved', turnaround: 'standard',
+    created_at: '2026-09-10T00:00:00.000Z', updated_at: '2026-09-10T12:00:00.000Z',
+    status_history: [{ id: 'first', status: 'quote_requested', created_at: '2026-09-10T00:00:00.000Z' }],
+  });
+  assert.equal(history.at(-1).status, 'approved');
 });

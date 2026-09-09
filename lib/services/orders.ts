@@ -1,7 +1,9 @@
-import { Order, OrderStatus, OrderMessage, OrderFile, FileFormat } from '../types';
+import { Order, OrderStatus, OrderMessage, OrderFile, FileFormat, RevisionAnnotation } from '../types';
 import { INITIAL_ORDERS } from '../mock-data';
 import { isSupabaseConfigured, createClient } from '../supabase/client';
 import { getCurrentUser } from './auth';
+import { calculateExpectedDelivery } from '../order-status';
+import { STORAGE_BUCKETS, uploadToStorageBucket } from './storage';
 
 const STORAGE_KEY_ORDERS = 'artlantix_orders_data';
 
@@ -29,17 +31,18 @@ function saveOrders(orders: Order[]): void {
   }
 }
 
-export async function getOrders(userId?: string, isAdmin: boolean = false): Promise<Order[]> {
+export async function getOrders(userId?: string, isAdmin: boolean = false, includeDetails: boolean = false): Promise<Order[]> {
   if (isSupabaseConfigured()) {
     try {
       const supabase = createClient();
       if (supabase) {
-        let query = supabase.from('orders').select('*, files:order_files(*), messages:order_messages(*)').order('created_at', { ascending: false });
+        const columns = includeDetails ? '*, files:order_files(*), messages:order_messages(*)' : '*';
+        let query = supabase.from('orders').select(columns).order('created_at', { ascending: false });
         if (!isAdmin && userId) {
           query = query.eq('user_id', userId);
         }
         const { data, error } = await query;
-        if (!error && data) return data as Order[];
+        if (!error && data) return data as unknown as Order[];
       }
     } catch {
       // Fallback
@@ -83,12 +86,29 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 
 export async function createOrder(
   orderInput: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at' | 'files' | 'messages'>,
-  uploadedFile?: { name: string; size: number; format: string; url?: string }
+  uploadedFile?: { name: string; size: number; format: string; url?: string; rawFile?: File }
 ): Promise<Order> {
   const randomSuffix = crypto.randomUUID();
   const orderNumber = `ATX-${randomSuffix}`;
   const now = new Date().toISOString();
   const orderId = randomSuffix;
+
+  let uploadStoragePath = uploadedFile?.url || (uploadedFile ? `/mock-assets/${uploadedFile.name}` : '');
+  let uploadPublicUrl = uploadedFile?.url;
+
+  if (uploadedFile && isSupabaseConfigured()) {
+    let uploadBody: File | Blob | undefined = uploadedFile.rawFile instanceof Blob ? uploadedFile.rawFile : undefined;
+    if (!uploadBody && uploadedFile.url?.startsWith('data:')) {
+      uploadBody = await fetch(uploadedFile.url).then((response) => response.blob());
+    }
+    if (!uploadBody) throw new Error('Please select the artwork file again before submitting.');
+    const safeFilename = uploadedFile.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+    const destinationPath = `${orderInput.user_id}/${orderId}/${safeFilename}`;
+    const stored = await uploadToStorageBucket(uploadBody as File, STORAGE_BUCKETS.CUSTOMER_ASSETS, destinationPath);
+    if (stored.error) throw new Error(`Artwork upload failed: ${stored.error}`);
+    uploadStoragePath = stored.path;
+    uploadPublicUrl = undefined;
+  }
 
   const initialFiles: OrderFile[] = uploadedFile
     ? [
@@ -98,11 +118,11 @@ export async function createOrder(
           user_id: orderInput.user_id,
           file_category: 'customer_upload',
           format: (uploadedFile.format || 'png') as FileFormat,
-          storage_path: uploadedFile.url || `/mock-assets/${uploadedFile.name}`,
+          storage_path: uploadStoragePath,
           filename: uploadedFile.name,
           size_bytes: uploadedFile.size,
           created_at: now,
-          url: uploadedFile.url,
+          url: uploadPublicUrl,
         },
       ]
     : [];
@@ -113,6 +133,13 @@ export async function createOrder(
     order_number: orderNumber,
     created_at: now,
     updated_at: now,
+    expected_delivery_at: calculateExpectedDelivery(now, orderInput.turnaround),
+    status_history: [{
+      id: `status_${Date.now()}`,
+      status: orderInput.status,
+      created_at: now,
+      actor: 'customer',
+    }],
     files: initialFiles,
     messages: [
       {
@@ -133,7 +160,7 @@ export async function createOrder(
     try {
       const supabase = createClient();
       if (supabase) {
-        const { error } = await supabase.from('orders').insert([{
+        const { data: savedOrder, error } = await supabase.from('orders').insert([{
           id: newOrder.id,
           order_number: newOrder.order_number,
           user_id: newOrder.user_id,
@@ -143,27 +170,36 @@ export async function createOrder(
           colors: newOrder.colors,
           has_text: newOrder.has_text,
           reconstruction_needed: newOrder.reconstruction_needed,
+          reconstruction_level: newOrder.reconstruction_level,
           turnaround: newOrder.turnaround,
           estimated_price: newOrder.estimated_price,
           final_price: newOrder.final_price,
           status: newOrder.status,
           notes: newOrder.notes,
-        }]);
+          needs_manual_review: newOrder.needs_manual_review,
+          payment_method: newOrder.payment_method,
+          expected_delivery_at: newOrder.expected_delivery_at,
+          assigned_artist: newOrder.assigned_artist,
+          source_order_id: newOrder.source_order_id,
+          status_history: newOrder.status_history,
+          revision_annotations: newOrder.revision_annotations,
+        }]).select('*').single();
 
         if (error) throw new Error(error.message);
         if (!error) {
           if (uploadedFile) {
-            await supabase.from('order_files').insert([{
+            const { error: fileError } = await supabase.from('order_files').insert([{
               order_id: newOrder.id,
               user_id: newOrder.user_id,
               file_category: 'customer_upload',
               format: uploadedFile.format,
-              storage_path: uploadedFile.url || `/mock-assets/${uploadedFile.name}`,
+              storage_path: uploadStoragePath,
               filename: uploadedFile.name,
               size_bytes: uploadedFile.size,
             }]);
+            if (fileError) throw new Error(fileError.message);
           }
-          return newOrder;
+          return { ...newOrder, ...(savedOrder as Order), files: initialFiles, messages: [] };
         }
       }
     } catch (error) {
@@ -178,14 +214,23 @@ export async function createOrder(
   return newOrder;
 }
 
-export async function updateOrderStatus(orderId: string, status: OrderStatus, finalPrice?: number): Promise<Order | null> {
+export async function updateOrderStatus(
+  orderId: string,
+  status: OrderStatus,
+  finalPrice?: number,
+  revisionAnnotations?: RevisionAnnotation[],
+  assignedArtist?: string
+): Promise<Order | null> {
   if (isSupabaseConfigured()) {
     const supabase = createClient();
     if (!supabase) throw new Error('Database unavailable.');
+    const now = new Date().toISOString();
     const { error } = await supabase.from('orders').update({
       status,
       ...(finalPrice !== undefined ? { final_price: finalPrice } : {}),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
+      ...(revisionAnnotations ? { revision_annotations: revisionAnnotations } : {}),
+      ...(assignedArtist ? { assigned_artist: assignedArtist } : {}),
     }).eq('id', orderId);
     if (error) throw new Error(error.message);
     return getOrderById(orderId);
@@ -199,6 +244,12 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, fi
 
   current.status = status;
   current.updated_at = now;
+  current.status_history = [
+    ...(current.status_history || []),
+    { id: `status_${Date.now()}`, status, created_at: now, actor: 'studio' },
+  ];
+  if (revisionAnnotations) current.revision_annotations = revisionAnnotations;
+  if (assignedArtist) current.assigned_artist = assignedArtist;
   if (finalPrice !== undefined) {
     current.final_price = finalPrice;
   }
@@ -243,12 +294,25 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, fi
   return current;
 }
 
-export async function requestRevision(orderId: string, feedback: string, senderName: string = 'Alex Morgan'): Promise<Order | null> {
+export async function requestRevision(orderId: string, feedback: string, senderName: string = 'Alex Morgan', annotations: RevisionAnnotation[] = []): Promise<Order | null> {
   const order = await getOrderById(orderId);
   if (!order) return null;
 
-  await addOrderMessage(orderId, order.user_id, senderName, 'customer', `[Revision Requested]: ${feedback}`);
-  return updateOrderStatus(orderId, 'revision_requested');
+  const markerSummary = annotations.filter((annotation) => annotation.message.trim()).map((annotation, index) =>
+    `Marker ${index + 1} (${annotation.x.toFixed(1)}%, ${annotation.y.toFixed(1)}%): ${annotation.message.trim()}`
+  ).join('\n');
+  await addOrderMessage(orderId, order.user_id, senderName, 'customer', `[Revision Requested]\n${feedback.trim()}${markerSummary ? `\n\nArtwork markers:\n${markerSummary}` : ''}`);
+  const cleanAnnotations = annotations.filter((annotation) => annotation.message.trim());
+  const updated = await updateOrderStatus(orderId, 'revision_requested', undefined, cleanAnnotations);
+  if (!updated || isSupabaseConfigured()) return updated;
+  const all = getStoredOrders();
+  const index = all.findIndex((item) => item.id === orderId);
+  if (index !== -1) {
+    all[index].revision_annotations = cleanAnnotations;
+    saveOrders(all);
+    return all[index];
+  }
+  return updated;
 }
 
 export async function approveOrder(orderId: string, senderName: string = 'Alex Morgan'): Promise<Order | null> {
@@ -260,9 +324,9 @@ export async function approveOrder(orderId: string, senderName: string = 'Alex M
     order.user_id,
     senderName,
     'customer',
-    'Artwork approved! Master vector files unlocked for production.'
+    'Artwork approved. The studio can now prepare and quality-check the production master files.'
   );
-  return updateOrderStatus(orderId, 'completed');
+  return updateOrderStatus(orderId, 'approved');
 }
 
 export async function addOrderMessage(
@@ -283,28 +347,25 @@ export async function addOrderMessage(
     created_at: now,
   };
 
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    if (!supabase) throw new Error('Message service is unavailable.');
+    const { data, error } = await supabase.from('order_messages').insert([{
+      order_id: orderId,
+      sender_id: senderId,
+      sender_type: senderType,
+      message: messageText,
+    }]).select('*').single();
+    if (error) throw new Error(error.message);
+    return { ...newMessage, ...(data as OrderMessage), sender_name: senderName };
+  }
+
   const all = getStoredOrders();
   const index = all.findIndex((o) => o.id === orderId);
   if (index !== -1) {
     all[index].messages = [...(all[index].messages || []), newMessage];
     all[index].updated_at = now;
     saveOrders(all);
-  }
-
-  if (isSupabaseConfigured()) {
-    try {
-      const supabase = createClient();
-      if (supabase) {
-        await supabase.from('order_messages').insert([{
-          order_id: orderId,
-          sender_id: senderId,
-          sender_type: senderType,
-          message: messageText,
-        }]);
-      }
-    } catch {
-      // Ignore
-    }
   }
 
   return newMessage;
@@ -314,20 +375,50 @@ export async function addOperatorDeliverable(
   orderId: string,
   category: 'preview_watermarked' | 'final_master',
   format: 'ai' | 'eps' | 'svg' | 'pdf' | 'png',
-  filename: string
+  filename: string,
+  file?: File
 ): Promise<OrderFile> {
   const now = new Date().toISOString();
+  const order = await getOrderById(orderId);
+  if (!order) throw new Error('Order not found.');
+  let storagePath = `/mock-assets/${filename}`;
+
+  if (isSupabaseConfigured()) {
+    if (!file) throw new Error('Choose a real deliverable file before changing the delivery status.');
+    const bucket = category === 'final_master' ? STORAGE_BUCKETS.MASTER_DELIVERIES : STORAGE_BUCKETS.PREVIEWS;
+    const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '-');
+    const stored = await uploadToStorageBucket(file, bucket, `${order.user_id}/${orderId}/${safeFilename}`);
+    if (stored.error) throw new Error(`Deliverable upload failed: ${stored.error}`);
+    storagePath = stored.path;
+  }
+
   const newFile: OrderFile = {
     id: `fil_${Date.now()}_${format}`,
     order_id: orderId,
-    user_id: 'usr_admin_001',
+    user_id: order.user_id,
     file_category: category,
     format,
-    storage_path: `/mock-assets/${filename}`,
+    storage_path: storagePath,
     filename,
-    size_bytes: 1850000,
+    size_bytes: file?.size || 1850000,
     created_at: now,
   };
+
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    if (!supabase) throw new Error('Deliverable service is unavailable.');
+    const { data, error } = await supabase.from('order_files').insert([{
+      order_id: orderId,
+      user_id: order.user_id,
+      file_category: category,
+      format,
+      storage_path: storagePath,
+      filename,
+      size_bytes: file?.size,
+    }]).select('*').single();
+    if (error) throw new Error(error.message);
+    return data as OrderFile;
+  }
 
   const all = getStoredOrders();
   const index = all.findIndex((o) => o.id === orderId);

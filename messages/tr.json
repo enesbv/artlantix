@@ -14,8 +14,20 @@
     "portal": "Müşteri Portalı",
     "signOut": "Çıkış Yap",
     "persona": "Rol",
-    "guarantee": "%100 Manuel El Çizimi Vektör · Otomatik İzleme Kestirmesi Yok"
+    "guarantee": "%100 Manuel El Çizimi Vektör · Otomatik İzleme Kestirmesi Yok",
+    "studio": "Çizim Stüdyosu", "demoOperator": "Elena (Demo Kalite)", "demoCustomer": "Alex (Demo Müşteri)", "guest": "Misafir modu", "switchDemo": "Demo hesabını değiştir", "clientAccount": "Müşteri hesabı", "clientDescription": "Alex Morgan (portal ve arşiv)", "operatorAccount": "Operatör / Kalite", "operatorDescription": "Elena Vance (üretim kuyruğu)", "toggleMenu": "Menüyü aç veya kapat", "language": "Dil"
   },
+  "footer": {
+    "description": "Artlantix; fiyatlandırma, inceleme, revizyon ve teslim süreçlerini kapsayan manuel vektör çizim stüdyosu iş akışıdır.",
+    "craftsmanship": "Manuel yeniden çizim süreci · Otomatik izleme iddiası yok",
+    "deliverables": "Planlanan teslimler", "capabilities": "Hizmetler", "aiLogo": "Yapay zekâ taslak logo çizimi", "raster": "Pikselden temiz vektöre", "typography": "Yazı tipi ve tipografi yenileme", "screenPrint": "Emprime ve DTF renk ayrımı", "cnc": "Folyo kesim ve CNC hazırlığı", "platform": "Platform", "quote": "Fiyat hesaplama", "portal": "Müşteri portalı", "vault": "Çalışma arşivi", "business": "Kurumsal planlama", "operator": "Operatör kuyruğu", "standards": "Stüdyo hedefleri", "deliveryTarget": "24–48 saat standart teslim hedefi", "revisionPolicy": "Sipariş öncesinde açıklanan revizyon politikası", "curves": "Yol ve eğri kalite kontrolleri", "rights": "Proje bazında teyit edilen kullanım hakları", "privacy": "Özel müşteri ve teslim depolaması", "copyright": "Manuel vektör üretim iş akışı.", "terms": "Koşullar", "license": "Ticari lisans", "privacyPolicy": "Gizlilik", "security": "Güvenlik"
+  },
+  "dashboard": {
+    "title": "Müşteri Üretim Portalı", "partner": "Kurumsal İş Ortağı", "loggedIn": "Oturum açan:", "client": "Müşteri", "adminDesk": "Üretim Masası (Yönetici)", "newQuote": "Yeni Proje Teklifi", "overview": "Genel Bakış", "orders": "Siparişlerim", "vault": "Çalışma Arşivi", "business": "Kurumsal Stüdyo", "account": "Hesap ve Faturalama", "notificationCount": "{count} sipariş bildirimi", "updates": "Sipariş güncellemeleri", "caughtUp": "Tüm bildirimleri gördünüz.", "dismissNotification": "{project} bildirimini kapat", "overdue": "Tahmini teslim zamanı geçti"
+  },
+  "orderStatus": {"quote_requested":"Teklif istendi","in_review":"İnceleniyor","in_progress":"Çizim sürüyor","preview_ready":"Önizleme hazır","approved":"Onaylandı · Paketleniyor","revision_requested":"Revizyon istendi","completed":"Tamamlandı","cancelled":"İptal edildi"},
+  "ordersPage": {"title":"Sipariş Geçmişi ve Projeler","description":"Çizim çalışmalarını inceleyin, revizyonları takip edin ve üretim dosyalarına erişin.","newQuote":"Yeni Proje Teklifi","all":"Tüm Siparişler","active":"Aktif","preview":"Önizleme Hazır","review":"İncelenenler","completed":"Tamamlananlar","search":"Sipariş numarası veya başlık ara...","emptyTitle":"Sipariş bulunamadı","emptySearch":"Aramanızla eşleşen sipariş yok.","emptyCategory":"Bu kategoride siparişiniz yok.","startProject":"Yeni Proje Başlat","expected":"Tahmini teslim","manage":"Yönet","orderNumber":"Sipariş #","project":"Proje","type":"Tür","complexity":"Karmaşıklık","status":"Durum","turnaround":"Teslim süresi","price":"Fiyat","details":"Ayrıntılar","express":"Ekspres (<16 sa)","standard":"Standart (24–48 sa)","showing":"{total} kaydın {start}–{end} arası gösteriliyor","previous":"Önceki sayfa","next":"Sonraki sayfa"},
+  "passwordReset": {"title":"Yeni parola belirleyin","description":"Bu sayfayı e-postanıza gönderilen güvenli kurtarma bağlantısından açın.","newPassword":"Yeni parola","confirm":"Parolayı doğrulayın","update":"Parolayı güncelle","updating":"Güncelleniyor…","return":"Girişe dön","lengthError":"En az 8 karakter kullanın.","matchError":"Parolalar eşleşmiyor.","demoError":"Demo modunda parola kurtarma kullanılamaz.","success":"Parolanız güncellendi."},
   "hero": {
     "eyebrow": "Yaratıcı Üretim Stüdyosu · Elle Çizilen Vektör Rekonstrüksiyonu",
     "titlePrefix": "Yapay zeka taslaklarını ve bulanık görselleri",
@@ -45,7 +57,9 @@
     "vectorMaster": "Master Vektör",
     "pointsLabel": "Geometri:",
     "toleranceLabel": "Tolerans:",
-    "uploadCta": "Görselinizi Çizim İçin Yükleyin"
+    "uploadCta": "Görselinizi Çizim İçin Yükleyin",
+    "demoNotice": "Demo galeri — bu örnekler doğrulanmış müşteri çalışmaları değil, yer tutucu içeriklerdir.",
+    "empty": "Henüz doğrulanmış bir portföy örneği yayımlanmadı."
   },
   "services": {
     "eyebrow": "Kabiliyetler ve Uzmanlıklar",
@@ -152,6 +166,73 @@
     "fullName": "Ad Soyad",
     "workEmail": "İş E-Posta Adresi (Önizleme bildirimleri için)",
     "paymentTitle": "Ödeme & Onay Yöntemi",
-    "submitBtn": "Siparişi Onayla & Gönder"
+    "submitBtn": "Siparişi Onayla & Gönder",
+    "complexityGuide": {
+      "title": "Görselinizde ne kadar detay var?",
+      "intro": "Görselinize en yakın örneği seçin. Emin değilseniz çizerimiz değerlendirsin.",
+      "simpleTitle": "Basit",
+      "simpleDescription": "Az detaylı simge veya düz logo. Örnek: tek renkli bir marka işareti.",
+      "standardTitle": "Orta",
+      "standardDescription": "Birkaç parçadan oluşan logo veya arma. Örnek: yıldızlı bir kulüp rozeti.",
+      "complexTitle": "Karmaşık",
+      "complexDescription": "Çok sayıda küçük çizgi ve ince detay. Örnek: yapraklı bir gravür veya ayrıntılı maskot.",
+      "from": "Başlangıç: ${price}",
+      "examples": "Çizimler seviyeleri anlatan örneklerdir. Yazı onarımı, renk ve hız seçenekleri ücreti değiştirebilir.",
+      "reviewTitle": "Emin değilim — çizer değerlendirsin",
+      "reviewDescription": "Görselinizi inceleyip uygun seviyeyi ve fiyatı belirleyelim. Görünen tutar yalnızca ön tahmindir. Bu adımda ödeme alınmaz; üretimden önce fiyatı onaylamanız gerekir.",
+      "estimate": "Ön tahmin",
+      "priceNote": "USD · Seçeneklere göre tahmini tutar",
+      "zeroDue": "Şimdi ödenecek: $0",
+      "submitReview": "Çizer değerlendirmesi iste"
+    },
+    "draft": {
+      "restored": "Kaydedilmiş teklif taslağınız geri yüklendi.",
+      "reorder": "Önceki siparişinizin üretim ayarları yeni varyasyona kopyalandı.",
+      "saved": "Teklif taslağı bu tarayıcıya otomatik kaydedildi.",
+      "clear": "Taslağı sil"
+    },
+    "ui": {
+      "aiLogo": "Yapay zekâ logo taslağı",
+      "lowRes": "Düşük çözünürlüklü görsel",
+      "lowResDesc": "Düşük kaliteli piksel görsel",
+      "handDrawing": "El çizimi",
+      "handDrawingDesc": "Kâğıt üzerindeki eskiz",
+      "typography": "Yazı ve tipografi",
+      "typographyDesc": "Özel logo yazısı",
+      "mascot": "Maskot veya arma",
+      "mascotDesc": "Ayrıntılı karakter",
+      "apparel": "Tekstil veya tabela",
+      "apparelDesc": "Baskı veya kesim konturu",
+      "clean": "Temiz kaynak",
+      "cleanDesc": "Net kenarlar; yollar doğrudan yeniden çizilir",
+      "moderate": "Orta düzey onarım",
+      "moderateDesc": "Bulanık kenarlar ve eksik parçalar tamamlanır",
+      "heavy": "Yoğun restorasyon",
+      "heavyDesc": "Ağır pikselleşme ve elle yeniden taslak çizimi",
+      "oneTwoColors": "1–2 spot renk",
+      "threeFiveColors": "3–5 renk",
+      "sixPlusColors": "6+ renk",
+      "gradients": "Geçişler veya ağ",
+      "included": "Dahil",
+      "standard": "Standart stüdyo teslimi",
+      "standardDesc": "24–48 saat",
+      "express": "Öncelikli ekspres",
+      "expressDesc": "12–16 saat içinde teslim",
+      "notesPlaceholder": "Üretim yöntemi, en küçük çizgi kalınlığı veya özel renk kodları gibi ayrıntıları yazın...",
+      "backUpload": "Yüklemeye dön",
+      "continueReview": "İnceleme ve siparişe devam et",
+      "deliverables": "Teslimata dahil formatlar:",
+      "card": "Kredi / banka kartı",
+      "cardDesc": "Üretim ödeme sonrasında başlar",
+      "payAfter": "Çizer incelemesinden sonra öde",
+      "payAfterDesc": "Şimdi ücret alınmaz; incelemeden sonra fiyatı onaylarsınız",
+      "b2b": "Kurumsal hesap / vadeli ödeme",
+      "b2bDesc": "Onaylanmış şirket hesabına faturalandırılır",
+      "net30": "30 gün vadeli fatura",
+      "backSpecs": "Özelliklere dön",
+      "submitting": "Sipariş gönderiliyor...",
+      "demoCheckout": "Demo ödeme: bu sürümde karttan çekim yapılmaz ve gerçek fatura oluşturulmaz. Canlı kullanım öncesinde bir ödeme sağlayıcısı bağlanmalıdır.",
+      "defaultProject": "Vektör Projem", "ready": "Elle çizime hazır", "uploaded": "Yüklendi", "changeFile": "Dosyayı değiştir", "projectPlaceholder": "örn. Şahin Arması Yeniden Çizimi", "namePlaceholder": "örn. Ali Yılmaz", "emailPlaceholder": "örn. ali@tasarimstudyo.com", "geometryBase": "geometri tabanı", "fontRebuild": "Yazı tipi ve harf yenileme", "heavyRebuild": "Yoğun geometri onarımı", "missingRebuild": "Eksik veya bulanık ayrıntı onarımı", "gradientSeparation": "Karmaşık geçiş ayrımı", "colorSeparation": "{count} renk ayrımı", "expressDispatch": "Öncelikli ekspres üretim"
+    }
   }
 }

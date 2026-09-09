@@ -14,8 +14,20 @@
     "portal": "Portal",
     "signOut": "Sign Out",
     "persona": "Persona",
-    "guarantee": "100% Hand-Crafted Studio Reconstruction · Zero auto-trace shortcuts"
+    "guarantee": "100% Hand-Crafted Studio Reconstruction · Zero auto-trace shortcuts",
+    "studio": "Artwork Studio", "demoOperator": "Elena (Demo QA)", "demoCustomer": "Alex (Demo Client)", "guest": "Guest mode", "switchDemo": "Switch demo account", "clientAccount": "Client account", "clientDescription": "Alex Morgan (portal and archive)", "operatorAccount": "Operator / QA", "operatorDescription": "Elena Vance (production queue)", "toggleMenu": "Toggle menu", "language": "Language"
   },
+  "footer": {
+    "description": "Artlantix is a workflow for a manual vectorization and artwork reconstruction studio, covering estimates, review, revisions and delivery.",
+    "craftsmanship": "Manual reconstruction workflow · No automatic-trace claim",
+    "deliverables": "Planned deliverables", "capabilities": "Capabilities", "aiLogo": "AI concept logo reconstruction", "raster": "Raster to clean vector", "typography": "Font and typography rebuild", "screenPrint": "Screen print and DTF separation", "cnc": "Vinyl cut and CNC preparation", "platform": "Platform", "quote": "Quote builder", "portal": "Client portal", "vault": "Artwork archive", "business": "B2B planning hub", "operator": "Operator queue", "standards": "Studio targets", "deliveryTarget": "24–48h standard delivery target", "revisionPolicy": "Revision policy shown before ordering", "curves": "Path and curve quality checks", "rights": "Usage rights confirmed per project", "privacy": "Private customer and delivery storage", "copyright": "Manual vector production workflow.", "terms": "Terms", "license": "Commercial licensing", "privacyPolicy": "Privacy", "security": "Security"
+  },
+  "dashboard": {
+    "title": "Client Production Portal", "partner": "B2B Commercial Partner", "loggedIn": "Logged in as", "client": "Client", "adminDesk": "Production Desk (Admin)", "newQuote": "New Project Quote", "overview": "Overview", "orders": "My Orders", "vault": "Artwork Vault", "business": "B2B Studio Hub", "account": "Account and Billing", "notificationCount": "{count} order notifications", "updates": "Order updates", "caughtUp": "You are all caught up.", "dismissNotification": "Dismiss {project} notification", "overdue": "Delivery estimate has passed"
+  },
+  "orderStatus": {"quote_requested":"Quote requested","in_review":"In review","in_progress":"In progress","preview_ready":"Preview ready","approved":"Approved · Packaging","revision_requested":"Revision requested","completed":"Completed","cancelled":"Cancelled"},
+  "ordersPage": {"title":"Order History and Projects","description":"Review artwork reconstructions, track revisions and access production downloads.","newQuote":"New Project Quote","all":"All Orders","active":"Active","preview":"Preview Ready","review":"In Review","completed":"Completed Masters","search":"Search order number or title...","emptyTitle":"No orders found","emptySearch":"No orders match your search.","emptyCategory":"You have no orders in this category.","startProject":"Start New Project","expected":"Expected","manage":"Manage","orderNumber":"Order #","project":"Project","type":"Type","complexity":"Complexity","status":"Status","turnaround":"Turnaround","price":"Price","details":"Details","express":"Express (<16h)","standard":"Standard (24–48h)","showing":"Showing {start}–{end} of {total}","previous":"Previous page","next":"Next page"},
+  "passwordReset": {"title":"Choose a new password","description":"Open this page from the secure recovery link sent to your email.","newPassword":"New password","confirm":"Confirm password","update":"Update password","updating":"Updating…","return":"Return to sign in","lengthError":"Use at least 8 characters.","matchError":"Passwords do not match.","demoError":"Password recovery is unavailable in demo mode.","success":"Your password has been updated."},
   "hero": {
     "eyebrow": "Creative Production Studio · Hand-Crafted Vector Reconstruction",
     "titlePrefix": "Turn AI concepts & blurry artwork into",
@@ -45,7 +57,9 @@
     "vectorMaster": "Vector Master",
     "pointsLabel": "Geometry:",
     "toleranceLabel": "Tolerance:",
-    "uploadCta": "Upload Your Artwork for Reconstruction"
+    "uploadCta": "Upload Your Artwork for Reconstruction",
+    "demoNotice": "Demonstration gallery — these examples are placeholders, not verified client work.",
+    "empty": "No verified portfolio examples have been published yet."
   },
   "services": {
     "eyebrow": "Capabilities & Disciplines",
@@ -152,6 +166,33 @@
     "fullName": "Full Name",
     "workEmail": "Work Email (for preview notifications)",
     "paymentTitle": "Payment & Dispatch Method",
-    "submitBtn": "Confirm & Submit Order"
+    "submitBtn": "Confirm & Submit Order",
+    "complexityGuide": {
+      "title": "How detailed is your artwork?",
+      "intro": "Choose the closest example. If you are unsure, let an artist assess it.",
+      "simpleTitle": "Simple",
+      "simpleDescription": "An icon or flat logo with few details. Example: a single-color brand mark.",
+      "standardTitle": "Moderate",
+      "standardDescription": "A logo or badge with several parts. Example: a club crest with a star.",
+      "complexTitle": "Complex",
+      "complexDescription": "Many fine lines and small details. Example: a botanical engraving or detailed mascot.",
+      "from": "From ${price}",
+      "examples": "Illustrations show example detail levels. Text repair, colors and turnaround can change the price.",
+      "reviewTitle": "Not sure — let an artist assess it",
+      "reviewDescription": "We will review your artwork to determine its level and price. The displayed amount is a provisional estimate only. No payment is taken at this step; you must approve the price before production.",
+      "estimate": "Provisional estimate",
+      "priceNote": "USD · Estimate based on your options",
+      "zeroDue": "Due now: $0",
+      "submitReview": "Request artist assessment"
+    },
+    "draft": {
+      "restored": "Your saved quote draft was restored.",
+      "reorder": "Production settings from your previous order were copied into a new variation.",
+      "saved": "Your quote draft was saved automatically in this browser.",
+      "clear": "Clear draft"
+    },
+    "ui": {
+      "aiLogo": "AI concept logo", "lowRes": "Low-resolution artwork", "lowResDesc": "Low-quality raster graphic", "handDrawing": "Hand drawing", "handDrawingDesc": "Sketch on paper", "typography": "Lettering and typography", "typographyDesc": "Custom wordmark", "mascot": "Mascot or crest", "mascotDesc": "Detailed character", "apparel": "Apparel or signage", "apparelDesc": "Print or cut contour", "clean": "Clean original", "cleanDesc": "Sharp edges; paths can be redrawn directly", "moderate": "Moderate repair", "moderateDesc": "Blurry edges and missing parts are rebuilt", "heavy": "Deep restoration", "heavyDesc": "Heavy pixelation and manual re-drafting", "oneTwoColors": "1–2 spot colors", "threeFiveColors": "3–5 colors", "sixPlusColors": "6+ colors", "gradients": "Gradients or mesh", "included": "Included", "standard": "Standard studio delivery", "standardDesc": "24–48 hours", "express": "Priority express", "expressDesc": "Delivery within 12–16 hours", "notesPlaceholder": "Add production method, minimum line width, color codes or other requirements...", "backUpload": "Back to upload", "continueReview": "Continue to review and order", "deliverables": "Formats included:", "card": "Credit or debit card", "cardDesc": "Production starts after payment", "payAfter": "Pay after artist review", "payAfterDesc": "No charge now; approve the price after review", "b2b": "Business account / invoice terms", "b2bDesc": "Billed to an approved company account", "net30": "Net-30 invoice", "backSpecs": "Back to specifications", "submitting": "Submitting order...", "demoCheckout": "Demo checkout: no card is charged and no invoice is issued in this build. Connect a payment provider before production use.", "defaultProject": "My Vector Project", "ready": "Ready for hand rebuild", "uploaded": "Uploaded", "changeFile": "Change file", "projectPlaceholder": "e.g., Apex Falcon Crest Reconstruction", "namePlaceholder": "e.g., Alex Morgan", "emailPlaceholder": "e.g., alex@designstudio.com", "geometryBase": "geometry base", "fontRebuild": "Font and lettering rebuild", "heavyRebuild": "Heavy geometry reconstruction", "missingRebuild": "Missing or blurred detail reconstruction", "gradientSeparation": "Complex gradient separation", "colorSeparation": "{count} color separation", "expressDispatch": "Priority express dispatch"
+    }
   }
 }

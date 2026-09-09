@@ -150,7 +150,7 @@ export default function BeforeAfterSlider({
                 <path
                   d="M 250 65 L 390 125 C 390 260 330 355 250 420 C 170 355 110 260 110 125 Z"
                   fill="#F9F8F6"
-                  stroke="#E05328"
+                  stroke="#18794E"
                   strokeWidth="3"
                 />
                 {/* Geometric Falcon Crest Wings & Beak */}
@@ -160,7 +160,7 @@ export default function BeforeAfterSlider({
                 />
                 <path
                   d="M 250 210 L 275 260 L 250 310 L 225 260 Z"
-                  fill="#E05328"
+                  fill="#18794E"
                 />
                 {/* Architectural Circle Guide */}
                 <circle
@@ -168,7 +168,7 @@ export default function BeforeAfterSlider({
                   cy="235"
                   r="115"
                   fill="none"
-                  stroke="#E05328"
+                  stroke="#18794E"
                   strokeWidth="2"
                   strokeDasharray="5 4"
                 />
@@ -192,7 +192,7 @@ export default function BeforeAfterSlider({
                   fontWeight="600"
                   fontSize="10"
                   letterSpacing="3"
-                  fill="#E05328"
+                  fill="#18794E"
                   textAnchor="middle"
                 >
                   STUDIO · PRO
@@ -203,7 +203,7 @@ export default function BeforeAfterSlider({
               {isWireframe && (
                 <g className="animate-in fade-in duration-200">
                   {/* Vector Outlines */}
-                  <g stroke="#E05328" strokeWidth="1.5" fill="none">
+                  <g stroke="#18794E" strokeWidth="1.5" fill="none">
                     <path d="M 250 40 L 410 110 C 410 270 340 380 250 450 C 160 380 90 270 90 110 Z" />
                     <path d="M 250 65 L 390 125 C 390 260 330 355 250 420 C 170 355 110 260 110 125 Z" />
                     <path d="M 250 140 L 330 200 L 290 220 L 350 270 L 250 250 L 150 270 L 210 220 L 170 200 Z" />
@@ -211,7 +211,7 @@ export default function BeforeAfterSlider({
                   </g>
 
                   {/* Bezier Nodes (Squares) and Tangent Handles */}
-                  <g fill="#E05328" stroke="#FFFFFF" strokeWidth="1.5">
+                  <g fill="#18794E" stroke="#FFFFFF" strokeWidth="1.5">
                     <rect x="246" y="36" width="8" height="8" />
                     <rect x="406" y="106" width="8" height="8" />
                     <rect x="246" y="446" width="8" height="8" />
@@ -222,10 +222,10 @@ export default function BeforeAfterSlider({
                     <rect x="146" y="266" width="8" height="8" />
                     <rect x="166" y="196" width="8" height="8" />
                     {/* Tangent guide lines */}
-                    <line x1="410" y1="110" x2="435" y2="195" stroke="#E05328" strokeWidth="1" strokeDasharray="2 2" />
-                    <circle cx="435" cy="195" r="3.5" fill="#FFFFFF" stroke="#E05328" strokeWidth="1.5" />
-                    <line x1="90" y1="110" x2="65" y2="195" stroke="#E05328" strokeWidth="1" strokeDasharray="2 2" />
-                    <circle cx="65" cy="195" r="3.5" fill="#FFFFFF" stroke="#E05328" strokeWidth="1.5" />
+                    <line x1="410" y1="110" x2="435" y2="195" stroke="#18794E" strokeWidth="1" strokeDasharray="2 2" />
+                    <circle cx="435" cy="195" r="3.5" fill="#FFFFFF" stroke="#18794E" strokeWidth="1.5" />
+                    <line x1="90" y1="110" x2="65" y2="195" stroke="#18794E" strokeWidth="1" strokeDasharray="2 2" />
+                    <circle cx="65" cy="195" r="3.5" fill="#FFFFFF" stroke="#18794E" strokeWidth="1.5" />
                   </g>
                 </g>
               )}
@@ -234,7 +234,7 @@ export default function BeforeAfterSlider({
 
           {/* Right Floating Badge */}
           <div className="absolute bottom-4 right-4 rounded-full border border-[#EAE8E3] bg-white/95 px-3.5 py-1.5 text-xs font-semibold text-[#141414] shadow-xs backdrop-blur-sm">
-            <span className="text-[#E05328] mr-1.5">●</span>
+            <span className="text-[#18794E] mr-1.5">●</span>
             <span>Master Vector {isWireframe ? '(Wireframe Nodes)' : '(Clean Bezier)'}</span>
           </div>
         </div>
@@ -366,7 +366,7 @@ export default function BeforeAfterSlider({
         </div>
         <div>
           <span className="font-mono text-[10px] uppercase tracking-wider text-[#737373]">04 / Industrial Readiness</span>
-          <p className="mt-0.5 text-xs font-bold text-[#E05328]">Screen Print &amp; Laser Cut Ready</p>
+          <p className="mt-0.5 text-xs font-bold text-[#18794E]">Screen Print &amp; Laser Cut Ready</p>
         </div>
       </div>
     </div>

@@ -19,12 +19,12 @@ Proje **geliştirme aşamasındaki bir demodur**. Müşteri ve yönetici ekranla
 | Bölüm | Şu anda yapılabilenler | Eksik olanlar |
 | --- | --- | --- |
 | Ana sayfa | Hizmetler, örnek çalışmalar ve önce/sonra karşılaştırması. | Gerçek müşteri örnekleri ve tam çeviri. |
-| Fiyat teklifi | Dosya seçimi; karmaşıklık, renk, yazı onarımı ve teslim hızına göre tahmini ücret. | Sunucuda fiyat doğrulama ve gerçek ödeme. |
-| Müşteri paneli | Demo sipariş takibi, mesajlar, revizyon ve onay akışı. | Bütün işlemlerin kalıcı ve cihazlar arasında ortak veriye bağlanması. |
-| Yönetici paneli | Demo üretim kuyruğu ve içerik düzenleme ekranları. | Veritabanı, dosya yükleme ve yetki kontrollerinin tamamlanması. |
-| Dosya arşivi | Teslim dosyalarının nasıl listeleneceğini gösteren ekranlar. | Gerçek dosyalar ve gerçek ZIP indirme. Bazı indirmeler örnek içerik veya metin dosyasıdır. |
-| Kurumsal bölüm | Toplu sipariş ve faturalandırma ekranları. | Gerçek toplu işlem kuyruğu, şirket onayı ve fatura akışı. |
-| Üyelik | Demo hesap geçişi ve kısmi Supabase bağlantısı. | Google giriş dönüşü, şifre kurtarma ve profil kaydının tamamlanması. |
+| Fiyat teklifi | Görselli karmaşıklık seçimi, çizer değerlendirmesi, otomatik taslak kaydı, yeniden sipariş ve tahmini ücret. | Sunucuda fiyat doğrulama ve gerçek ödeme. |
+| Müşteri paneli | Sipariş takibi, teslim tahmini, bildirim, mesaj, görsel revizyon işaretleri ve onay akışı. | Canlı servis üzerinde uçtan uca entegrasyon testi ve kalan panel çevirileri. |
+| Yönetici paneli | Üretim kuyruğu, gerçek servis bağlıyken özel önizleme/master yükleme ve içerik düzenleme ekranları. | İşlemleri atomik hale getirme ve canlı veritabanı testi. |
+| Dosya arşivi | Demo dosyaları ve açıkça etiketlenmiş paket manifesti; Supabase modunda süreli özel indirme bağlantıları. | Gerçek ZIP üretimi ve canlı depolama testi. |
+| Kurumsal bölüm | Toplu dosya seçip tarayıcıya bir parti taslağı kaydetme. | Gerçek toplu yükleme, şirket onayı ve fatura akışı. |
+| Üyelik | Demo hesap geçişi; Supabase için Google dönüşü, şifre sıfırlama ve profil kaydı. | Canlı Supabase projesinde uçtan uca doğrulama. |
 
 Ödeme ekranındaki başarı, gerçek kart tahsilatı yapıldığı anlamına gelmez. Demo verileri tarayıcıda tutulur; başka cihazlara taşınmaz ve tarayıcı verileri temizlenince kaybolabilir. Türkçe, İngilizce ve Almanca desteği başlamıştır; panel ve bazı sayfa metinleri hâlâ İngilizcedir.
 
@@ -33,7 +33,7 @@ Proje **geliştirme aşamasındaki bir demodur**. Müşteri ve yönetici ekranla
 1. Aşağıdaki kurulum adımlarıyla siteyi açın. Demo için Supabase hesabı veya API anahtarı gerekmez.
 2. Üst menüden veya giriş sayfasından **Demo Customer** hesabını seçerek müşteri ekranlarını inceleyin.
 3. Fiyat teklifi bölümünde dosya seçip çizim seçeneklerini deneyin. Bu sürüm JPG/JPEG, PNG, WebP ve PDF kabul eder; dosya sınırı **2 MB**'tır.
-4. Sipariş detayında mesaj, revizyon ve onay ekranlarını inceleyin.
+4. Sipariş detayında teslim tarihini, durum geçmişini, mesajları ve görsel üzerine revizyon işaretlerini inceleyin.
 5. **Demo Operator** hesabına geçerek aynı sürecin yönetici tarafını görün.
 
 Gerçek Supabase bağlantısında demo hesap seçimi kapatılır. Tek dosya sınıra uysa bile biriken dosyalar toplam tarayıcı depolama alanını doldurabilir.
@@ -86,7 +86,7 @@ npm run build
 node --test tests/regressions.mjs
 ```
 
-7 Eylül 2026 incelemesinde derleme ve 5 test geçti. Kod kontrolünde hata yoktu; görsel optimizasyonu için 4 uyarı kaldı. Bunlar canlı ödeme veya veritabanı testlerinin yerine geçmez.
+10 Eylül 2026 incelemesinde üretim derlemesi ve 8 test geçti. Kod kontrolünde hata veya uyarı kalmadı. Bunlar canlı ödeme veya veritabanı testlerinin yerine geçmez.
 
 Ayrıntılar: [inceleme ve geliştirme raporu](REVIEW.md), [AI'lar için proje rehberi — İngilizce](llm.md), [geliştirme talimatları](AGENTS.md). AI asistanları değişiklik yapmadan önce son iki dosyayı okumalıdır.
 
@@ -109,12 +109,12 @@ This project is **a demo under development**. You can explore customer and opera
 | Area | Available now | Still needed |
 | --- | --- | --- |
 | Homepage | Service information, example work and before/after comparisons. | Real client examples and complete translations. |
-| Quote builder | File selection and estimated pricing based on complexity, colors, text repair and turnaround. | Server-validated pricing and real checkout. |
-| Customer portal | Demo orders, messages, revisions and approval flow. | Consistent, permanent data shared across devices. |
-| Operator portal | Demo production queue and content editing screens. | Complete database, upload and permission integration. |
-| File archive | A demonstration of how deliverables are listed. | Real files and ZIP downloads. Some current downloads contain sample content or plain text. |
-| Business hub | Batch ordering and invoicing screens. | Actual batch processing, company approval and invoicing. |
-| Accounts | Demo account switching and partial Supabase integration. | Google sign-in callback, password recovery and profile persistence. |
+| Quote builder | Illustrated complexity choices, artist assessment, autosaved drafts, reorder prefills and estimated pricing. | Server-validated pricing and real checkout. |
+| Customer portal | Order tracking, delivery estimates, notifications, messages, visual revision markers and approval flow. | End-to-end testing on live services and remaining portal translations. |
+| Operator portal | Production queue, private preview/master upload in Supabase mode and content management. | Atomic operations and live database testing. |
+| File archive | Demo files and a clearly labelled package manifest; signed private downloads in Supabase mode. | Real ZIP generation and live storage testing. |
+| Business hub | Select multiple files and save a browser-local batch draft. | Actual batch upload, company approval and invoicing. |
+| Accounts | Demo switching plus Supabase OAuth callback, password reset request and profile persistence. | End-to-end validation against a live Supabase project. |
 
 A successful payment message does not mean a card was charged. Demo data stays in the browser, does not sync to other devices and may disappear when browser data is cleared. English, German and Turkish support is partial; the portal and some page content are still in English.
 
@@ -123,7 +123,7 @@ A successful payment message does not mean a card was charged. Demo data stays i
 1. Start the site using the instructions below. No Supabase account or API key is required for the demo.
 2. Select **Demo Customer** from the top menu or login page to explore the customer experience.
 3. Select a file in the quote builder and try the artwork options. This version accepts JPG/JPEG, PNG, WebP and PDF files up to **2 MB**.
-4. Open an order to explore messages, revisions and approval.
+4. Open an order to explore delivery dates, status history, messages and visual revision markers.
 5. Switch to **Demo Operator** to see the production side of the workflow.
 
 Demo account switching is disabled when a real Supabase connection is configured. Accumulated files may fill total browser storage even when individual files meet the upload limit.
@@ -176,6 +176,6 @@ npm run build
 node --test tests/regressions.mjs
 ```
 
-The September 7, 2026 audit passed the production build and five tests. Lint reported no errors and four image optimization warnings. These checks do not replace live payment or database integration tests.
+The September 10, 2026 audit passed the production build and eight tests. Lint reported no errors or warnings. These checks do not replace live payment or database integration tests.
 
 Further reading: [audit and improvement report — Turkish](REVIEW.md), [project guide for AI assistants](llm.md), and [development instructions](AGENTS.md). AI assistants should read the last two documents before making changes.

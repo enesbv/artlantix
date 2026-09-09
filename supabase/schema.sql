@@ -38,13 +38,21 @@ CREATE TABLE IF NOT EXISTS orders (
   colors TEXT,
   has_text BOOLEAN DEFAULT FALSE,
   reconstruction_needed BOOLEAN DEFAULT FALSE,
+  reconstruction_level TEXT DEFAULT 'clean' CHECK (reconstruction_level IN ('clean', 'moderate', 'heavy')),
   turnaround TEXT DEFAULT 'standard',
   estimated_price NUMERIC(10, 2) NOT NULL,
   final_price NUMERIC(10, 2),
   status TEXT DEFAULT 'quote_requested' CHECK (
-    status IN ('quote_requested', 'in_review', 'in_progress', 'preview_ready', 'revision_requested', 'completed', 'cancelled')
+    status IN ('quote_requested', 'in_review', 'in_progress', 'preview_ready', 'approved', 'revision_requested', 'completed', 'cancelled')
   ),
   notes TEXT,
+  needs_manual_review BOOLEAN DEFAULT FALSE,
+  payment_method TEXT DEFAULT 'card_simulated' CHECK (payment_method IN ('card_simulated', 'invoice_b2b', 'pay_after_quote_review')),
+  expected_delivery_at TIMESTAMPTZ,
+  assigned_artist TEXT,
+  source_order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  status_history JSONB DEFAULT '[]'::jsonb,
+  revision_annotations JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -69,6 +77,32 @@ CREATE TABLE IF NOT EXISTS order_messages (
   sender_id UUID REFERENCES profiles(id) NOT NULL,
   sender_type TEXT CHECK (sender_type IN ('customer', 'operator')),
   message TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Public marketing content, writable only by studio administrators.
+CREATE TABLE IF NOT EXISTS site_settings (
+  id TEXT PRIMARY KEY DEFAULT 'current',
+  hero_title TEXT NOT NULL,
+  hero_subtitle TEXT NOT NULL,
+  simple_tier_price NUMERIC(10, 2) NOT NULL DEFAULT 25,
+  standard_tier_price NUMERIC(10, 2) NOT NULL DEFAULT 45,
+  complex_tier_price NUMERIC(10, 2) NOT NULL DEFAULT 75,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS portfolio_items (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  category TEXT NOT NULL,
+  "clientType" TEXT,
+  badge TEXT,
+  "rasterUrl" TEXT NOT NULL,
+  "vectorUrl" TEXT,
+  "vectorSvgContent" TEXT,
+  description TEXT NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  stats JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -103,6 +137,69 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
+-- Recalculate customer-submitted pricing and initial status in the database.
+CREATE OR REPLACE FUNCTION public.enforce_order_insert_pricing()
+RETURNS TRIGGER AS $$
+DECLARE
+  base_amount NUMERIC(10, 2);
+  calculated_amount NUMERIC(10, 2);
+BEGIN
+  SELECT CASE NEW.complexity
+    WHEN 'simple' THEN simple_tier_price
+    WHEN 'complex' THEN complex_tier_price
+    ELSE standard_tier_price
+  END INTO base_amount FROM public.site_settings WHERE id = 'current';
+
+  base_amount := COALESCE(base_amount, CASE NEW.complexity WHEN 'simple' THEN 25 WHEN 'complex' THEN 75 ELSE 45 END);
+  calculated_amount := base_amount;
+  IF NEW.has_text THEN calculated_amount := calculated_amount + 15; END IF;
+  IF NEW.reconstruction_level = 'heavy' THEN calculated_amount := calculated_amount + 35;
+  ELSIF NEW.reconstruction_level = 'moderate' OR (NEW.reconstruction_level IS NULL AND NEW.reconstruction_needed) THEN
+    calculated_amount := calculated_amount + 20;
+  END IF;
+  IF NEW.colors ILIKE '3-5%' THEN calculated_amount := calculated_amount + 5;
+  ELSIF NEW.colors ILIKE '6+%' OR NEW.colors ILIKE 'gradient%' THEN calculated_amount := calculated_amount + 15;
+  END IF;
+  IF NEW.turnaround = 'express' THEN calculated_amount := ROUND(calculated_amount * 1.35); END IF;
+
+  NEW.estimated_price := calculated_amount;
+  NEW.final_price := calculated_amount;
+  NEW.needs_manual_review := COALESCE(NEW.needs_manual_review, false)
+    OR (NEW.complexity = 'complex' AND NEW.reconstruction_needed AND NEW.has_text);
+  -- Until a verified payment webhook exists, every new remote order requires studio review.
+  NEW.status := 'quote_requested';
+  NEW.expected_delivery_at := COALESCE(NEW.created_at, NOW())
+    + CASE WHEN NEW.turnaround = 'express' THEN INTERVAL '16 hours' ELSE INTERVAL '48 hours' END;
+  NEW.status_history := jsonb_build_array(jsonb_build_object(
+    'id', 'status_' || gen_random_uuid()::text, 'status', NEW.status,
+    'created_at', COALESCE(NEW.created_at, NOW()), 'actor', 'customer'
+  ));
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SET search_path = '';
+
+DROP TRIGGER IF EXISTS enforce_order_insert_pricing ON public.orders;
+CREATE TRIGGER enforce_order_insert_pricing BEFORE INSERT ON public.orders
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_order_insert_pricing();
+
+CREATE OR REPLACE FUNCTION public.append_order_status_history()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status IS DISTINCT FROM OLD.status THEN
+    NEW.status_history := COALESCE(OLD.status_history, '[]'::jsonb) || jsonb_build_array(jsonb_build_object(
+      'id', 'status_' || gen_random_uuid()::text, 'status', NEW.status,
+      'created_at', COALESCE(NEW.updated_at, NOW()),
+      'actor', CASE WHEN public.is_admin() THEN 'studio' ELSE 'customer' END
+    ));
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SET search_path = '';
+
+DROP TRIGGER IF EXISTS zz_append_order_status_history ON public.orders;
+CREATE TRIGGER zz_append_order_status_history BEFORE UPDATE ON public.orders
+  FOR EACH ROW EXECUTE FUNCTION public.append_order_status_history();
+
 -- ------------------------------------------------------------------------------
 -- 5. ROW LEVEL SECURITY (RLS) ON DATABASE TABLES
 -- ------------------------------------------------------------------------------
@@ -110,6 +207,8 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE portfolio_items ENABLE ROW LEVEL SECURITY;
 
 -- Helper to check admin status
 CREATE OR REPLACE FUNCTION public.is_admin()
@@ -176,12 +275,20 @@ CREATE POLICY "Users and admins can insert messages"
     auth.uid() = sender_id OR public.is_admin()
   );
 
+CREATE POLICY "Anyone can read site settings" ON site_settings FOR SELECT USING (true);
+CREATE POLICY "Admins can manage site settings" ON site_settings FOR ALL TO authenticated
+  USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "Anyone can read active portfolio items" ON portfolio_items FOR SELECT
+  USING (active OR public.is_admin());
+CREATE POLICY "Admins can manage portfolio items" ON portfolio_items FOR ALL TO authenticated
+  USING (public.is_admin()) WITH CHECK (public.is_admin());
+
 -- ==============================================================================
 -- 6. STORAGE BUCKET CONFIGURATION & RLS POLICIES
 -- ==============================================================================
 -- Artlantix requires three distinct storage buckets:
 -- 1. 'customer-assets': Private bucket for customer original uploads and revision references.
--- 2. 'previews': Public or signed-access bucket for watermarked vector draft previews.
+-- 2. 'previews': Private bucket for watermarked vector draft previews.
 -- 3. 'master-deliveries': Private, strictly protected bucket. Master vector files (AI, EPS, SVG, PDF)
 --    can only be accessed via temporary signed download URLs generated upon order completion.
 
@@ -189,8 +296,9 @@ CREATE POLICY "Users and admins can insert messages"
 INSERT INTO storage.buckets (id, name, public)
 VALUES 
   ('customer-assets', 'customer-assets', false),
-  ('previews', 'previews', true),
+  ('previews', 'previews', false),
   ('master-deliveries', 'master-deliveries', false)
+  ,('portfolio', 'portfolio', true)
 ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
 
 -- Enable RLS on storage.objects
@@ -218,7 +326,7 @@ CREATE POLICY "Users can read own customer-assets or admins read all"
   );
 
 -- ------------------------------------------------------------------------------
--- Bucket B: previews (Public / Signed for watermarked drafts)
+-- Bucket B: previews (Private / signed for watermarked drafts)
 -- ------------------------------------------------------------------------------
 -- Operators/Admins can upload previews
 CREATE POLICY "Admins and operators can insert previews"
@@ -228,10 +336,14 @@ CREATE POLICY "Admins and operators can insert previews"
     bucket_id = 'previews' AND public.is_admin()
   );
 
--- Clients can view watermarked previews
-CREATE POLICY "Anyone can view watermarked previews"
+-- Clients can view previews stored below their own user-id folder; admins can view all.
+CREATE POLICY "Users can read own previews or admins read all"
   ON storage.objects FOR SELECT
-  USING (bucket_id = 'previews');
+  TO authenticated
+  USING (
+    bucket_id = 'previews' AND
+    (auth.uid()::text = (storage.foldername(name))[1] OR public.is_admin())
+  );
 
 -- ------------------------------------------------------------------------------
 -- Bucket C: master-deliveries (Private, Strictly Protected)
@@ -262,3 +374,12 @@ CREATE POLICY "Completed order clients or admins can read master-deliveries"
       )
     )
   );
+
+CREATE POLICY "Admins can upload portfolio media" ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'portfolio' AND public.is_admin());
+CREATE POLICY "Anyone can read portfolio media" ON storage.objects FOR SELECT
+  USING (bucket_id = 'portfolio');
+CREATE POLICY "Admins can update portfolio media" ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'portfolio' AND public.is_admin()) WITH CHECK (bucket_id = 'portfolio' AND public.is_admin());
+CREATE POLICY "Admins can delete portfolio media" ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'portfolio' AND public.is_admin());

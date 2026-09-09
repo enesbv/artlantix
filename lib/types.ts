@@ -20,6 +20,7 @@ export type OrderStatus =
   | 'in_review'
   | 'in_progress'
   | 'preview_ready'
+  | 'approved'
   | 'revision_requested'
   | 'completed'
   | 'cancelled';
@@ -52,16 +53,38 @@ export interface Order {
   colors: string;
   has_text: boolean;
   reconstruction_needed: boolean;
+  reconstruction_level?: 'clean' | 'moderate' | 'heavy';
   turnaround: TurnaroundSpeed;
   estimated_price: number;
   final_price: number;
   status: OrderStatus;
   notes?: string;
   needs_manual_review?: boolean;
+  payment_method?: 'card_simulated' | 'invoice_b2b' | 'pay_after_quote_review';
+  expected_delivery_at?: string;
+  assigned_artist?: string;
+  source_order_id?: string;
+  status_history?: OrderStatusEvent[];
+  revision_annotations?: RevisionAnnotation[];
   created_at: string;
   updated_at: string;
   files?: OrderFile[];
   messages?: OrderMessage[];
+}
+
+export interface OrderStatusEvent {
+  id: string;
+  status: OrderStatus;
+  created_at: string;
+  actor?: string;
+}
+
+export interface RevisionAnnotation {
+  id: string;
+  x: number;
+  y: number;
+  message: string;
+  created_at: string;
 }
 
 export type FileCategory =
@@ -115,6 +138,7 @@ export interface BeforeAfterShowcase {
   clientType?: string;
   badge?: string;
   rasterUrl: string;
+  vectorUrl?: string;
   vectorSvgContent?: string;
   description: string;
   active?: boolean;

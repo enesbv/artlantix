@@ -47,7 +47,7 @@ export default function SignUpPage() {
         <div className="rounded-xl border border-[#E6E4DF] bg-white p-8 shadow-xs">
           <div className="text-center">
             <div className="mx-auto flex h-10 w-10 items-center justify-center rounded border border-[#111111] bg-[#111111] text-white">
-              <Layers className="h-5 w-5 text-[#E25C34]" />
+              <Layers className="h-5 w-5 text-[#18794E]" />
             </div>
             <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#111111]">
               Create Your Artlantix Account
@@ -81,7 +81,7 @@ export default function SignUpPage() {
                   : 'text-[#666666] hover:text-[#111111]'
               }`}
             >
-              <Building2 className="h-3.5 w-3.5 text-[#E25C34]" />
+              <Building2 className="h-3.5 w-3.5 text-[#18794E]" />
               <span>B2B Print &amp; Shop</span>
             </button>
           </div>
@@ -148,7 +148,7 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded bg-[#E25C34] py-2.5 text-xs font-bold text-white hover:bg-[#D94A26] transition-colors disabled:opacity-50"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded bg-[#18794E] py-2.5 text-xs font-bold text-white hover:bg-[#18794E] transition-colors disabled:opacity-50"
             >
               <span>{loading ? 'Creating Account...' : 'Create Account & Continue'}</span>
               <ArrowRight className="h-3.5 w-3.5" />

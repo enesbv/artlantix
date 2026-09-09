@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Globe } from 'lucide-react';
 import { persistLocale } from '@/lib/locale';
+import { useLocale } from 'next-intl';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', short: 'EN', flag: '🇬🇧' },
@@ -14,11 +15,12 @@ const LANGUAGES = [
 export default function LanguageSwitcher({ currentLocale }: { currentLocale?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const contextLocale = useLocale();
   const rawPathname = usePathname() || '/';
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Derive locale automatically if not explicitly provided
-  let activeLocale = currentLocale;
+  let activeLocale = currentLocale || contextLocale;
   if (!activeLocale) {
     if (rawPathname.startsWith('/de/') || rawPathname === '/de') {
       activeLocale = 'de';
@@ -62,9 +64,11 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale?: st
       newPath = `/${targetLocale}${unlocalizedPath === '/' ? '' : unlocalizedPath}`;
     }
 
-    // If currently on admin or dashboard, keep on those or switch homepage
-    if (unlocalizedPath.startsWith('/admin') || unlocalizedPath.startsWith('/dashboard')) {
-      newPath = targetLocale === 'en' ? '/' : `/${targetLocale}`;
+    // Private and auth routes are not locale-prefixed; update their provider in place.
+    if (unlocalizedPath.startsWith('/admin') || unlocalizedPath.startsWith('/dashboard') || unlocalizedPath.startsWith('/login') || unlocalizedPath.startsWith('/signup')) {
+      persistLocale(targetLocale);
+      router.refresh();
+      return;
     }
 
     if (!['/', '/quote'].includes(unlocalizedPath)) {

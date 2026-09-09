@@ -48,8 +48,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
         }
       }
     } catch {
-      // Fallback to local storage
+      return DEFAULT_SITE_SETTINGS;
     }
+    return DEFAULT_SITE_SETTINGS;
   }
 
   if (typeof window === 'undefined') return DEFAULT_SITE_SETTINGS;
@@ -74,16 +75,11 @@ export async function updateSiteSettings(settings: Partial<SiteSettings>): Promi
   };
 
   if (isSupabaseConfigured()) {
-    try {
-      const supabase = createClient();
-      if (supabase) {
-        await supabase
-          .from('site_settings')
-          .upsert({ id: 'current', ...updated });
-      }
-    } catch {
-      // Fallback
-    }
+    const supabase = createClient();
+    if (!supabase) throw new Error('Content service is unavailable.');
+    const { error } = await supabase.from('site_settings').upsert({ id: 'current', ...updated });
+    if (error) throw new Error(error.message);
+    return updated;
   }
 
   if (typeof window !== 'undefined') {
@@ -124,8 +120,9 @@ export async function getPortfolioItems(activeOnly: boolean = false): Promise<Be
         }
       }
     } catch {
-      // Fallback
+      return [];
     }
+    return [];
   }
 
   if (typeof window === 'undefined') {
@@ -172,19 +169,11 @@ export async function createPortfolioItem(
   );
 
   if (isSupabaseConfigured()) {
-    try {
-      const supabase = createClient();
-      if (supabase) {
-        const { data, error } = await supabase
-          .from('portfolio_items')
-          .insert(newItem)
-          .select()
-          .single();
-        if (!error && data) return data as BeforeAfterShowcase;
-      }
-    } catch {
-      // Fallback
-    }
+    const supabase = createClient();
+    if (!supabase) throw new Error('Portfolio service is unavailable.');
+    const { data, error } = await supabase.from('portfolio_items').insert(newItem).select().single();
+    if (error) throw new Error(error.message);
+    return data as BeforeAfterShowcase;
   }
 
   const existing = await getPortfolioItems(false);
@@ -202,20 +191,11 @@ export async function updatePortfolioItem(
   updates: Partial<BeforeAfterShowcase>
 ): Promise<BeforeAfterShowcase | null> {
   if (isSupabaseConfigured()) {
-    try {
-      const supabase = createClient();
-      if (supabase) {
-        const { data, error } = await supabase
-          .from('portfolio_items')
-          .update(updates)
-          .eq('id', id)
-          .select()
-          .single();
-        if (!error && data) return data as BeforeAfterShowcase;
-      }
-    } catch {
-      // Fallback
-    }
+    const supabase = createClient();
+    if (!supabase) throw new Error('Portfolio service is unavailable.');
+    const { data, error } = await supabase.from('portfolio_items').update(updates).eq('id', id).select().single();
+    if (error) throw new Error(error.message);
+    return data as BeforeAfterShowcase;
   }
 
   const existing = await getPortfolioItems(false);
@@ -233,14 +213,11 @@ export async function updatePortfolioItem(
 
 export async function deletePortfolioItem(id: string): Promise<boolean> {
   if (isSupabaseConfigured()) {
-    try {
-      const supabase = createClient();
-      if (supabase) {
-        await supabase.from('portfolio_items').delete().eq('id', id);
-      }
-    } catch {
-      // Fallback
-    }
+    const supabase = createClient();
+    if (!supabase) throw new Error('Portfolio service is unavailable.');
+    const { error } = await supabase.from('portfolio_items').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    return true;
   }
 
   const existing = await getPortfolioItems(false);
@@ -254,21 +231,19 @@ export async function deletePortfolioItem(id: string): Promise<boolean> {
 }
 
 export async function uploadShowcaseMedia(file: File, prefix: 'raster' | 'vector'): Promise<string> {
+  const extension = file.name.split('.').pop()?.toLowerCase() || '';
+  const allowed = prefix === 'vector' ? ['svg', 'png', 'webp'] : ['jpg', 'jpeg', 'png', 'webp'];
+  if (file.size === 0 || file.size > 5 * 1024 * 1024) throw new Error('Choose a non-empty portfolio image up to 5 MB.');
+  if (!allowed.includes(extension)) throw new Error(`Unsupported portfolio file. Allowed: ${allowed.join(', ').toUpperCase()}.`);
   if (isSupabaseConfigured()) {
-    try {
-      const supabase = createClient();
-      if (supabase) {
-        const ext = file.name.split('.').pop();
-        const path = `showcases/${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
-        const { error } = await supabase.storage.from('portfolio').upload(path, file);
-        if (!error) {
-          const { data } = supabase.storage.from('portfolio').getPublicUrl(path);
-          if (data?.publicUrl) return data.publicUrl;
-        }
-      }
-    } catch {
-      // Fallback
-    }
+    const supabase = createClient();
+    if (!supabase) throw new Error('Portfolio storage is unavailable.');
+    const path = `showcases/${prefix}-${Date.now()}-${crypto.randomUUID()}.${extension}`;
+    const { error } = await supabase.storage.from('portfolio').upload(path, file);
+    if (error) throw new Error(error.message);
+    const { data } = supabase.storage.from('portfolio').getPublicUrl(path);
+    if (!data?.publicUrl) throw new Error('Portfolio URL could not be generated.');
+    return data.publicUrl;
   }
 
   // Fallback: Read file as Data URL for local preview

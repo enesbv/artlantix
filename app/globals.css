@@ -9,10 +9,10 @@
   --color-slate-600: #475569;
   --color-slate-400: #94A3B8;
   --color-border: #E2E8F0;
-  --color-accent: #D94A26;
-  --color-accent-hover: #B93816;
-  --color-accent-light: #FEF2EE;
-  --color-accent-border: #FBCAB9;
+  --color-accent: #18794E;
+  --color-accent-hover: #115C3B;
+  --color-accent-light: #E9F9EE;
+  --color-accent-border: #B4DFC4;
 }
 
 :root {
@@ -54,17 +54,17 @@ body {
 }
 
 .bg-accent {
-  background-color: #D94A26;
+  background-color: #18794E;
 }
 
 .bg-accent:hover {
-  background-color: #B93816;
+  background-color: #115C3B;
 }
 
 .text-accent {
-  color: #D94A26;
+  color: #18794E;
 }
 
 .border-accent {
-  border-color: #D94A26;
+  border-color: #18794E;
 }

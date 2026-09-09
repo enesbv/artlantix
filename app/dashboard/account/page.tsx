@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getCurrentUser, setCurrentUserMock } from '@/lib/services/auth';
+import { getCurrentUser, updateCurrentUserProfile } from '@/lib/services/auth';
 import { UserProfile } from '@/lib/types';
 import { ShieldCheck } from 'lucide-react';
 
@@ -12,6 +12,8 @@ export default function AccountPage() {
   const [phone, setPhone] = useState('');
   const [vatTaxId, setVatTaxId] = useState('');
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getCurrentUser().then((u) => {
@@ -25,18 +27,23 @@ export default function AccountPage() {
     });
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    const updated: UserProfile = {
-      ...user,
+    setSaving(true);
+    setError(null);
+    const result = await updateCurrentUserProfile({
       full_name: fullName,
       company_name: companyName,
-      phone: phone,
+      phone,
       vat_tax_id: vatTaxId,
-    };
-    setCurrentUserMock(updated);
-    setUser(updated);
+    });
+    setSaving(false);
+    if (result.error || !result.user) {
+      setError(result.error || 'Profile changes could not be saved.');
+      return;
+    }
+    setUser(result.user);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
@@ -55,6 +62,11 @@ export default function AccountPage() {
       {saved && (
         <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-xs font-medium text-emerald-800">
           ✓ Profile changes saved successfully.
+        </div>
+      )}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-700">
+          {error}
         </div>
       )}
 
@@ -122,9 +134,10 @@ export default function AccountPage() {
 
           <button
             type="submit"
-            className="rounded bg-[#111111] px-5 py-2 text-xs font-bold text-white hover:bg-black transition-colors"
+            disabled={saving}
+            className="rounded bg-[#111111] px-5 py-2 text-xs font-bold text-white hover:bg-black transition-colors disabled:opacity-50"
           >
-            Save Profile Settings
+            {saving ? 'Saving…' : 'Save Profile Settings'}
           </button>
         </div>
       </form>

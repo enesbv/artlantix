@@ -3,14 +3,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import ComplexityPicker from '@/components/ComplexityPicker';
 import Footer from '@/components/Footer';
 import DeliverableBadge from '@/components/DeliverableBadge';
 import { calculatePricing, PricingInput } from '@/lib/pricing';
-import { createOrder } from '@/lib/services/orders';
+import { createOrder, getOrderById } from '@/lib/services/orders';
 import { getCurrentUser, signUpWithEmail } from '@/lib/services/auth';
 import { processClientFileUpload, UploadedFileData } from '@/lib/services/storage';
 import { processCheckout } from '@/lib/services/payments';
 import { getSiteSettings, SiteSettings, DEFAULT_SITE_SETTINGS } from '@/lib/services/content';
+import { clearQuoteDraft, loadQuoteDraft, saveQuoteDraft } from '@/lib/services/quote-draft';
 import { useTranslations } from 'next-intl';
 import {
   ComplexityTier,
@@ -50,21 +52,25 @@ export default function QuotePageContent() {
   const [uploadedFile, setUploadedFile] = useState<UploadedFileData | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [draftReady, setDraftReady] = useState(false);
+  const [draftNotice, setDraftNotice] = useState<'restored' | 'reorder' | 'saved' | null>(null);
   const submitLock = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form Configuration State
-  const [projectName, setProjectName] = useState('My Vector Project');
+  const [projectName, setProjectName] = useState(() => tQuote('ui.defaultProject'));
   const [artworkType, setArtworkType] = useState<ArtworkType>('ai_logo');
   const [complexity, setComplexity] = useState<ComplexityTier>(
     ['simple', 'standard', 'complex'].includes(searchParams?.get('tier') || '')
       ? searchParams.get('tier') as ComplexityTier : 'standard'
   );
   const [hasText, setHasText] = useState(true);
+  const [artistReviewRequested, setArtistReviewRequested] = useState(false);
   const [reconstructionOption, setReconstructionOption] = useState<'clean' | 'moderate' | 'heavy'>('moderate');
   const [colorCount, setColorCount] = useState<'1-2' | '3-5' | '6+' | 'gradient'>('3-5');
   const [turnaround, setTurnaround] = useState<TurnaroundSpeed>('standard');
   const [notes, setNotes] = useState('');
+  const [sourceOrderId, setSourceOrderId] = useState<string | undefined>();
 
   // Step 3 Checkout / Submission Form
   const [customerName, setCustomerName] = useState('');
@@ -73,16 +79,64 @@ export default function QuotePageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    getCurrentUser().then((user) => {
+    async function initialize() {
+      const [user, siteSettings] = await Promise.all([getCurrentUser(), getSiteSettings()]);
       if (user) {
         setCurrentUser(user);
         setCustomerName(user.full_name || '');
         setCustomerEmail(user.email || '');
       }
-    });
+      setSettings(siteSettings);
 
-    getSiteSettings().then(setSettings);
-  }, []);
+      const reorderId = searchParams?.get('reorder');
+      const source = reorderId ? await getOrderById(reorderId) : null;
+      const draft = !source ? loadQuoteDraft() : null;
+      if (source) {
+        setProjectName(`${source.project_name} Variation`);
+        setArtworkType(source.artwork_type);
+        setComplexity(source.complexity);
+        setHasText(source.has_text);
+        setReconstructionOption(source.reconstruction_needed ? 'moderate' : 'clean');
+        const previousColors = source.colors.match(/1-2|3-5|6\+|gradient/)?.[0] as ColorCount | undefined;
+        if (previousColors) setColorCount(previousColors);
+        setTurnaround(source.turnaround);
+        setNotes(`Based on ${source.order_number}. ${source.notes || ''}`.trim());
+        setSourceOrderId(source.id);
+        setCurrentStep(2);
+        setDraftNotice('reorder');
+      } else if (draft) {
+        setProjectName(draft.projectName);
+        setArtworkType(draft.artworkType);
+        setComplexity(draft.complexity);
+        setArtistReviewRequested(draft.artistReviewRequested);
+        setHasText(draft.hasText);
+        setReconstructionOption(draft.reconstructionOption);
+        setColorCount(draft.colorCount);
+        setTurnaround(draft.turnaround);
+        setNotes(draft.notes);
+        setCustomerName(draft.customerName || user?.full_name || '');
+        setCustomerEmail(draft.customerEmail || user?.email || '');
+        setUploadedFile(draft.uploadedFile);
+        setSourceOrderId(draft.sourceOrderId);
+        setDraftNotice('restored');
+      }
+      setDraftReady(true);
+    }
+    initialize().catch(() => setDraftReady(true));
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!draftReady || isSubmitting) return;
+    const timer = window.setTimeout(() => {
+      const savedWithFile = saveQuoteDraft({
+        projectName, artworkType, complexity, artistReviewRequested, hasText,
+        reconstructionOption, colorCount, turnaround, notes, customerName,
+        customerEmail, uploadedFile, sourceOrderId, savedAt: new Date().toISOString(),
+      });
+      setDraftNotice(savedWithFile ? 'saved' : null);
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [draftReady, isSubmitting, projectName, artworkType, complexity, artistReviewRequested, hasText, reconstructionOption, colorCount, turnaround, notes, customerName, customerEmail, uploadedFile, sourceOrderId]);
 
   // Compute pricing with CMS dynamic base tier rates
   const pricingInput: PricingInput = {
@@ -93,6 +147,7 @@ export default function QuotePageContent() {
     colorCount,
     turnaround,
     artworkType,
+    artistReviewRequested,
   };
 
   const customBasePrices = {
@@ -102,6 +157,16 @@ export default function QuotePageContent() {
   };
 
   const pricing = calculatePricing(pricingInput, customBasePrices);
+  const localizedBreakdownLabel = (label: string) => {
+    if (label.endsWith('Geometry Base')) return `${tQuote(`complexityGuide.${complexity}.title`)} ${tQuote('ui.geometryBase')}`;
+    if (label.startsWith('Font &')) return tQuote('ui.fontRebuild');
+    if (label.startsWith('Heavy Missing')) return tQuote('ui.heavyRebuild');
+    if (label.startsWith('Reconstruct Missing')) return tQuote('ui.missingRebuild');
+    if (label.startsWith('Complex Gradients')) return tQuote('ui.gradientSeparation');
+    if (label.includes('Spot Colors')) return tQuote('ui.colorSeparation', { count: colorCount });
+    if (label.startsWith('Priority Express')) return tQuote('ui.expressDispatch');
+    return label;
+  };
 
   // File drop / select handler
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +177,7 @@ export default function QuotePageContent() {
       try {
         const processed = await processClientFileUpload(file);
         setUploadedFile(processed);
-        if (!projectName || projectName === 'My Vector Project') {
+        if (!projectName || projectName === tQuote('ui.defaultProject')) {
           const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
           setProjectName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
         }
@@ -133,7 +198,7 @@ export default function QuotePageContent() {
       try {
         const processed = await processClientFileUpload(file);
         setUploadedFile(processed);
-        if (!projectName || projectName === 'My Vector Project') {
+        if (!projectName || projectName === tQuote('ui.defaultProject')) {
           const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
           setProjectName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
         }
@@ -179,12 +244,15 @@ export default function QuotePageContent() {
         colors: `${colorCount} colors`,
         has_text: hasText,
         reconstruction_needed: reconstructionOption !== 'clean',
+        reconstruction_level: reconstructionOption,
         turnaround: turnaround,
         estimated_price: pricing.total,
         final_price: pricing.total,
         status: (pricing.needsManualReview || paymentOption === 'pay_after_quote_review' ? 'quote_requested' : 'in_progress') as OrderStatus,
-        notes: notes,
+        notes: artistReviewRequested ? `[Artist assessment requested; complexity and price are provisional.]\n${notes}` : notes,
         needs_manual_review: pricing.needsManualReview,
+        payment_method: pricing.needsManualReview ? 'pay_after_quote_review' : paymentOption,
+        source_order_id: sourceOrderId,
       };
 
       const filePayload = uploadedFile
@@ -193,6 +261,7 @@ export default function QuotePageContent() {
             size: uploadedFile.size,
             format: uploadedFile.format,
             url: uploadedFile.url,
+            rawFile: uploadedFile.file,
           }
         : undefined;
 
@@ -207,6 +276,7 @@ export default function QuotePageContent() {
         paymentMethod: pricing.needsManualReview ? 'pay_after_quote_review' : paymentOption,
       });
 
+      clearQuoteDraft();
       router.push(`/dashboard/orders/${created.id}`);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Order submission failed. Please try again.');
@@ -222,9 +292,15 @@ export default function QuotePageContent() {
 
       <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         {formError && <p role="alert" className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">{formError}</p>}
+        {draftNotice && (
+          <div role="status" className="mb-6 flex items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+            <span>{tQuote(`draft.${draftNotice}`)}</span>
+            <button type="button" onClick={() => { clearQuoteDraft(); setDraftNotice(null); }} className="font-semibold underline">{tQuote('draft.clear')}</button>
+          </div>
+        )}
         {/* Studio Questionnaire Header */}
         <div className="text-center max-w-2xl mx-auto">
-          <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#E05328]">
+          <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#18794E]">
             {tQuote('badge')}
           </span>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-[#141414] sm:text-4xl">
@@ -239,13 +315,13 @@ export default function QuotePageContent() {
             <button
               onClick={() => setCurrentStep(1)}
               className={`flex items-center gap-2 transition-colors ${
-                currentStep === 1 ? 'font-bold text-[#E05328]' : 'text-[#737373] hover:text-[#141414]'
+                currentStep === 1 ? 'font-bold text-[#18794E]' : 'text-[#737373] hover:text-[#141414]'
               }`}
             >
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
                   currentStep === 1
-                    ? 'bg-[#E05328] text-white'
+                    ? 'bg-[#18794E] text-white'
                     : currentStep > 1
                     ? 'bg-emerald-600 text-white'
                     : 'border border-[#EAE8E3] bg-white text-[#737373]'
@@ -261,13 +337,13 @@ export default function QuotePageContent() {
             <button
               onClick={() => setCurrentStep(2)}
               className={`flex items-center gap-2 transition-colors ${
-                currentStep === 2 ? 'font-bold text-[#E05328]' : 'text-[#737373] hover:text-[#141414]'
+                currentStep === 2 ? 'font-bold text-[#18794E]' : 'text-[#737373] hover:text-[#141414]'
               }`}
             >
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
                   currentStep === 2
-                    ? 'bg-[#E05328] text-white'
+                    ? 'bg-[#18794E] text-white'
                     : currentStep > 2
                     ? 'bg-emerald-600 text-white'
                     : 'border border-[#EAE8E3] bg-white text-[#737373]'
@@ -283,13 +359,13 @@ export default function QuotePageContent() {
             <button
               onClick={() => setCurrentStep(3)}
               className={`flex items-center gap-2 transition-colors ${
-                currentStep === 3 ? 'font-bold text-[#E05328]' : 'text-[#737373] hover:text-[#141414]'
+                currentStep === 3 ? 'font-bold text-[#18794E]' : 'text-[#737373] hover:text-[#141414]'
               }`}
             >
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
                   currentStep === 3
-                    ? 'bg-[#E05328] text-white'
+                    ? 'bg-[#18794E] text-white'
                     : 'border border-[#EAE8E3] bg-white text-[#737373]'
                 }`}
               >
@@ -314,9 +390,9 @@ export default function QuotePageContent() {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-8 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#EAE8E3] bg-[#F9F8F6] p-12 text-center hover:border-[#E05328] cursor-pointer transition-colors"
+                className="mt-8 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#EAE8E3] bg-[#F9F8F6] p-12 text-center hover:border-[#18794E] cursor-pointer transition-colors"
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-xs text-[#E05328]">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-xs text-[#18794E]">
                   <UploadCloud className="h-7 w-7" />
                 </div>
                 <div className="mt-4 text-sm font-semibold text-[#141414]">
@@ -334,20 +410,20 @@ export default function QuotePageContent() {
             ) : (
               <div className="mt-8 rounded-xl border border-[#EAE8E3] bg-[#F5F4F0] p-6 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white border border-[#EAE8E3] text-[#E05328]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white border border-[#EAE8E3] text-[#18794E]">
                     <FileImage className="h-6 w-6" />
                   </div>
                   <div>
                     <div className="text-sm font-bold text-[#141414]">{uploadedFile.name}</div>
                     <div className="text-xs text-[#737373]">
-                      {(uploadedFile.size / 1024).toFixed(1)} KB · {uploadedFile.format.toUpperCase()} · Hand-Rebuild Ready
+                      {(uploadedFile.size / 1024).toFixed(1)} KB · {uploadedFile.format.toUpperCase()} · {tQuote('ui.ready')}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1 font-mono text-xs font-bold text-emerald-700">
                     <CheckCircle2 className="h-4 w-4" />
-                    <span>Uploaded</span>
+                    <span>{tQuote('ui.uploaded')}</span>
                   </span>
                   <button
                     type="button"
@@ -359,7 +435,7 @@ export default function QuotePageContent() {
                     }}
                     className="text-xs text-red-600 hover:underline"
                   >
-                    Change File
+                    {tQuote('ui.changeFile')}
                   </button>
                 </div>
               </div>
@@ -374,7 +450,7 @@ export default function QuotePageContent() {
                 type="text"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                placeholder="e.g., Apex Falcon Crest Reconstruction"
+                placeholder={tQuote('ui.projectPlaceholder')}
                 className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-3 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
               />
             </div>
@@ -383,7 +459,7 @@ export default function QuotePageContent() {
             <div className="mt-10 flex justify-end">
               <button
                 onClick={() => setCurrentStep(2)}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#E05328] px-7 py-3 text-xs font-bold text-white hover:bg-[#C8461D] transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-7 py-3 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
               >
                 <span>{tQuote('continueBtn')}</span>
                 <ArrowRight className="h-4 w-4" />
@@ -404,12 +480,12 @@ export default function QuotePageContent() {
                 </label>
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {[
-                    { id: 'ai_logo', label: 'AI Concept Logo', desc: 'Midjourney / DALL-E' },
-                    { id: 'lowres_logo', label: 'Low-Res Scan', desc: '72 DPI raster graphic' },
-                    { id: 'sketch_scan', label: 'Hand Drawing', desc: 'Paper pencil sketch' },
-                    { id: 'lettering_typography', label: 'Typography', desc: 'Custom wordmark' },
-                    { id: 'mascot_badge', label: 'Mascot Crest', desc: 'Detailed character' },
-                    { id: 'apparel_signage', label: 'Apparel / Sign', desc: 'Screen print / cut path' },
+                    { id: 'ai_logo', label: tQuote('ui.aiLogo'), desc: 'Midjourney / DALL-E' },
+                    { id: 'lowres_logo', label: tQuote('ui.lowRes'), desc: tQuote('ui.lowResDesc') },
+                    { id: 'sketch_scan', label: tQuote('ui.handDrawing'), desc: tQuote('ui.handDrawingDesc') },
+                    { id: 'lettering_typography', label: tQuote('ui.typography'), desc: tQuote('ui.typographyDesc') },
+                    { id: 'mascot_badge', label: tQuote('ui.mascot'), desc: tQuote('ui.mascotDesc') },
+                    { id: 'apparel_signage', label: tQuote('ui.apparel'), desc: tQuote('ui.apparelDesc') },
                   ].map((item) => (
                     <button
                       key={item.id}
@@ -428,114 +504,14 @@ export default function QuotePageContent() {
                 </div>
               </div>
 
-              {/* Complexity Tier Selection with Dynamic CMS Prices */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="block font-mono text-xs font-bold uppercase tracking-wider text-[#141414]">
-                    {tQuote('complexityTitle')}
-                  </label>
-                  <span className="text-[11px] text-[#737373]">{tQuote('complexitySub')}</span>
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  {/* Simple Tier */}
-                  <button
-                    type="button"
-                    onClick={() => setComplexity('simple')}
-                    className={`relative flex flex-col justify-between rounded-xl border p-4 text-left transition-all ${
-                      complexity === 'simple'
-                        ? 'border-2 border-[#141414] bg-[#F5F4F0] shadow-xs'
-                        : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                    }`}
-                  >
-                    <div className="flex h-20 w-full items-center justify-center rounded-lg border border-[#EAE8E3] bg-white p-2">
-                      <svg viewBox="0 0 80 60" className="h-full w-full" fill="none">
-                        <circle cx="28" cy="30" r="16" stroke="#141414" strokeWidth="2" />
-                        <rect x="44" y="16" width="24" height="24" stroke="#E05328" strokeWidth="2" />
-                      </svg>
-                    </div>
-
-                    <div className="mt-3">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-xs font-bold text-[#141414]">Simple</span>
-                        <span className="font-mono text-xs font-bold text-[#141414]">
-                          ${settings.simple_tier_price}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-[11px] text-[#737373] leading-relaxed">
-                        Single color, geometric rules, clean silhouettes, minimal nodes.
-                      </p>
-                    </div>
-                  </button>
-
-                  {/* Standard Tier */}
-                  <button
-                    type="button"
-                    onClick={() => setComplexity('standard')}
-                    className={`relative flex flex-col justify-between rounded-xl border p-4 text-left transition-all ${
-                      complexity === 'standard'
-                        ? 'border-2 border-[#E05328] bg-[#FDF3F0] shadow-xs'
-                        : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                    }`}
-                  >
-                    <span className="absolute -top-2.5 right-3 rounded-full bg-[#E05328] px-2 py-0.5 font-mono text-[9px] font-bold text-white uppercase">
-                      Popular
-                    </span>
-
-                    <div className="flex h-20 w-full items-center justify-center rounded-lg border border-[#EAE8E3] bg-white p-2">
-                      <svg viewBox="0 0 80 60" className="h-full w-full" fill="none">
-                        <path d="M 40 8 L 62 18 C 62 40 52 50 40 55 C 28 50 18 40 18 18 Z" stroke="#141414" strokeWidth="2" />
-                        <path d="M 40 14 L 56 22 C 56 38 48 45 40 50 C 32 45 24 38 24 22 Z" stroke="#E05328" strokeWidth="1.5" strokeDasharray="3 2" />
-                        <circle cx="40" cy="30" r="6" fill="#E05328" />
-                      </svg>
-                    </div>
-
-                    <div className="mt-3">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-xs font-bold text-[#141414]">Standard</span>
-                        <span className="font-mono text-xs font-bold text-[#E05328]">
-                          ${settings.standard_tier_price}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-[11px] text-[#737373] leading-relaxed">
-                        Multi-color emblem, curved contours, standard logo or badge.
-                      </p>
-                    </div>
-                  </button>
-
-                  {/* Complex Tier */}
-                  <button
-                    type="button"
-                    onClick={() => setComplexity('complex')}
-                    className={`relative flex flex-col justify-between rounded-xl border p-4 text-left transition-all ${
-                      complexity === 'complex'
-                        ? 'border-2 border-[#141414] bg-[#F5F4F0] shadow-xs'
-                        : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                    }`}
-                  >
-                    <div className="flex h-20 w-full items-center justify-center rounded-lg border border-[#EAE8E3] bg-white p-2">
-                      <svg viewBox="0 0 80 60" className="h-full w-full" fill="none">
-                        <path d="M 40 10 L 52 24 L 68 28 L 56 40 L 60 52 L 40 44 L 20 52 L 24 40 L 12 28 L 28 24 Z" stroke="#141414" strokeWidth="1.5" />
-                        <circle cx="40" cy="30" r="10" stroke="#E05328" strokeWidth="1.5" />
-                        <line x1="28" y1="20" x2="52" y2="40" stroke="#E05328" strokeDasharray="2 2" />
-                        <line x1="52" y1="20" x2="28" y2="40" stroke="#E05328" strokeDasharray="2 2" />
-                      </svg>
-                    </div>
-
-                    <div className="mt-3">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-xs font-bold text-[#141414]">Complex</span>
-                        <span className="font-mono text-xs font-bold text-[#141414]">
-                          ${settings.complex_tier_price}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-[11px] text-[#737373] leading-relaxed">
-                        Intricate hand-drawn art, detailed mascots, deep reconstruction.
-                      </p>
-                    </div>
-                  </button>
-                </div>
-              </div>
+              <ComplexityPicker
+                value={artistReviewRequested ? 'review' : complexity}
+                prices={customBasePrices}
+                onChange={(value) => {
+                  setArtistReviewRequested(value === 'review');
+                  if (value !== 'review') setComplexity(value);
+                }}
+              />
 
               {/* Font / Lettering Reconstruction Toggle */}
               <div className="rounded-xl border border-[#EAE8E3] p-5 bg-[#F9F8F6]">
@@ -551,7 +527,7 @@ export default function QuotePageContent() {
                       onChange={(e) => setHasText(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-[#CCCCCC] peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#E05328]"></div>
+                    <div className="w-9 h-5 bg-[#CCCCCC] peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#18794E]"></div>
                   </label>
                 </div>
               </div>
@@ -563,9 +539,9 @@ export default function QuotePageContent() {
                 </label>
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
-                    { id: 'clean', title: 'Clean Original', desc: 'Sharp edges, redraw paths directly', addon: '+$0' },
-                    { id: 'moderate', title: 'Moderate Repair', desc: 'Rebuild blurry edges & missing parts', addon: '+$20' },
-                    { id: 'heavy', title: 'Deep Restoration', desc: 'Heavy pixelation, hand re-drafting', addon: '+$35' },
+                    { id: 'clean', title: tQuote('ui.clean'), desc: tQuote('ui.cleanDesc'), addon: '+$0' },
+                    { id: 'moderate', title: tQuote('ui.moderate'), desc: tQuote('ui.moderateDesc'), addon: '+$20' },
+                    { id: 'heavy', title: tQuote('ui.heavy'), desc: tQuote('ui.heavyDesc'), addon: '+$35' },
                   ].map((opt) => (
                     <button
                       key={opt.id}
@@ -594,10 +570,10 @@ export default function QuotePageContent() {
                 </label>
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {[
-                    { id: '1-2', label: '1–2 Spot Colors', addon: 'Included' },
-                    { id: '3-5', label: '3–5 Colors', addon: '+$5' },
-                    { id: '6+', label: '6+ Colors', addon: '+$15' },
-                    { id: 'gradient', label: 'Gradients / Mesh', addon: '+$15' },
+                    { id: '1-2', label: tQuote('ui.oneTwoColors'), addon: tQuote('ui.included') },
+                    { id: '3-5', label: tQuote('ui.threeFiveColors'), addon: '+$5' },
+                    { id: '6+', label: tQuote('ui.sixPlusColors'), addon: '+$15' },
+                    { id: 'gradient', label: tQuote('ui.gradients'), addon: '+$15' },
                   ].map((c) => (
                     <button
                       key={c.id}
@@ -632,10 +608,10 @@ export default function QuotePageContent() {
                     }`}
                   >
                     <div>
-                      <div className="text-xs font-bold text-[#141414]">Standard Studio SLA</div>
-                      <div className="text-[11px] text-[#737373] mt-0.5">24 to 48 Hours Turnaround</div>
+                      <div className="text-xs font-bold text-[#141414]">{tQuote('ui.standard')}</div>
+                      <div className="text-[11px] text-[#737373] mt-0.5">{tQuote('ui.standardDesc')}</div>
                     </div>
-                    <span className="font-mono text-xs font-bold text-[#141414]">Included</span>
+                    <span className="font-mono text-xs font-bold text-[#141414]">{tQuote('ui.included')}</span>
                   </button>
 
                   <button
@@ -643,15 +619,15 @@ export default function QuotePageContent() {
                     onClick={() => setTurnaround('express')}
                     className={`flex items-center justify-between rounded-xl border p-4 text-left transition-all ${
                       turnaround === 'express'
-                        ? 'border-2 border-[#E05328] bg-[#FDF3F0] shadow-xs'
+                        ? 'border-2 border-[#18794E] bg-[#E9F9EE] shadow-xs'
                         : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
                     }`}
                   >
                     <div>
-                      <div className="text-xs font-bold text-[#141414]">Priority Express Rush</div>
-                      <div className="text-[11px] text-[#737373] mt-0.5">Under 12–16 Hours Dispatch</div>
+                      <div className="text-xs font-bold text-[#141414]">{tQuote('ui.express')}</div>
+                      <div className="text-[11px] text-[#737373] mt-0.5">{tQuote('ui.expressDesc')}</div>
                     </div>
-                    <span className="font-mono text-xs font-bold text-[#E05328]">+35%</span>
+                    <span className="font-mono text-xs font-bold text-[#18794E]">+35%</span>
                   </button>
                 </div>
               </div>
@@ -665,7 +641,7 @@ export default function QuotePageContent() {
                   rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Specify physical production equipment: e.g., DTF 6-color, Roland CNC vinyl cutter, minimum line width 0.5pt, spot PMS callouts..."
+                  placeholder={tQuote('ui.notesPlaceholder')}
                   className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-3 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
                 />
               </div>
@@ -678,14 +654,14 @@ export default function QuotePageContent() {
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-[#737373] hover:text-[#141414]"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Upload</span>
+                  <span>{tQuote('ui.backUpload')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setCurrentStep(3)}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#E05328] px-7 py-3 text-xs font-bold text-white hover:bg-[#C8461D] transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-7 py-3 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
                 >
-                  <span>Continue to Review &amp; Order</span>
+                  <span>{tQuote('ui.continueReview')}</span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
@@ -704,7 +680,7 @@ export default function QuotePageContent() {
               <div className="space-y-2 border-y border-[#EAE8E3] py-4 font-mono text-xs">
                 {pricing.breakdown.map((item, idx) => (
                   <div key={idx} className="flex justify-between text-[#737373]">
-                    <span className="text-[11px] truncate max-w-[180px]">{item.label}</span>
+                    <span className="text-[11px] truncate max-w-[180px]">{localizedBreakdownLabel(item.label)}</span>
                     <span className="font-bold text-[#141414]">${item.amount}</span>
                   </div>
                 ))}
@@ -713,10 +689,10 @@ export default function QuotePageContent() {
               {/* Total & Guarantee */}
               <div>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-xs font-bold text-[#141414]">{tQuote('totalPrice')}</span>
+                  <span className="text-xs font-bold text-[#141414]">{tQuote(pricing.needsManualReview ? 'complexityGuide.estimate' : 'totalPrice')}</span>
                   <div className="text-right">
                     <span className="text-2xl font-extrabold text-[#141414]">${pricing.total}</span>
-                    <span className="block font-mono text-[10px] text-[#737373]">USD · Guaranteed</span>
+                    <span className="block text-[10px] text-[#737373]">{tQuote('complexityGuide.priceNote')}</span>
                   </div>
                 </div>
 
@@ -724,9 +700,9 @@ export default function QuotePageContent() {
                   <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-[11px] text-amber-900 leading-relaxed">
                     <div className="flex items-center gap-1.5 font-bold mb-1">
                       <AlertTriangle className="h-3.5 w-3.5 text-amber-700" />
-                      <span>Senior QA Manual Review</span>
+                      <span>{tQuote('complexityGuide.reviewTitle')}</span>
                     </div>
-                    {pricing.manualReviewReason}
+                    {tQuote('complexityGuide.reviewDescription')}
                   </div>
                 )}
               </div>
@@ -734,7 +710,7 @@ export default function QuotePageContent() {
               {/* Master Formats Guaranteed */}
               <div className="border-t border-[#EAE8E3] pt-4">
                 <span className="font-mono text-[10px] uppercase tracking-wider text-[#737373]">
-                  Deliverables Included:
+                  {tQuote('ui.deliverables')}
                 </span>
                 <div className="mt-2 flex flex-wrap gap-1">
                   <DeliverableBadge format="ai" variant="pill" />
@@ -766,7 +742,7 @@ export default function QuotePageContent() {
                   required
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g., Alex Morgan"
+                  placeholder={tQuote('ui.namePlaceholder')}
                   className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-2.5 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
                 />
               </div>
@@ -780,7 +756,7 @@ export default function QuotePageContent() {
                   required
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder="e.g., alex@designstudio.com"
+                  placeholder={tQuote('ui.emailPlaceholder')}
                   className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-2.5 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
                 />
               </div>
@@ -790,7 +766,15 @@ export default function QuotePageContent() {
                 <label className="block font-mono text-xs font-bold uppercase tracking-wider text-[#141414]">
                   {tQuote('paymentTitle')}
                 </label>
-                <div className="mt-3 space-y-2">
+                {pricing.needsManualReview ? (
+                  <div role="status" className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                    <p className="font-bold">{tQuote('complexityGuide.zeroDue')}</p>
+                    <p className="mt-2">{tQuote('complexityGuide.reviewDescription')}</p>
+                  </div>
+                ) : <div className="mt-3 space-y-2">
+                  <div role="note" className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-[11px] leading-relaxed text-sky-900">
+                    {tQuote('ui.demoCheckout')}
+                  </div>
                   <label
                     className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
                       paymentOption === 'card_simulated'
@@ -808,10 +792,10 @@ export default function QuotePageContent() {
                       />
                       <div>
                         <div className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
-                          <CreditCard className="h-3.5 w-3.5 text-[#E05328]" />
-                          <span>Credit / Debit Card (Instant Production Start)</span>
+                          <CreditCard className="h-3.5 w-3.5 text-[#18794E]" />
+                          <span>{tQuote('ui.card')}</span>
                         </div>
-                        <div className="text-[11px] text-[#737373]">Priority SLA commences immediately</div>
+                        <div className="text-[11px] text-[#737373]">{tQuote('ui.cardDesc')}</div>
                       </div>
                     </div>
                     <span className="font-mono text-xs font-bold text-[#141414]">${pricing.total}</span>
@@ -835,12 +819,12 @@ export default function QuotePageContent() {
                       <div>
                         <div className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
                           <Lock className="h-3.5 w-3.5 text-[#737373]" />
-                          <span>Pay After Senior QA Inspects Artwork</span>
+                          <span>{tQuote('ui.payAfter')}</span>
                         </div>
-                        <div className="text-[11px] text-[#737373]">Zero charge now. Confirm price upon review.</div>
+                        <div className="text-[11px] text-[#737373]">{tQuote('ui.payAfterDesc')}</div>
                       </div>
                     </div>
-                    <span className="font-mono text-xs text-[#737373]">$0 due now</span>
+                    <span className="font-mono text-xs text-[#737373]">{tQuote('complexityGuide.zeroDue')}</span>
                   </label>
 
                   <label
@@ -861,14 +845,14 @@ export default function QuotePageContent() {
                       <div>
                         <div className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
                           <Building className="h-3.5 w-3.5 text-[#737373]" />
-                          <span>B2B Commercial Account / Net-30 Terms</span>
+                          <span>{tQuote('ui.b2b')}</span>
                         </div>
-                        <div className="text-[11px] text-[#737373]">Bill to verified business entity</div>
+                        <div className="text-[11px] text-[#737373]">{tQuote('ui.b2bDesc')}</div>
                       </div>
                     </div>
-                    <span className="font-mono text-xs text-[#737373]">Net-30 Invoice</span>
+                    <span className="font-mono text-xs text-[#737373]">{tQuote('ui.net30')}</span>
                   </label>
-                </div>
+                </div>}
               </div>
 
               {/* Submission CTA */}
@@ -879,15 +863,15 @@ export default function QuotePageContent() {
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-[#737373] hover:text-[#141414]"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Specs</span>
+                  <span>{tQuote('ui.backSpecs')}</span>
                 </button>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#E05328] px-8 py-3.5 text-xs font-bold text-white shadow-xs hover:bg-[#C8461D] disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-8 py-3.5 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] disabled:opacity-50 transition-colors"
                 >
-                  <span>{isSubmitting ? 'Dispatching to Production Desk...' : tQuote('submitBtn')}</span>
+                  <span>{isSubmitting ? tQuote('ui.submitting') : tQuote(pricing.needsManualReview ? 'complexityGuide.submitReview' : 'submitBtn')}</span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>

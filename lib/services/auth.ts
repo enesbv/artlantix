@@ -61,6 +61,53 @@ export function setCurrentUserMock(user: UserProfile | null): void {
   }
 }
 
+export async function updateCurrentUserProfile(
+  updates: Pick<UserProfile, 'full_name' | 'company_name' | 'phone' | 'vat_tax_id'>
+): Promise<{ user: UserProfile | null; error?: string }> {
+  const current = await getCurrentUser();
+  if (!current) return { user: null, error: 'You must be signed in to update your profile.' };
+
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = createClient();
+      if (!supabase) return { user: null, error: 'Profile service is unavailable.' };
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', current.id)
+        .select('*')
+        .single();
+      if (error) return { user: null, error: error.message };
+      return { user: data as UserProfile };
+    } catch (error: unknown) {
+      return { user: null, error: error instanceof Error ? error.message : 'Profile update failed.' };
+    }
+  }
+
+  const updated = { ...current, ...updates, updated_at: new Date().toISOString() };
+  setCurrentUserMock(updated);
+  return { user: updated };
+}
+
+export async function requestPasswordReset(email: string): Promise<{ success: boolean; error?: string }> {
+  if (!email.trim()) return { success: false, error: 'Enter your email address first.' };
+  if (!isSupabaseConfigured()) {
+    return { success: false, error: 'Password email is unavailable in demo mode. Use a demo access button instead.' };
+  }
+
+  try {
+    const supabase = createClient();
+    if (!supabase) return { success: false, error: 'Password recovery is unavailable.' };
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Password recovery failed.' };
+  }
+}
+
 export async function signInWithEmail(email: string, password?: string): Promise<{ user: UserProfile | null; error?: string }> {
   if (isSupabaseConfigured()) {
     if (!password) return { user: null, error: 'Password is required.' };
