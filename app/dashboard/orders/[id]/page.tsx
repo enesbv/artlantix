@@ -29,6 +29,7 @@ import {
   MessageSquare,
   Layers,
   RotateCcw,
+  LoaderCircle,
 } from 'lucide-react';
 
 export default function OrderDetailPage() {
@@ -46,6 +47,7 @@ export default function OrderDetailPage() {
   const [revisionFeedback, setRevisionFeedback] = useState('');
   const [revisionAnnotations, setRevisionAnnotations] = useState<RevisionAnnotation[]>([]);
   const [isSubmittingRevision, setIsSubmittingRevision] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
 
   // New Message State
   const [chatMessage, setChatMessage] = useState('');
@@ -53,32 +55,70 @@ export default function OrderDetailPage() {
 
   // Action status message
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
-      const user = await getCurrentUser();
-      setCurrentUser(user);
-      if (orderId) {
-        const found = await getOrderById(orderId);
-        setOrder(found);
-        if (found) {
-          const customerFile = found.files?.find((file) => file.file_category === 'customer_upload');
-          const previewFile = found.files?.find((file) => file.file_category === 'preview_watermarked');
-          if (customerFile?.url) setCustomerArtworkUrl(customerFile.url);
-          else if (customerFile && isSupabaseConfigured()) setCustomerArtworkUrl(await getSignedDownloadUrl(customerFile));
-          if (previewFile?.url) setPreviewArtworkUrl(previewFile.url);
-          else if (previewFile && isSupabaseConfigured()) setPreviewArtworkUrl(await getSignedDownloadUrl(previewFile));
+      try {
+        setLoadError(null);
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+        if (orderId) {
+          const found = await getOrderById(orderId);
+          setOrder(found);
+          if (found) {
+            const customerFile = found.files?.find((file) => file.file_category === 'customer_upload');
+            const previewFile = found.files?.find((file) => file.file_category === 'preview_watermarked');
+
+            if (customerFile?.url) setCustomerArtworkUrl(customerFile.url);
+            else if (customerFile && isSupabaseConfigured()) {
+              try {
+                setCustomerArtworkUrl(await getSignedDownloadUrl(customerFile));
+              } catch {
+                setCustomerArtworkUrl(null);
+              }
+            }
+
+            if (previewFile?.url) setPreviewArtworkUrl(previewFile.url);
+            else if (previewFile && isSupabaseConfigured()) {
+              try {
+                setPreviewArtworkUrl(await getSignedDownloadUrl(previewFile));
+              } catch {
+                setPreviewArtworkUrl(null);
+              }
+            }
+          }
         }
+      } catch {
+        setLoadError('We could not load this order. Check your connection and try again.');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     loadData();
   }, [orderId]);
 
   if (loading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="font-mono text-xs text-[#737373]">Loading order data...</div>
+      <div role="status" aria-label="Loading order details" className="space-y-5 py-4">
+        <div className="h-20 animate-pulse rounded-2xl bg-[#F1F0EC]" />
+        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+          <div className="h-44 animate-pulse rounded-2xl bg-[#F1F0EC]" />
+          <div className="h-44 animate-pulse rounded-2xl bg-[#F1F0EC]" />
+        </div>
+        <div className="h-96 animate-pulse rounded-2xl bg-[#F1F0EC]" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-white p-12 text-center">
+        <AlertCircle className="mx-auto h-8 w-8 text-red-600" />
+        <h2 className="mt-3 text-base font-bold text-[#141414]">Order could not be loaded</h2>
+        <p className="mt-1 text-sm text-[#737373]">{loadError}</p>
+        <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-lg bg-[#141414] px-4 py-2.5 text-sm font-bold text-white">Try again</button>
       </div>
     );
   }
@@ -102,21 +142,25 @@ export default function OrderDetailPage() {
   // Handle Approve Artwork
   const handleApprove = async () => {
     if (!order) return;
+    setIsApproving(true);
+    setActionError(null);
+    setActionSuccess(null);
     try {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#18794E', '#141414', '#10B981'],
-      });
-
       const updated = await approveOrder(order.id, currentUser?.full_name || 'Alex Morgan');
       if (updated) {
         setOrder(updated);
         setActionSuccess('Artwork approved. The studio is preparing the production master files.');
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#18794E', '#141414', '#10B981'],
+        });
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error: unknown) {
+      setActionError(error instanceof Error ? error.message : 'The artwork could not be approved. Please try again.');
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -126,6 +170,8 @@ export default function OrderDetailPage() {
     const completeAnnotations = revisionAnnotations.filter((annotation) => annotation.message.trim());
     if ((!revisionFeedback.trim() && completeAnnotations.length === 0) || !order) return;
     setIsSubmittingRevision(true);
+    setActionError(null);
+    setActionSuccess(null);
     try {
       const updated = await requestRevision(
         order.id,
@@ -140,6 +186,8 @@ export default function OrderDetailPage() {
         setRevisionAnnotations([]);
         setActionSuccess('Revision request sent to the production artist.');
       }
+    } catch (error: unknown) {
+      setActionError(error instanceof Error ? error.message : 'The revision request could not be sent. Please try again.');
     } finally {
       setIsSubmittingRevision(false);
     }
@@ -150,6 +198,7 @@ export default function OrderDetailPage() {
     e.preventDefault();
     if (!chatMessage.trim() || !order) return;
     setIsSendingMessage(true);
+    setActionError(null);
     try {
       const senderType = currentUser?.is_admin ? 'operator' : 'customer';
       const senderName = currentUser?.full_name || (senderType === 'operator' ? 'Elena Vance' : 'Alex Morgan');
@@ -163,6 +212,8 @@ export default function OrderDetailPage() {
       const reloaded = await getOrderById(order.id);
       if (reloaded) setOrder(reloaded);
       setChatMessage('');
+    } catch (error: unknown) {
+      setActionError(error instanceof Error ? error.message : 'Your message could not be sent. Please try again.');
     } finally {
       setIsSendingMessage(false);
     }
@@ -197,7 +248,7 @@ export default function OrderDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-bold tracking-tight text-[#141414]">
                 {order.project_name}
               </h1>
@@ -205,7 +256,7 @@ export default function OrderDetailPage() {
                 ({order.order_number})
               </span>
             </div>
-            <div className="flex items-center gap-3 font-mono text-xs text-[#737373] mt-0.5">
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-[#737373]">
               <span>Submitted {new Date(order.created_at).toLocaleDateString()}</span>
               <span>•</span>
               <span className="capitalize">{order.artwork_type.replace('_', ' ')}</span>
@@ -227,8 +278,13 @@ export default function OrderDetailPage() {
       </div>
 
       {actionSuccess && (
-        <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-xs font-medium text-emerald-800">
+        <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
           ✓ {actionSuccess}
+        </div>
+      )}
+      {actionError && (
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">
+          {actionError}
         </div>
       )}
 
@@ -239,14 +295,18 @@ export default function OrderDetailPage() {
           <p className="mt-1 text-sm text-[#555]">{nextAction.detail}</p>
           <p className="mt-4 text-xs text-[#737373]">Estimated delivery: <strong className="text-[#141414]">{new Date(expectedDelivery).toLocaleString()}</strong></p>
           {order.assigned_artist && <p className="mt-1 text-xs text-[#737373]">Assigned artist: <strong className="text-[#141414]">{order.assigned_artist}</strong></p>}
+          {nextAction.action === 'review' && <a href="#artwork-review" className="mt-5 inline-flex rounded-lg bg-[#18794E] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#115C3B]">Review preview</a>}
+          {nextAction.action === 'message' && <a href="#order-messages" className="mt-5 inline-flex rounded-lg border border-[#B4DFC4] bg-white px-4 py-2.5 text-sm font-bold text-[#115C3B] hover:bg-[#F5FFF8]">Message the studio</a>}
+          {nextAction.action === 'download' && <a href="#master-files" className="mt-5 inline-flex rounded-lg bg-[#18794E] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#115C3B]">View downloads</a>}
         </div>
         <div className="rounded-2xl border border-[#EAE8E3] bg-white p-5">
           <h2 className="text-sm font-bold">Status history</h2>
-          <ol className="mt-3 space-y-3">
+          <ol className="mt-3 space-y-1">
             {statusHistory.map((event, index) => (
-              <li key={event.id} className="flex gap-3 text-xs">
-                <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${index === statusHistory.length - 1 ? 'bg-[#18794E]' : 'bg-emerald-500'}`} />
-                <span><strong className="block text-[#141414]">{ORDER_STATUS_LABELS[event.status]}</strong><span className="text-[10px] text-[#737373]">{new Date(event.created_at).toLocaleString()}</span></span>
+              <li key={event.id} className="relative flex gap-3 pb-3 text-xs last:pb-0">
+                {index < statusHistory.length - 1 && <span className="absolute left-[5px] top-3 h-full w-px bg-[#B4DFC4]" />}
+                <span className={`relative mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-4 ring-white ${index === statusHistory.length - 1 ? 'bg-[#18794E]' : 'bg-emerald-500'}`} />
+                <span><strong className="block text-sm text-[#141414]">{ORDER_STATUS_LABELS[event.status]}</strong><span className="text-xs text-[#737373]">{new Date(event.created_at).toLocaleString()}</span></span>
               </li>
             ))}
           </ol>
@@ -254,7 +314,7 @@ export default function OrderDetailPage() {
       </section>
 
       {/* 1. DUAL VIEW COMPARISON: ORIGINAL VS COMPLETED/PREVIEW */}
-      <div className="rounded-2xl border border-[#EAE8E3] bg-white p-6 sm:p-8 shadow-xs">
+      <div id="artwork-review" className="scroll-mt-24 rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xs sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EAE8E3] pb-4">
           <div>
             <h2 className="text-sm font-bold text-[#141414]">Artwork Inspection &amp; Comparison</h2>
@@ -363,6 +423,7 @@ export default function OrderDetailPage() {
 
               <div className="flex flex-wrap gap-3">
                 <button
+                  type="button"
                   onClick={() => setRevisionModalOpen(true)}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-[#141414] bg-white px-4 py-2.5 text-xs font-bold text-[#141414] hover:bg-[#F5F4F0] transition-colors"
                 >
@@ -371,11 +432,13 @@ export default function OrderDetailPage() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={handleApprove}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors"
+                  disabled={isApproving}
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-6 py-2.5 text-sm font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors disabled:opacity-60"
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Approve Artwork</span>
+                  {isApproving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  <span>{isApproving ? 'Approving...' : 'Approve Artwork'}</span>
                 </button>
               </div>
             </div>
@@ -403,7 +466,7 @@ export default function OrderDetailPage() {
 
       {/* 2. MASTER FILES DOWNLOAD DRAWER WITH TACTILE DELIVERABLE BADGES */}
       {order.status === 'completed' && (
-        <div className="rounded-2xl border border-emerald-300 bg-white p-6 sm:p-8 shadow-xs">
+        <div id="master-files" className="scroll-mt-24 rounded-2xl border border-emerald-300 bg-white p-6 shadow-xs sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAE8E3] pb-5">
             <div>
               <div className="flex items-center gap-2">
@@ -443,7 +506,7 @@ export default function OrderDetailPage() {
       )}
 
       {/* 3. ACTIVITY LOG & MESSAGING THREAD */}
-      <div className="rounded-2xl border border-[#EAE8E3] bg-white p-6 sm:p-8 shadow-xs">
+      <div id="order-messages" className="scroll-mt-24 rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xs sm:p-8">
         <div className="flex items-center gap-2 border-b border-[#EAE8E3] pb-4">
           <MessageSquare className="h-4 w-4 text-[#18794E]" />
           <h2 className="text-sm font-bold text-[#141414]">
@@ -485,19 +548,19 @@ export default function OrderDetailPage() {
           )}
         </div>
 
-        <form onSubmit={handleSendMessage} className="mt-4 flex gap-2 border-t border-[#EAE8E3] pt-4">
+        <form onSubmit={handleSendMessage} className="mt-4 flex flex-col gap-2 border-t border-[#EAE8E3] pt-4 sm:flex-row">
           <input
             type="text"
             maxLength={INPUT_LIMITS.message}
             value={chatMessage}
             onChange={(e) => setChatMessage(e.target.value)}
             placeholder="Type a message or instruction for the production artist..."
-            className="flex-1 rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+            className="flex-1 rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2.5 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
           />
           <button
             type="submit"
             disabled={isSendingMessage || !chatMessage.trim()}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#141414] px-4 py-2 text-xs font-bold text-white hover:bg-black transition-colors disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#141414] px-4 py-2.5 text-sm font-bold text-white hover:bg-black transition-colors disabled:opacity-50"
           >
             <Send className="h-3 w-3" />
             <span>Send</span>
@@ -508,13 +571,15 @@ export default function OrderDetailPage() {
       {/* REVISION REQUEST MODAL */}
       {revisionModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-[#EAE8E3] bg-white p-6 sm:p-8 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+          <div role="dialog" aria-modal="true" aria-labelledby="revision-dialog-title" className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150 sm:p-8">
             <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-4">
               <div className="flex items-center gap-2">
                 <RotateCcw className="h-4 w-4 text-[#18794E]" />
-                <h3 className="text-sm font-bold text-[#141414]">Request Artwork Revision</h3>
+                <h3 id="revision-dialog-title" className="text-sm font-bold text-[#141414]">Request Artwork Revision</h3>
               </div>
               <button
+                type="button"
+                aria-label="Close revision request"
                 onClick={() => setRevisionModalOpen(false)}
                 className="text-xs text-[#737373] hover:text-[#141414]"
               >
@@ -539,7 +604,7 @@ export default function OrderDetailPage() {
                   value={revisionFeedback}
                   onChange={(e) => setRevisionFeedback(e.target.value)}
                   placeholder="e.g., Please thicken the outer crest stroke by 0.5pt, slightly widen the serifs on the letter 'S', and remove the stray anchor node on the falcon eye..."
-                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-3 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-3 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
                 />
               </div>
 

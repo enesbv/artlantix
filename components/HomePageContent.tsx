@@ -107,7 +107,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
     },
     {
       q: 'How do revision rounds work?',
-      a: 'Every project includes up to 2 revision rounds at no extra cost. Once a preview is uploaded to your portal, you can request adjustments or approve the artwork to immediately unlock all master deliverables.',
+      a: 'Every project includes up to 2 revision rounds at no extra cost. When a preview appears in your portal, you can mark exact areas for adjustment or approve the artwork. The studio then packages and quality-checks the master files before downloads are unlocked.',
     },
   ];
 
@@ -168,7 +168,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
                   href={quoteHref}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#18794E] px-7 py-3.5 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#18794E] px-7 py-3.5 text-sm font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors"
                 >
                   <span>{tHero('getQuoteCta')}</span>
                   <ArrowRight className="h-4 w-4" />
@@ -176,7 +176,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
 
                 <a
                   href="#showcase"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#EAE8E3] bg-white px-7 py-3.5 text-xs font-bold text-[#141414] hover:bg-[#F5F4F0] hover:border-[#141414] transition-colors"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#EAE8E3] bg-white px-7 py-3.5 text-sm font-bold text-[#141414] hover:bg-[#F5F4F0] hover:border-[#141414] transition-colors"
                 >
                   <span>{tHero('inspectCta')}</span>
                 </a>
@@ -198,27 +198,27 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-4 text-left">
               <div className="border-l-2 border-[#141414] pl-4">
-                <div className="font-mono text-[11px] uppercase tracking-wider text-[#737373]">Method</div>
-                <div className="mt-1 text-sm font-bold text-[#141414]">{tMetrics('methodTitle')}</div>
-                <div className="mt-0.5 text-xs text-[#737373]">{tMetrics('methodDesc')}</div>
+                <div className="font-mono text-xs uppercase tracking-wider text-[#737373]">Method</div>
+                <div className="mt-1 text-base font-bold text-[#141414]">{tMetrics('methodTitle')}</div>
+                <div className="mt-1 text-sm leading-relaxed text-[#737373]">{tMetrics('methodDesc')}</div>
               </div>
 
               <div className="border-l-2 border-[#18794E] pl-4">
-                <div className="font-mono text-[11px] uppercase tracking-wider text-[#737373]">Quality Assurance</div>
-                <div className="mt-1 text-sm font-bold text-[#141414]">{tMetrics('qaTitle')}</div>
-                <div className="mt-0.5 text-xs text-[#737373]">{tMetrics('qaDesc')}</div>
+                <div className="font-mono text-xs uppercase tracking-wider text-[#737373]">Quality Assurance</div>
+                <div className="mt-1 text-base font-bold text-[#141414]">{tMetrics('qaTitle')}</div>
+                <div className="mt-1 text-sm leading-relaxed text-[#737373]">{tMetrics('qaDesc')}</div>
               </div>
 
               <div className="border-l-2 border-[#141414] pl-4">
-                <div className="font-mono text-[11px] uppercase tracking-wider text-[#737373]">Turnaround</div>
-                <div className="mt-1 text-sm font-bold text-[#141414]">{tMetrics('turnaroundTitle')}</div>
-                <div className="mt-0.5 text-xs text-[#737373]">{tMetrics('turnaroundDesc')}</div>
+                <div className="font-mono text-xs uppercase tracking-wider text-[#737373]">Turnaround</div>
+                <div className="mt-1 text-base font-bold text-[#141414]">{tMetrics('turnaroundTitle')}</div>
+                <div className="mt-1 text-sm leading-relaxed text-[#737373]">{tMetrics('turnaroundDesc')}</div>
               </div>
 
               <div className="border-l-2 border-[#141414] pl-4">
-                <div className="font-mono text-[11px] uppercase tracking-wider text-[#737373]">Archive</div>
-                <div className="mt-1 text-sm font-bold text-[#141414]">{tMetrics('archiveTitle')}</div>
-                <div className="mt-0.5 text-xs text-[#737373]">{tMetrics('archiveDesc')}</div>
+                <div className="font-mono text-xs uppercase tracking-wider text-[#737373]">Archive</div>
+                <div className="mt-1 text-base font-bold text-[#141414]">{tMetrics('archiveTitle')}</div>
+                <div className="mt-1 text-sm leading-relaxed text-[#737373]">{tMetrics('archiveDesc')}</div>
               </div>
             </div>
           </div>
@@ -829,8 +829,11 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                   className="rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] transition-colors"
                 >
                   <button
+                    type="button"
+                    aria-expanded={openFaq === idx}
+                    aria-controls={`faq-answer-${idx}`}
                     onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                    className="flex w-full items-center justify-between p-5 text-left text-sm font-bold text-[#141414]"
+                    className="flex w-full items-center justify-between gap-4 p-5 text-left text-base font-bold text-[#141414]"
                   >
                     <span>{faq.q}</span>
                     <ChevronDown
@@ -840,7 +843,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
                     />
                   </button>
                   {openFaq === idx && (
-                    <div className="border-t border-[#EAE8E3] px-5 pb-5 pt-3 text-xs leading-relaxed text-[#737373]">
+                    <div id={`faq-answer-${idx}`} className="border-t border-[#EAE8E3] px-5 pb-5 pt-3 text-sm leading-relaxed text-[#737373]">
                       {faq.a}
                     </div>
                   )}

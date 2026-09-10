@@ -22,6 +22,7 @@ import {
   UserProfile,
   OrderStatus,
   ColorCount,
+  PricingCalculation,
 } from '@/lib/types';
 import {
   UploadCloud,
@@ -33,7 +34,88 @@ import {
   Lock,
   CreditCard,
   Building,
+  Clock3,
+  ShieldCheck,
 } from 'lucide-react';
+
+function QuoteSummary({
+  projectName,
+  pricing,
+  turnaround,
+  breakdownLabel,
+  labels,
+  className = '',
+}: {
+  projectName: string;
+  pricing: PricingCalculation;
+  turnaround: TurnaroundSpeed;
+  breakdownLabel: (label: string) => string;
+  labels: {
+    summary: string;
+    total: string;
+    note: string;
+    reviewTitle: string;
+    reviewDescription: string;
+    delivery: string;
+    standard: string;
+    express: string;
+    deliverables: string;
+    privacy: string;
+  };
+  className?: string;
+}) {
+  return (
+    <aside className={`rounded-2xl border border-[#DAD8D2] bg-white p-6 shadow-sm ${className}`} aria-label={labels.summary}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#737373]">{labels.summary}</span>
+          <h3 className="mt-1 truncate text-lg font-bold text-[#141414]">{projectName}</h3>
+        </div>
+        <span className="rounded-full bg-[#E9F9EE] px-2.5 py-1 text-xs font-bold text-[#115C3B]">USD</span>
+      </div>
+
+      <div className="mt-5 space-y-2.5 border-y border-[#EAE8E3] py-4">
+        {pricing.breakdown.map((item, index) => (
+          <div key={`${item.label}-${index}`} className="flex justify-between gap-4 text-sm text-[#656565]">
+            <span>{breakdownLabel(item.label)}</span>
+            <span className="shrink-0 font-mono font-bold text-[#141414]">${item.amount}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold text-[#141414]">{labels.total}</p>
+          <p className="mt-1 text-xs text-[#737373]">{labels.note}</p>
+        </div>
+        <span className="text-3xl font-extrabold tracking-tight text-[#141414]">${pricing.total}</span>
+      </div>
+
+      <div className="mt-5 grid gap-2 rounded-xl bg-[#F7F7F4] p-3 text-sm text-[#555]">
+        <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 text-[#18794E]" /><span>{labels.delivery}: <strong>{turnaround === 'express' ? labels.express : labels.standard}</strong></span></div>
+        <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#18794E]" /><span>{labels.privacy}</span></div>
+      </div>
+
+      {pricing.needsManualReview && (
+        <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm leading-relaxed text-amber-900">
+          <div className="mb-1 flex items-center gap-1.5 font-bold"><AlertTriangle className="h-4 w-4" />{labels.reviewTitle}</div>
+          {labels.reviewDescription}
+        </div>
+      )}
+
+      <div className="mt-5 border-t border-[#EAE8E3] pt-4">
+        <span className="text-xs font-semibold text-[#737373]">{labels.deliverables}</span>
+        <div className="mt-2 flex flex-wrap gap-1">
+          <DeliverableBadge format="ai" variant="pill" />
+          <DeliverableBadge format="eps" variant="pill" />
+          <DeliverableBadge format="svg" variant="pill" />
+          <DeliverableBadge format="pdf" variant="pill" />
+          <DeliverableBadge format="png" variant="pill" />
+        </div>
+      </div>
+    </aside>
+  );
+}
 
 export default function QuotePageContent() {
   const router = useRouter();
@@ -168,6 +250,34 @@ export default function QuotePageContent() {
     if (label.startsWith('Priority Express')) return tQuote('ui.expressDispatch');
     return label;
   };
+  const summaryLabels = {
+    summary: tQuote('summaryTitle'),
+    total: tQuote(pricing.needsManualReview ? 'complexityGuide.estimate' : 'totalPrice'),
+    note: tQuote('complexityGuide.priceNote'),
+    reviewTitle: tQuote('complexityGuide.reviewTitle'),
+    reviewDescription: tQuote('complexityGuide.reviewDescription'),
+    delivery: tQuote('ui.estimatedDelivery'),
+    standard: tQuote('ui.standardTime'),
+    express: tQuote('ui.expressTime'),
+    deliverables: tQuote('ui.deliverables'),
+    privacy: tQuote('ui.privateFiles'),
+  };
+
+  const goToStep = (step: number) => {
+    if (step > 1 && !uploadedFile) {
+      setFormError(tQuote('ui.uploadFirst'));
+      setCurrentStep(1);
+      return;
+    }
+    if (step > 1 && !projectName.trim()) {
+      setFormError(tQuote('ui.projectFirst'));
+      setCurrentStep(1);
+      return;
+    }
+    setFormError(null);
+    setCurrentStep(step);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  };
 
   // File drop / select handler
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -291,7 +401,7 @@ export default function QuotePageContent() {
     <div className="min-h-screen bg-[#F9F8F6] text-[#141414]">
       <Navbar />
 
-      <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+      <main className="mx-auto max-w-6xl px-4 py-10 pb-28 sm:px-6 sm:py-16 lg:px-8">
         {formError && <p role="alert" className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">{formError}</p>}
         {draftNotice && (
           <div role="status" className="mb-6 flex items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
@@ -300,7 +410,7 @@ export default function QuotePageContent() {
           </div>
         )}
         {/* Studio Questionnaire Header */}
-        <div className="text-center max-w-2xl mx-auto">
+        <div className="mx-auto max-w-3xl text-center">
           <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#18794E]">
             {tQuote('badge')}
           </span>
@@ -312,9 +422,15 @@ export default function QuotePageContent() {
           </p>
 
           {/* Stepper Progress Bar */}
-          <div className="mt-8 flex items-center justify-center gap-3 sm:gap-6 font-mono text-xs">
+          <nav aria-label={tQuote('ui.progress')} className="mt-8">
+          <div className="mx-auto mb-4 h-1.5 max-w-xl overflow-hidden rounded-full bg-[#EAE8E3]">
+            <div className="h-full rounded-full bg-[#18794E] transition-all duration-300" style={{ width: `${(currentStep / 3) * 100}%` }} />
+          </div>
+          <div className="flex items-center justify-center gap-2 sm:gap-6 text-xs">
             <button
-              onClick={() => setCurrentStep(1)}
+              type="button"
+              onClick={() => goToStep(1)}
+              aria-current={currentStep === 1 ? 'step' : undefined}
               className={`flex items-center gap-2 transition-colors ${
                 currentStep === 1 ? 'font-bold text-[#18794E]' : 'text-[#737373] hover:text-[#141414]'
               }`}
@@ -336,7 +452,9 @@ export default function QuotePageContent() {
             <span className="text-[#CCCCCC]">―</span>
 
             <button
-              onClick={() => setCurrentStep(2)}
+              type="button"
+              onClick={() => goToStep(2)}
+              aria-current={currentStep === 2 ? 'step' : undefined}
               className={`flex items-center gap-2 transition-colors ${
                 currentStep === 2 ? 'font-bold text-[#18794E]' : 'text-[#737373] hover:text-[#141414]'
               }`}
@@ -358,7 +476,9 @@ export default function QuotePageContent() {
             <span className="text-[#CCCCCC]">―</span>
 
             <button
-              onClick={() => setCurrentStep(3)}
+              type="button"
+              onClick={() => goToStep(3)}
+              aria-current={currentStep === 3 ? 'step' : undefined}
               className={`flex items-center gap-2 transition-colors ${
                 currentStep === 3 ? 'font-bold text-[#18794E]' : 'text-[#737373] hover:text-[#141414]'
               }`}
@@ -375,6 +495,7 @@ export default function QuotePageContent() {
               <span>{tQuote('step3')}</span>
             </button>
           </div>
+          </nav>
         </div>
 
         {/* STEP 1: UPLOAD ARTWORK */}
@@ -460,8 +581,9 @@ export default function QuotePageContent() {
             {/* Next Button */}
             <div className="mt-10 flex justify-end">
               <button
-                onClick={() => setCurrentStep(2)}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-7 py-3 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
+                onClick={() => goToStep(2)}
+                disabled={!uploadedFile || !projectName.trim() || isUploading}
+                className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-7 py-3 text-sm font-bold text-white hover:bg-[#115C3B] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <span>{tQuote('continueBtn')}</span>
                 <ArrowRight className="h-4 w-4" />
@@ -661,8 +783,8 @@ export default function QuotePageContent() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(3)}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-7 py-3 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
+                  onClick={() => goToStep(3)}
+                  className="hidden items-center gap-2 rounded-lg bg-[#18794E] px-7 py-3 text-sm font-bold text-white hover:bg-[#115C3B] transition-colors lg:inline-flex"
                 >
                   <span>{tQuote('ui.continueReview')}</span>
                   <ArrowRight className="h-4 w-4" />
@@ -670,74 +792,22 @@ export default function QuotePageContent() {
               </div>
             </div>
 
-            {/* Right Sticky Calculation Summary */}
-            <div className="lg:col-span-4 sticky top-24 rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xs space-y-6">
-              <div>
-                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#737373]">
-                  {tQuote('summaryTitle')}
-                </span>
-                <h3 className="mt-1 text-base font-bold text-[#141414]">{projectName}</h3>
-              </div>
-
-              {/* Itemized Breakdown */}
-              <div className="space-y-2 border-y border-[#EAE8E3] py-4 font-mono text-xs">
-                {pricing.breakdown.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-[#737373]">
-                    <span className="text-[11px] truncate max-w-[180px]">{localizedBreakdownLabel(item.label)}</span>
-                    <span className="font-bold text-[#141414]">${item.amount}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Total & Guarantee */}
-              <div>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-xs font-bold text-[#141414]">{tQuote(pricing.needsManualReview ? 'complexityGuide.estimate' : 'totalPrice')}</span>
-                  <div className="text-right">
-                    <span className="text-2xl font-extrabold text-[#141414]">${pricing.total}</span>
-                    <span className="block text-[10px] text-[#737373]">{tQuote('complexityGuide.priceNote')}</span>
-                  </div>
-                </div>
-
-                {pricing.needsManualReview && (
-                  <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-[11px] text-amber-900 leading-relaxed">
-                    <div className="flex items-center gap-1.5 font-bold mb-1">
-                      <AlertTriangle className="h-3.5 w-3.5 text-amber-700" />
-                      <span>{tQuote('complexityGuide.reviewTitle')}</span>
-                    </div>
-                    {tQuote('complexityGuide.reviewDescription')}
-                  </div>
-                )}
-              </div>
-
-              {/* Master Formats Guaranteed */}
-              <div className="border-t border-[#EAE8E3] pt-4">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-[#737373]">
-                  {tQuote('ui.deliverables')}
-                </span>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  <DeliverableBadge format="ai" variant="pill" />
-                  <DeliverableBadge format="eps" variant="pill" />
-                  <DeliverableBadge format="svg" variant="pill" />
-                  <DeliverableBadge format="pdf" variant="pill" />
-                  <DeliverableBadge format="png" variant="pill" />
-                </div>
-              </div>
-            </div>
+            <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} className="sticky top-24 lg:col-span-4" />
           </div>
         )}
 
         {/* STEP 3: REVIEW & ORDER */}
         {currentStep === 3 && (
-          <div className="mt-12 rounded-2xl border border-[#EAE8E3] bg-white p-8 sm:p-12 shadow-xs">
+          <div className="mt-12 grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+          <div className="rounded-2xl border border-[#EAE8E3] bg-white p-8 shadow-xs sm:p-10 lg:col-span-8">
             <div className="text-center max-w-lg mx-auto">
               <h2 className="text-xl font-bold text-[#141414]">{tQuote('confirmTitle')}</h2>
-              <p className="mt-1 text-xs text-[#737373]">{tQuote('confirmDesc')}</p>
+              <p className="mt-2 text-sm text-[#737373]">{tQuote('confirmDesc')}</p>
             </div>
 
-            <form onSubmit={handleSubmitOrder} className="mt-10 max-w-xl mx-auto space-y-6">
+            <form onSubmit={handleSubmitOrder} className="mx-auto mt-8 max-w-xl space-y-6">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block text-sm font-bold text-[#141414]">
                   {tQuote('fullName')}
                 </label>
                 <input
@@ -747,12 +817,12 @@ export default function QuotePageContent() {
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder={tQuote('ui.namePlaceholder')}
-                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-2.5 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-3 text-sm text-[#141414] focus:border-[#18794E] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#B4DFC4]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block text-sm font-bold text-[#141414]">
                   {tQuote('workEmail')}
                 </label>
                 <input
@@ -762,13 +832,13 @@ export default function QuotePageContent() {
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                   placeholder={tQuote('ui.emailPlaceholder')}
-                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-2.5 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-3 text-sm text-[#141414] focus:border-[#18794E] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#B4DFC4]"
                 />
               </div>
 
               {/* Payment Method Selector */}
               <div>
-                <label className="block font-mono text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block text-sm font-bold text-[#141414]">
                   {tQuote('paymentTitle')}
                 </label>
                 {pricing.needsManualReview ? (
@@ -865,7 +935,7 @@ export default function QuotePageContent() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep(2)}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#737373] hover:text-[#141414]"
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-[#737373] hover:text-[#141414]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   <span>{tQuote('ui.backSpecs')}</span>
@@ -874,13 +944,24 @@ export default function QuotePageContent() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-8 py-3.5 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-6 py-3.5 text-sm font-bold text-white shadow-xs hover:bg-[#115C3B] disabled:opacity-50 transition-colors"
                 >
                   <span>{isSubmitting ? tQuote('ui.submitting') : tQuote(pricing.needsManualReview ? 'complexityGuide.submitReview' : 'submitBtn')}</span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </form>
+          </div>
+          <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} className="sticky top-24 lg:col-span-4" />
+          </div>
+        )}
+
+        {currentStep === 2 && (
+          <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#DAD8D2] bg-white/95 p-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur lg:hidden">
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+              <div><p className="text-xs text-[#737373]">{summaryLabels.total}</p><p className="text-xl font-extrabold text-[#141414]">${pricing.total}</p></div>
+              <button type="button" onClick={() => goToStep(3)} className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-5 py-3 text-sm font-bold text-white">{tQuote('ui.continueReview')}<ArrowRight className="h-4 w-4" /></button>
+            </div>
           </div>
         )}
       </main>

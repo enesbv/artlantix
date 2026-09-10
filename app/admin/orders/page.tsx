@@ -13,6 +13,7 @@ import {
 import { getCurrentUser } from '@/lib/services/auth';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { INPUT_LIMITS } from '@/lib/security';
+import { getExpectedDelivery, ORDER_STATUS_LABELS } from '@/lib/order-status';
 import { Order, OrderStatus, UserProfile } from '@/lib/types';
 import {
   ShieldCheck,
@@ -21,6 +22,10 @@ import {
   PenTool,
   Layers,
   FileText,
+  Clock3,
+  Eye,
+  Inbox,
+  RotateCcw,
 } from 'lucide-react';
 
 export default function AdminOrdersPage() {
@@ -41,14 +46,21 @@ export default function AdminOrdersPage() {
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [queueReferenceTime, setQueueReferenceTime] = useState<number | null>(null);
 
   useEffect(() => {
     async function load() {
-      const u = await getCurrentUser();
-      setCurrentUser(u);
-      // Admin sees ALL orders
-      const list = await getOrders(undefined, true, true);
-      setOrders(list);
+      try {
+        const u = await getCurrentUser();
+        setCurrentUser(u);
+        // Admin sees ALL orders
+        const list = await getOrders(undefined, true, true);
+        setOrders(list);
+        setQueueReferenceTime(Date.now());
+      } finally {
+        setIsLoading(false);
+      }
     }
     load();
   }, []);
@@ -120,8 +132,20 @@ export default function AdminOrdersPage() {
 
     if (!matchesSearch) return false;
     if (statusFilter === 'all') return true;
+    if (statusFilter === 'review_queue') return ['quote_requested', 'in_review'].includes(o.status);
+    if (statusFilter === 'due_soon') {
+      const dueAt = new Date(getExpectedDelivery(o)).getTime();
+      return queueReferenceTime !== null && !['completed', 'cancelled'].includes(o.status) && dueAt <= queueReferenceTime + 24 * 60 * 60 * 1000;
+    }
     return o.status === statusFilter;
   });
+  const priorityCards = [
+    { id: 'review_queue', label: 'Needs review', detail: 'New quotes waiting for assessment', value: orders.filter((order) => ['quote_requested', 'in_review'].includes(order.status)).length, icon: Inbox },
+    { id: 'in_progress', label: 'In production', detail: 'Artwork currently being redrawn', value: orders.filter((order) => order.status === 'in_progress').length, icon: PenTool },
+    { id: 'preview_ready', label: 'Waiting on client', detail: 'Previews ready for approval', value: orders.filter((order) => order.status === 'preview_ready').length, icon: Eye },
+    { id: 'revision_requested', label: 'Revisions', detail: 'Changes requested by clients', value: orders.filter((order) => order.status === 'revision_requested').length, icon: RotateCcw },
+    { id: 'due_soon', label: 'Due or overdue', detail: 'Active work due now or within 24 hours', value: queueReferenceTime === null ? 0 : orders.filter((order) => !['completed', 'cancelled'].includes(order.status) && new Date(getExpectedDelivery(order)).getTime() <= queueReferenceTime + 24 * 60 * 60 * 1000).length, icon: Clock3 },
+  ];
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-[#111111]">
@@ -181,6 +205,19 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
+        <section aria-label="Queue priorities" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {priorityCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <button key={card.id} type="button" onClick={() => setStatusFilter(card.id)} className={`rounded-xl border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-sm ${statusFilter === card.id ? 'border-[#18794E] bg-[#E9F9EE]' : 'border-[#E6E4DF] bg-white'}`}>
+                <div className="flex items-center justify-between"><Icon className="h-4 w-4 text-[#18794E]" /><span className="text-2xl font-extrabold text-[#111111]">{isLoading ? '—' : card.value}</span></div>
+                <p className="mt-3 text-sm font-bold text-[#111111]">{card.label}</p>
+                <p className="mt-1 hidden text-xs leading-relaxed text-[#666666] sm:block">{card.detail}</p>
+              </button>
+            );
+          })}
+        </section>
+
         {/* Filter bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border border-[#E6E4DF] bg-white p-4 shadow-xs">
           <div className="flex flex-wrap gap-1.5">
@@ -218,9 +255,25 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
-        {/* Production Queue Table */}
+        {/* Production Queue */}
         <div className="rounded-xl border border-[#E6E4DF] bg-white shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+          {isLoading ? (
+            <div role="status" aria-label="Loading production queue" className="space-y-3 p-5">
+              {[1, 2, 3, 4].map((row) => <div key={row} className="h-14 animate-pulse rounded-lg bg-[#F1F0EC]" />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="p-12 text-center"><Layers className="mx-auto h-8 w-8 text-[#CCCCCC]" /><h2 className="mt-3 text-base font-bold">No jobs in this view</h2><p className="mt-1 text-sm text-[#666666]">Try another status or clear the search.</p><button type="button" onClick={() => { setStatusFilter('all'); setSearchQuery(''); }} className="mt-4 rounded-lg bg-[#111111] px-4 py-2 text-sm font-bold text-white">Show all jobs</button></div>
+          ) : <>
+          <div className="divide-y divide-[#E6E4DF] md:hidden">
+            {filtered.map((order) => (
+              <article key={order.id} className="p-4">
+                <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-bold">{order.project_name}</p><p className="mt-1 font-mono text-xs text-[#666666]">{order.order_number}</p></div><span className="rounded-full bg-[#F4F3EF] px-2.5 py-1 text-xs font-semibold text-[#555]">{ORDER_STATUS_LABELS[order.status]}</span></div>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs text-[#777]">Client</p><p className="font-semibold">{order.customer_name || 'Client'}</p></div><div className="text-right"><p className="text-xs text-[#777]">Target</p><p className="font-semibold">{new Date(getExpectedDelivery(order)).toLocaleDateString()}</p></div></div>
+                <button type="button" onClick={() => openOperatorModal(order)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#111111] px-4 py-2.5 text-sm font-bold text-white"><PenTool className="h-4 w-4 text-[#18794E]" />Open production action</button>
+              </article>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-[#E6E4DF] bg-[#FAFAF8] text-[11px] font-bold uppercase tracking-wider text-[#666666]">
                 <tr>
@@ -306,18 +359,19 @@ export default function AdminOrdersPage() {
               </tbody>
             </table>
           </div>
+          </>}
         </div>
       </main>
 
       {/* OPERATOR MODAL */}
       {modalOpen && selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-xl rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+          <div role="dialog" aria-modal="true" aria-labelledby="operator-action-title" className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-[#E6E4DF] pb-3">
               <div>
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-[#18794E]" />
-                  <h3 className="text-sm font-bold text-[#111111]">
+                  <h3 id="operator-action-title" className="text-sm font-bold text-[#111111]">
                     Operator Action: {selectedOrder.order_number}
                   </h3>
                 </div>
@@ -326,6 +380,8 @@ export default function AdminOrdersPage() {
                 </p>
               </div>
               <button
+                type="button"
+                aria-label="Close operator action"
                 onClick={() => setModalOpen(false)}
                 className="text-xs text-[#888888] hover:text-[#111111]"
               >

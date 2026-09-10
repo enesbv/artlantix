@@ -72,7 +72,11 @@ Supabase mode includes OAuth callback exchange, password-reset email requests, d
 - Complex artwork plus reconstruction plus text triggers manual review. Customer choice to pay after review also starts at quote_requested.
 - `components/ComplexityPicker.tsx` provides localized illustrated detail levels and an explicit artist-assessment choice. `PricingInput.artistReviewRequested` forces manual review regardless of tier. The previous tier remains a provisional estimate, recorded as such in order notes. Review checkout shows zero due now and uses the existing deferred-payment flow. This does not implement live payments or server-side price approval.
 - Quote form state is debounced into a browser-local draft and restored after navigation. A prior order can prefill a new quote through `?reorder=<order-id>`. File objects themselves are not serializable; the local demo stores a small data URL while production users may need to choose the file again after a reload.
-- Orders have expected-delivery metadata, status-history fallbacks, a next-action panel, notification polling and visual revision annotations. Stored coordinates use percentages so they remain aligned responsively.
+- Orders have expected-delivery metadata, status-history fallbacks, a next-action panel with direct section links, notification polling and visual revision annotations. Stored coordinates use percentages so they remain aligned responsively. The annotation UI shows its marker limit and supports removing the selected marker or undoing the latest marker.
+- The quote wizard keeps an itemized price, turnaround, privacy and deliverable summary visible beside the specification/review steps. On small screens, the specification step uses a fixed bottom price/action bar; do not add a second mobile forward action.
+- Customer order lists and details use loading skeletons so an unresolved request is not shown as an empty result. Signed preview URL failure must not leave the detail page loading indefinitely; action failures are presented in the page rather than only logged.
+- The operator queue begins with actionable workload cards for review, production, customer approval, revisions and due/overdue work. It has separate mobile cards and a desktop table.
+- Homepage FAQ copy must match the approval boundary: customer approval starts master packaging and QA; downloads unlock only after an operator completes delivery. FAQ accordions expose their expanded state to assistive technology.
 - Pricing is currently calculated in the browser. A real payment flow must independently calculate and validate prices on the server.
 - Quote submission validates file presence, rejects invalid tiers, reports errors and blocks simultaneous submissions. This is not durable server-side idempotency.
 - Current customer upload helper accepts nonempty JPG/JPEG, PNG, WebP and PDF up to 2 MB, validates extension, MIME and magic bytes, and handles reader/decode errors and cancellation. Operator and portfolio uploads have category-specific extension, MIME, signature and size checks. Browser quota may still fill across multiple demo orders.
@@ -116,6 +120,7 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 5. Finish translations for detail/account/B2B/admin content and add localized metadata.
 6. Add server-side order-list pagination, reduce homepage client work and measure LCP/INP with production media.
 7. Replace the B2B draft demonstration with approved company accounts, batch uploads, per-file quotes and real invoicing.
+8. Add verified customer proof only after obtaining permission to publish real project names, artwork and outcomes; do not invent testimonials or performance claims.
 
 ## Keeping this context useful
 

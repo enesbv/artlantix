@@ -44,6 +44,12 @@ Ancak mevcut ürün çalışan bir demo/prototip. Supabase anahtarlarını eklem
 - Supabase modunda müşteri, önizleme ve master dosyaları kullanıcı/sipariş klasörüne yükleniyor; önizleme kovası özel hale getirildi ve indirmeler süreli bağlantı kullanıyor.
 - CMS tabloları, portföy kovası ve yönetici politikaları şemaya eklendi. Gerçek servis yazma hataları artık yerel başarıya çevrilmiyor.
 - Türkçe/Almanca teklif, menü, alt bilgi, panel kabuğu ve sipariş listesi tamamlandı; dil seçimi panelden çıkmadan uygulanıyor ve HTML dili tercihi izliyor.
+- Teklif akışında fiyat kırılımı, teslim süresi, dosya gizliliği ve teslim formatları adımlar boyunca görünür hale getirildi; mobilde tek bir sabit fiyat/ilerleme eylemi kullanılıyor.
+- Yönetici kuyruğuna inceleme, üretim, müşteri onayı, revizyon ve teslim riski kartları; mobil iş kartları; yükleme ve boş sonuç durumları eklendi.
+- Müşteri sipariş detayındaki sonraki adım kartı ilgili önizleme, mesaj veya indirme bölümüne doğrudan götürüyor. Durum geçmişi görsel zaman çizgisine dönüştürüldü, mobil taşmalar azaltıldı ve işlem hataları görünür hale getirildi.
+- İmzalı dosya bağlantısı üretilemediğinde sipariş detayının sonsuz yüklemede kalması önlendi. Liste ve detay sayfalarında içerik iskeletleri kullanılıyor.
+- Revizyon işaretleyicide kullanılan/toplam işaret sayısı, son işareti geri alma, limite ulaşma açıklaması ve daha okunaklı giriş kontrolleri eklendi.
+- Ana sayfadaki birincil eylemler, güven açıklamaları ve SSS metinleri daha okunaklı hale getirildi; SSS aç/kapat durumu ekran okuyuculara aktarıldı ve revizyon sonrası anında indirme vaadi gerçek teslim akışıyla düzeltildi.
 
 ## Veritabanı güvenlik düzeltmesi
 
@@ -76,6 +82,7 @@ Migration uygulandığında ilk sipariş fiyatı veritabanında CMS taban fiyatl
 4. **Görsel üstüne revizyon notu — tamamlandı:** konum ve açıklama siparişle kaydediliyor; gerçek önizleme varsa onun üzerinde gösteriliyor.
 5. **B2B tekrar sipariş — kısmi:** önceki ayarları kopyalama tamam; toplu bölüm artık yalnızca yerel taslak olduğunu söylüyor. Şirket üyeleri ve gerçek kuyruk yok.
 6. **Gerçek örneklerle güven — güvenli sunum tamamlandı:** demo örnekleri açıkça yer tutucu olarak etiketlendi. Gerçek müşteri örnekleri ancak izinli içerik sağlandığında eklenebilir.
+7. **Teklif ve sipariş arayüzü — tamamlandı:** sürekli fiyat özeti, mobil ilerleme eylemi, müşteri odaklı sonraki adımlar, görünür hata/yükleme durumları ve operatör öncelik kuyruğu eklendi.
 
 ## Doğrulama ve sınırlar
 

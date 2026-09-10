@@ -23,13 +23,18 @@ export default function OrdersListPage() {
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
   const pageSize = 6;
 
   useEffect(() => {
     async function fetchOrders() {
-      const user = await getCurrentUser();
-      const list = await getOrders(user?.id);
-      setOrders(list);
+      try {
+        const user = await getCurrentUser();
+        const list = await getOrders(user?.id);
+        setOrders(list);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchOrders();
   }, []);
@@ -120,7 +125,11 @@ export default function OrdersListPage() {
 
       {/* Orders Table */}
       <div className="rounded-2xl border border-[#EAE8E3] bg-white shadow-xs overflow-hidden">
-        {filteredOrders.length === 0 ? (
+        {isLoading ? (
+          <div role="status" aria-label="Loading orders" className="space-y-3 p-5">
+            {[1, 2, 3, 4].map((row) => <div key={row} className="h-16 animate-pulse rounded-xl bg-[#F1F0EC]" />)}
+          </div>
+        ) : filteredOrders.length === 0 ? (
           <div className="p-12 text-center">
             <Layers className="mx-auto h-8 w-8 text-[#CCCCCC]" />
             <h3 className="mt-3 text-sm font-bold text-[#141414]">{t('emptyTitle')}</h3>

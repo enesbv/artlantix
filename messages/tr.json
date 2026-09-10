@@ -232,7 +232,7 @@
       "backSpecs": "Özelliklere dön",
       "submitting": "Sipariş gönderiliyor...",
       "demoCheckout": "Demo ödeme: bu sürümde karttan çekim yapılmaz ve gerçek fatura oluşturulmaz. Canlı kullanım öncesinde bir ödeme sağlayıcısı bağlanmalıdır.",
-      "defaultProject": "Vektör Projem", "ready": "Elle çizime hazır", "uploaded": "Yüklendi", "changeFile": "Dosyayı değiştir", "projectPlaceholder": "örn. Şahin Arması Yeniden Çizimi", "namePlaceholder": "örn. Ali Yılmaz", "emailPlaceholder": "örn. ali@tasarimstudyo.com", "geometryBase": "geometri tabanı", "fontRebuild": "Yazı tipi ve harf yenileme", "heavyRebuild": "Yoğun geometri onarımı", "missingRebuild": "Eksik veya bulanık ayrıntı onarımı", "gradientSeparation": "Karmaşık geçiş ayrımı", "colorSeparation": "{count} renk ayrımı", "expressDispatch": "Öncelikli ekspres üretim"
+      "defaultProject": "Vektör Projem", "ready": "Elle çizime hazır", "uploaded": "Yüklendi", "changeFile": "Dosyayı değiştir", "projectPlaceholder": "örn. Şahin Arması Yeniden Çizimi", "namePlaceholder": "örn. Ali Yılmaz", "emailPlaceholder": "örn. ali@tasarimstudyo.com", "geometryBase": "geometri tabanı", "fontRebuild": "Yazı tipi ve harf yenileme", "heavyRebuild": "Yoğun geometri onarımı", "missingRebuild": "Eksik veya bulanık ayrıntı onarımı", "gradientSeparation": "Karmaşık geçiş ayrımı", "colorSeparation": "{count} renk ayrımı", "expressDispatch": "Öncelikli ekspres üretim", "estimatedDelivery": "Tahmini teslim", "standardTime": "24–48 saat", "expressTime": "12–16 saat", "privateFiles": "Dosyalar müşteri portalında gizli kalır", "progress": "Teklif ilerlemesi", "uploadFirst": "Devam etmeden önce görselinizi yükleyin.", "projectFirst": "Devam etmeden önce proje adını yazın."
     }
   }
 }
