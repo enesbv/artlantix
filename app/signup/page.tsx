@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { signUpWithEmail } from '@/lib/services/auth';
 import { Layers, ArrowRight, Building2, User } from 'lucide-react';
+import { INPUT_LIMITS } from '@/lib/security';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -99,6 +100,7 @@ export default function SignUpPage() {
               <input
                 type="text"
                 required
+                maxLength={INPUT_LIMITS.name}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Alex Morgan"
@@ -112,6 +114,7 @@ export default function SignUpPage() {
                 <input
                   type="text"
                   required
+                  maxLength={INPUT_LIMITS.company}
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="Atelier Creative Agency"
@@ -125,6 +128,7 @@ export default function SignUpPage() {
               <input
                 type="email"
                 required
+                maxLength={INPUT_LIMITS.email}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="alex@ateliercreative.com"
@@ -137,10 +141,11 @@ export default function SignUpPage() {
               <input
                 type="password"
                 required
-                minLength={6}
+                minLength={12}
+                maxLength={128}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder="At least 12 characters"
                 className="mt-1 w-full rounded border border-[#E6E4DF] bg-white px-3 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-hidden"
               />
             </div>

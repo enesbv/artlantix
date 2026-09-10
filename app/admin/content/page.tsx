@@ -19,6 +19,7 @@ import {
 } from '@/lib/services/content';
 import { getCurrentUser } from '@/lib/services/auth';
 import { BeforeAfterShowcase, UserProfile } from '@/lib/types';
+import { INPUT_LIMITS } from '@/lib/security';
 import {
   ShieldCheck,
   FileText,
@@ -422,6 +423,7 @@ export default function AdminContentPage() {
                 <input
                   type="text"
                   required
+                  maxLength={INPUT_LIMITS.heroTitle}
                   value={settings.hero_title}
                   onChange={(e) => setSettings({ ...settings, hero_title: e.target.value })}
                   className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-2.5 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
@@ -435,6 +437,7 @@ export default function AdminContentPage() {
                 <textarea
                   rows={3}
                   required
+                  maxLength={INPUT_LIMITS.heroSubtitle}
                   value={settings.hero_subtitle}
                   onChange={(e) => setSettings({ ...settings, hero_subtitle: e.target.value })}
                   className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-4 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden leading-relaxed"
@@ -551,6 +554,7 @@ export default function AdminContentPage() {
                   <input
                     type="text"
                     required
+                    maxLength={INPUT_LIMITS.portfolioTitle}
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="e.g., Apex Falcon Crest Reconstruction"
@@ -580,6 +584,7 @@ export default function AdminContentPage() {
                     <input
                       type="text"
                       value={newClientType}
+                      maxLength={INPUT_LIMITS.portfolioClientType}
                       onChange={(e) => setNewClientType(e.target.value)}
                       placeholder="e.g., FinTech Startup"
                       className="mt-1.5 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
@@ -591,6 +596,7 @@ export default function AdminContentPage() {
                     <input
                       type="text"
                       value={newBadge}
+                      maxLength={INPUT_LIMITS.portfolioBadge}
                       onChange={(e) => setNewBadge(e.target.value)}
                       placeholder="e.g., Precision Rebuild"
                       className="mt-1.5 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
@@ -610,7 +616,7 @@ export default function AdminContentPage() {
                     <input
                       ref={rasterInputRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp"
                       className="hidden"
                       onChange={handleRasterUpload}
                     />
@@ -638,13 +644,13 @@ export default function AdminContentPage() {
                     <input
                       ref={vectorInputRef}
                       type="file"
-                      accept="image/*,.svg"
+                      accept="image/png,image/webp"
                       className="hidden"
                       onChange={handleVectorUpload}
                     />
                     <UploadCloud className="h-5 w-5 text-[#141414]" />
                     <span className="mt-1 text-xs font-medium text-[#141414]">
-                      {newVectorUrl ? 'Vector preview selected' : 'Upload SVG / clean master preview'}
+                      {newVectorUrl ? 'Vector preview selected' : 'Upload a PNG or WebP clean master preview'}
                     </span>
                   </div>
                   {newVectorUrl && (
@@ -658,6 +664,7 @@ export default function AdminContentPage() {
                   <label className="block text-xs font-bold text-[#141414]">Brief Transformation Description</label>
                   <textarea
                     rows={2}
+                    maxLength={INPUT_LIMITS.portfolioDescription}
                     value={newDesc}
                     onChange={(e) => setNewDesc(e.target.value)}
                     placeholder="e.g., Rebuilt 12,000 AI raster artifacts into 42 clean tangent bezier nodes for screen print separation."

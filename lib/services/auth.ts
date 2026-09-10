@@ -1,6 +1,13 @@
 import { UserProfile } from '../types';
 import { MOCK_CUSTOMER, MOCK_OPERATOR } from '../mock-data';
 import { isSupabaseConfigured, createClient } from '../supabase/client';
+import {
+  INPUT_LIMITS,
+  normalizeEmail,
+  normalizeOptionalText,
+  normalizeRequiredText,
+  PUBLIC_AUTH_ERRORS,
+} from '../security';
 
 const STORAGE_KEY_AUTH = 'artlantix_auth_user';
 
@@ -66,6 +73,17 @@ export async function updateCurrentUserProfile(
 ): Promise<{ user: UserProfile | null; error?: string }> {
   const current = await getCurrentUser();
   if (!current) return { user: null, error: 'You must be signed in to update your profile.' };
+  let safeUpdates: Pick<UserProfile, 'full_name' | 'company_name' | 'phone' | 'vat_tax_id'>;
+  try {
+    safeUpdates = {
+      full_name: normalizeRequiredText(updates.full_name, 'Full name', INPUT_LIMITS.name),
+      company_name: normalizeOptionalText(updates.company_name, 'Company name', INPUT_LIMITS.company),
+      phone: normalizeOptionalText(updates.phone, 'Phone number', 40),
+      vat_tax_id: normalizeOptionalText(updates.vat_tax_id, 'VAT / tax ID', 80),
+    };
+  } catch (error) {
+    return { user: null, error: error instanceof Error ? error.message : PUBLIC_AUTH_ERRORS.profile };
+  }
 
   if (isSupabaseConfigured()) {
     try {
@@ -73,24 +91,29 @@ export async function updateCurrentUserProfile(
       if (!supabase) return { user: null, error: 'Profile service is unavailable.' };
       const { data, error } = await supabase
         .from('profiles')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update({ ...safeUpdates, updated_at: new Date().toISOString() })
         .eq('id', current.id)
         .select('*')
         .single();
-      if (error) return { user: null, error: error.message };
+      if (error) return { user: null, error: PUBLIC_AUTH_ERRORS.profile };
       return { user: data as UserProfile };
-    } catch (error: unknown) {
-      return { user: null, error: error instanceof Error ? error.message : 'Profile update failed.' };
+    } catch {
+      return { user: null, error: PUBLIC_AUTH_ERRORS.profile };
     }
   }
 
-  const updated = { ...current, ...updates, updated_at: new Date().toISOString() };
+  const updated = { ...current, ...safeUpdates, updated_at: new Date().toISOString() };
   setCurrentUserMock(updated);
   return { user: updated };
 }
 
 export async function requestPasswordReset(email: string): Promise<{ success: boolean; error?: string }> {
-  if (!email.trim()) return { success: false, error: 'Enter your email address first.' };
+  let normalizedEmail: string;
+  try {
+    normalizedEmail = normalizeEmail(email);
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Enter a valid email address.' };
+  }
   if (!isSupabaseConfigured()) {
     return { success: false, error: 'Password email is unavailable in demo mode. Use a demo access button instead.' };
   }
@@ -98,13 +121,13 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
   try {
     const supabase = createClient();
     if (!supabase) return { success: false, error: 'Password recovery is unavailable.' };
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    await supabase.auth.resetPasswordForEmail(normalizedEmail, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-    if (error) return { success: false, error: error.message };
+    // Always return the same result for existing and non-existing accounts.
     return { success: true };
-  } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'Password recovery failed.' };
+  } catch {
+    return { success: true };
   }
 }
 
@@ -112,18 +135,18 @@ export async function signInWithEmail(email: string, password?: string): Promise
   if (isSupabaseConfigured()) {
     if (!password) return { user: null, error: 'Password is required.' };
     try {
+      const normalizedEmail = normalizeEmail(email);
       const supabase = createClient();
       if (supabase && password) {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) return { user: null, error: error.message };
+        const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+        if (error) return { user: null, error: PUBLIC_AUTH_ERRORS.signIn };
         if (data.user) {
           const profile = await getCurrentUser();
           return { user: profile };
         }
       }
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Authentication error';
-      return { user: null, error: msg };
+    } catch {
+      return { user: null, error: PUBLIC_AUTH_ERRORS.signIn };
     }
   }
 
@@ -147,37 +170,41 @@ export async function signInWithEmail(email: string, password?: string): Promise
 export async function signUpWithEmail(email: string, fullName: string, password?: string, accountType: 'individual' | 'business' = 'individual', companyName?: string): Promise<{ user: UserProfile | null; error?: string; confirmationRequired?: boolean }> {
   if (isSupabaseConfigured()) {
     if (!password) return { user: null, error: 'Please create an account or sign in before ordering.' };
+    if (password.length < 12 || password.length > 128) return { user: null, error: 'Use a password between 12 and 128 characters.' };
     try {
+      if (!['individual', 'business'].includes(accountType)) return { user: null, error: PUBLIC_AUTH_ERRORS.signUp };
+      const normalizedEmail = normalizeEmail(email);
+      const normalizedName = normalizeRequiredText(fullName, 'Full name', INPUT_LIMITS.name);
+      const normalizedCompany = normalizeOptionalText(companyName, 'Company name', INPUT_LIMITS.company);
       const supabase = createClient();
       if (supabase && password) {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: normalizedEmail,
           password,
           options: {
             data: {
-              full_name: fullName,
+              full_name: normalizedName,
               account_type: accountType,
-              company_name: companyName,
+              company_name: normalizedCompany,
             },
           },
         });
-        if (error) return { user: null, error: error.message };
+        if (error) return { user: null, error: PUBLIC_AUTH_ERRORS.signUp };
         if (data.user) {
           const profile: UserProfile = {
             id: data.user.id,
-            email,
-            full_name: fullName,
+            email: normalizedEmail,
+            full_name: normalizedName,
             account_type: accountType,
-            company_name: companyName,
+            company_name: normalizedCompany,
             is_admin: false,
             created_at: new Date().toISOString(),
           };
           return { user: data.session ? profile : null, confirmationRequired: !data.session };
         }
       }
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Registration error';
-      return { user: null, error: msg };
+    } catch {
+      return { user: null, error: PUBLIC_AUTH_ERRORS.signUp };
     }
   }
 
@@ -207,13 +234,12 @@ export async function signInWithGoogle(): Promise<{ user: UserProfile | null; er
             redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
           },
         });
-        if (error) return { user: null, error: error.message };
+        if (error) return { user: null, error: PUBLIC_AUTH_ERRORS.oauth };
         // OAuth redirects; user will be set after callback
         return { user: null };
       }
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Google authentication error';
-      return { user: null, error: msg };
+    } catch {
+      return { user: null, error: PUBLIC_AUTH_ERRORS.oauth };
     }
   }
 

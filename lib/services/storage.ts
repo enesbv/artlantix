@@ -1,5 +1,6 @@
 import { OrderFile, Order, FileCategory } from '../types';
 import { isSupabaseConfigured, createClient } from '../supabase/client';
+import { normalizeFilename } from '../security';
 
 export const STORAGE_BUCKETS = {
   CUSTOMER_ASSETS: 'customer-assets',
@@ -32,15 +33,95 @@ export interface UploadedFileData {
   file?: File;
 }
 
+const CLIENT_UPLOAD_TYPES: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  pdf: 'application/pdf',
+};
+
+const STORAGE_UPLOAD_RULES: Record<StorageBucket, { maxBytes: number; types: Record<string, string[]> }> = {
+  [STORAGE_BUCKETS.CUSTOMER_ASSETS]: {
+    maxBytes: 2 * 1024 * 1024,
+    types: {
+      jpg: ['image/jpeg'], jpeg: ['image/jpeg'], png: ['image/png'],
+      webp: ['image/webp'], pdf: ['application/pdf'],
+    },
+  },
+  [STORAGE_BUCKETS.PREVIEWS]: {
+    maxBytes: 10 * 1024 * 1024,
+    types: {
+      jpg: ['image/jpeg'], jpeg: ['image/jpeg'], png: ['image/png'], webp: ['image/webp'],
+      svg: ['image/svg+xml'], pdf: ['application/pdf'],
+    },
+  },
+  [STORAGE_BUCKETS.MASTER_DELIVERIES]: {
+    maxBytes: 50 * 1024 * 1024,
+    types: {
+      png: ['image/png'], svg: ['image/svg+xml'], pdf: ['application/pdf'],
+      ai: ['application/postscript', 'application/pdf', 'application/octet-stream'],
+      eps: ['application/postscript', 'application/octet-stream'],
+    },
+  },
+};
+
+function startsWithBytes(bytes: Uint8Array, expected: number[], offset = 0): boolean {
+  return expected.every((value, index) => bytes[offset + index] === value);
+}
+
+export function hasAllowedFileSignature(extension: string, bytes: Uint8Array): boolean {
+  switch (extension) {
+    case 'jpg':
+    case 'jpeg':
+      return startsWithBytes(bytes, [0xff, 0xd8, 0xff]);
+    case 'png':
+      return startsWithBytes(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    case 'webp':
+      return startsWithBytes(bytes, [0x52, 0x49, 0x46, 0x46]) && startsWithBytes(bytes, [0x57, 0x45, 0x42, 0x50], 8);
+    case 'pdf':
+      return startsWithBytes(bytes, [0x25, 0x50, 0x44, 0x46, 0x2d]);
+    case 'ai':
+      return startsWithBytes(bytes, [0x25, 0x50, 0x44, 0x46, 0x2d]) || startsWithBytes(bytes, [0x25, 0x21, 0x50, 0x53]);
+    case 'eps':
+      return startsWithBytes(bytes, [0x25, 0x21, 0x50, 0x53]);
+    case 'svg': {
+      const prefix = new TextDecoder().decode(bytes).replace(/^\uFEFF/, '').trimStart().toLowerCase();
+      return prefix.startsWith('<svg') || prefix.startsWith('<?xml');
+    }
+    default:
+      return false;
+  }
+}
+
+export async function validateStorageUpload(file: File, bucket: StorageBucket, expectedExtension?: string): Promise<string> {
+  const filename = normalizeFilename(file.name);
+  const extension = filename.split('.').pop()?.toLowerCase() || '';
+  const rule = STORAGE_UPLOAD_RULES[bucket];
+  const acceptedTypes = rule.types[extension];
+  if (!acceptedTypes) throw new Error('This file format is not allowed for the selected delivery type.');
+  if (expectedExtension && extension !== expectedExtension.toLowerCase()) throw new Error('The selected format does not match the file extension.');
+  if (!acceptedTypes.includes(file.type)) throw new Error('The file type does not match its extension.');
+  if (file.size === 0 || file.size > rule.maxBytes) throw new Error(`Choose a non-empty file up to ${rule.maxBytes / 1024 / 1024} MB.`);
+  const signature = new Uint8Array(await file.slice(0, 512).arrayBuffer());
+  if (!hasAllowedFileSignature(extension, signature)) throw new Error('The file contents do not match the selected file type.');
+  return extension;
+}
+
+export function validateClientUploadMetadata(file: Pick<File, 'name' | 'size' | 'type'>): string {
+  const filename = normalizeFilename(file.name);
+  const extension = filename.split('.').pop()?.toLowerCase() || '';
+  const expectedType = CLIENT_UPLOAD_TYPES[extension];
+  if (!expectedType) throw new Error('Please upload a JPG, PNG, WebP or PDF file.');
+  if (file.type !== expectedType) throw new Error('The file type does not match its extension.');
+  if (file.size === 0 || file.size > 2 * 1024 * 1024) throw new Error('Please select a non-empty file up to 2 MB.');
+  return extension;
+}
+
 export async function processClientFileUpload(file: File): Promise<UploadedFileData> {
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
-  if (!['jpg', 'jpeg', 'png', 'webp', 'pdf'].includes(ext)) {
-    throw new Error('Please upload a JPG, PNG, WebP or PDF file.');
-  }
-  // Demo uploads are persisted as base64 in localStorage, which has a small quota.
-  if (file.size === 0 || file.size > 2 * 1024 * 1024) {
-    throw new Error('Please select a non-empty file up to 2 MB.');
-  }
+  const ext = validateClientUploadMetadata(file);
+  const signature = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  if (!hasAllowedFileSignature(ext, signature)) throw new Error('The file contents do not match the selected file type.');
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -61,15 +142,7 @@ export async function processClientFileUpload(file: File): Promise<UploadedFileD
             file,
           });
         };
-        img.onerror = () => {
-          resolve({
-            name: file.name,
-            size: file.size,
-            format: ext,
-            url: result,
-            file,
-          });
-        };
+        img.onerror = () => reject(new Error('The image is invalid or cannot be decoded.'));
         img.src = result;
       } else {
         resolve({
@@ -103,13 +176,12 @@ export async function getSignedDownloadUrl(
           .from(bucket)
           .createSignedUrl(file.storage_path, expiresInSeconds);
 
-        if (!error && data?.signedUrl) {
-          return data.signedUrl;
-        }
+        if (!error && data?.signedUrl) return data.signedUrl;
       }
     } catch {
-      // Fall through to mock generator
+      // The configured service must fail closed rather than expose a raw path.
     }
+    throw new Error('The secure download link could not be created. Please try again.');
   }
 
   // In mock/offline mode or if direct download is needed
@@ -121,20 +193,20 @@ export async function uploadToStorageBucket(
   bucket: StorageBucket,
   destinationPath: string
 ): Promise<{ path: string; url?: string; error?: string }> {
+  await validateStorageUpload(file, bucket);
   if (isSupabaseConfigured()) {
     try {
       const supabase = createClient();
       if (supabase) {
         const { data, error } = await supabase.storage
           .from(bucket)
-          .upload(destinationPath, file, { upsert: true });
+          .upload(destinationPath, file, { upsert: false });
 
-        if (error) return { path: destinationPath, error: error.message };
+        if (error) return { path: destinationPath, error: 'The file could not be uploaded securely.' };
         return { path: data.path };
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Storage upload failure';
-      return { path: destinationPath, error: msg };
+    } catch {
+      return { path: destinationPath, error: 'The file could not be uploaded securely.' };
     }
   }
 

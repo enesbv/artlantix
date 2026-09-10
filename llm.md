@@ -13,7 +13,7 @@ The site markets human redrawing, not automatic vector generation. Do not presen
 - Next.js 16.3.4 App Router, React 19.2.8, TypeScript, Tailwind CSS 4.
 - next-intl for English, German, and Turkish; lucide-react icons.
 - Optional Supabase browser client from `@supabase/ssr`; localStorage demo data when Supabase is unconfigured.
-- `package.json` contains dev, build, and lint commands. Both npm and pnpm lockfiles currently exist: select the intended package manager before changing dependencies and avoid incidental lockfile churn.
+- `package.json` pins pnpm 11.19.0. `pnpm-lock.yaml` is the only dependency lockfile; use frozen-lockfile installs in CI and do not add a second package-manager lockfile.
 - Next.js instructions live in `AGENTS.md`. Read applicable bundled documentation in `node_modules/next/dist/docs/` before writing framework code. Do not delete the Next-generated AGENTS block.
 
 ## Repository map
@@ -44,6 +44,7 @@ The site markets human redrawing, not automatic vector generation. Do not presen
 | `supabase/schema.sql` | Initial tables and RLS/storage setup |
 | `supabase/migrations/20260907_access_hardening.sql` | Follow-up role/ownership/status restrictions; apply after base schema |
 | `tests/regressions.mjs` | Isolated regression tests using Node test runner and in-memory TypeScript transpilation |
+| `SECURITY_AUDIT.md` | Production security findings, applied code fixes, open deployment risks and release verdict |
 | `REVIEW.md` | Detailed Turkish audit, implemented fixes and prioritized remaining work |
 
 ## Routing invariants
@@ -74,8 +75,8 @@ Supabase mode includes OAuth callback exchange, password-reset email requests, d
 - Orders have expected-delivery metadata, status-history fallbacks, a next-action panel, notification polling and visual revision annotations. Stored coordinates use percentages so they remain aligned responsively.
 - Pricing is currently calculated in the browser. A real payment flow must independently calculate and validate prices on the server.
 - Quote submission validates file presence, rejects invalid tiers, reports errors and blocks simultaneous submissions. This is not durable server-side idempotency.
-- Current upload helper accepts nonempty JPG/JPEG, PNG, WebP and PDF up to 2 MB, reading them as base64. It handles reader errors and cancellation. This small limit reflects current local storage, not the planned production storage capacity. Browser quota may still fill across multiple orders.
-- Production uploads must use private object storage and persist paths rather than base64. Upload type/size validation must also be enforced server-side.
+- Current customer upload helper accepts nonempty JPG/JPEG, PNG, WebP and PDF up to 2 MB, validates extension, MIME and magic bytes, and handles reader/decode errors and cancellation. Operator and portfolio uploads have category-specific extension, MIME, signature and size checks. Browser quota may still fill across multiple demo orders.
+- Production buckets enforce MIME and size limits through the SQL migration, while metadata constraints and RLS bind file rows to owned orders. Signature checks still run in the browser; add trusted malware scanning/CDR before operators open untrusted customer files.
 - `processCheckout` is simulated and the checkout UI says so. It does not charge a card or issue an invoice. Demo file downloads can generate representative content; the package action is explicitly a text manifest, not a ZIP. In Supabase mode individual stored files use signed URLs.
 - Supabase customer uploads are sent to a private user/order path before order metadata is inserted. Operator preview/master actions require a real file in Supabase mode and store it in the matching bucket. Upload plus database writes are not atomic, so a failed later write can leave an orphan object.
 - Portfolio SVG content is displayed in an image context. Do not restore raw `dangerouslySetInnerHTML` insertion for uploaded SVG/HTML.
@@ -86,6 +87,8 @@ Client-side gates improve navigation only. Enforce real ownership and permission
 
 The follow-up SQL migration prevents user metadata and profile updates from granting admin rights, constrains customer file/message inserts to owned orders, and limits customer order updates to preview approval/revision rather than arbitrary price/ownership edits. It has **not** been applied to or integration-tested against a live database. Do not assume deployed systems have these policies. Applying it needs a configured target and appropriate migration workflow.
 
+Production responses define CSP, HSTS, clickjacking, MIME-sniffing, referrer, permissions and private-cache headers in `next.config.ts`; `X-Powered-By` is disabled. The static CSP currently requires `unsafe-inline` for framework scripts/styles. Treat a nonce- or SRI-based strict CSP as future hardening, and verify headers again at the final CDN/proxy because intermediaries can alter them.
+
 The migration recalculates inserted prices from CMS rates and selected options, overwrites client status, and keeps every remote order at `quote_requested` until a future verified payment flow advances it. Remaining critical gaps include the missing live payment/webhook records, non-atomic upload/order/file operations and lack of live database integration tests. Preview storage is private and CMS tables/bucket policies are included, but the migration has not been applied. Review existing admin grants separately; the migration does not revoke previously granted roles.
 
 ## Verification
@@ -93,25 +96,26 @@ The migration recalculates inserted prices from CMS rates and selected options, 
 Use a compatible installed Node runtime; this project was verified with the bundled Node runtime available on the development machine. Do not hardcode a contributor's machine-specific runtime path in repository commands.
 
 ```sh
-npm run dev
-npm run lint
-npm run build
-node --test tests/regressions.mjs
+pnpm dev
+pnpm lint
+pnpm build
+pnpm test
 git diff --check
 ```
 
-Latest audit: production build/TypeScript passed; all eight regression tests passed; ESLint had zero errors and zero warnings. Browser checks covered the Turkish quote flow, translated footer/navigation, dashboard language switching and responsive order-card rendering. No Lighthouse score, live payment test or live SQL migration test was performed.
+Latest audit: production build/TypeScript passed; all 11 regression tests passed; ESLint had zero errors and zero warnings; `pnpm audit --prod` reported zero known vulnerabilities across 160 production/optional dependencies. Production server checks confirmed CSP, HSTS, clickjacking, no-sniff, referrer, permissions and private no-store headers. No Lighthouse score, live payment test, malware scan or live SQL migration/RLS test was performed.
 
 Tests isolate auth/storage and exercise the real pricing source. They are not substitutes for database RLS and payment integration tests. Add meaningful regressions for changed behavior, not tests that merely match source text.
 
 ## Priorities for future work
 
 1. Real server-validated checkout, durable order/payment records, idempotency and verified webhook processing.
-2. Atomic order/upload creation, actual archive generation and live private-storage/RLS integration tests.
-3. Apply and validate the database migration, OAuth, confirmation and password recovery against a configured Supabase project.
-4. Finish translations for detail/account/B2B/admin content and add localized metadata.
-5. Add server-side order-list pagination, reduce homepage client work and measure LCP/INP with production media.
-6. Replace the B2B draft demonstration with approved company accounts, batch uploads, per-file quotes and real invoicing.
+2. Apply and validate the database migration, then add live private-storage/RLS authorization tests for two customers and one admin.
+3. Atomic order/upload creation, failed-upload cleanup, malware scanning/CDR and actual archive generation.
+4. Configure and verify Supabase Auth rate limits, CAPTCHA, redirect allowlists, leaked-password protection, MFA for admins, OAuth, confirmation, recovery and session invalidation.
+5. Finish translations for detail/account/B2B/admin content and add localized metadata.
+6. Add server-side order-list pagination, reduce homepage client work and measure LCP/INP with production media.
+7. Replace the B2B draft demonstration with approved company accounts, batch uploads, per-file quotes and real invoicing.
 
 ## Keeping this context useful
 

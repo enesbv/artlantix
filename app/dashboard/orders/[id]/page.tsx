@@ -18,6 +18,7 @@ import { Order, RevisionAnnotation, UserProfile } from '@/lib/types';
 import DeliverableBadge, { DeliverableFormat } from '@/components/DeliverableBadge';
 import RevisionAnnotator from '@/components/RevisionAnnotator';
 import { getExpectedDelivery, getNextOrderAction, getStatusHistory, ORDER_STATUS_LABELS } from '@/lib/order-status';
+import { INPUT_LIMITS } from '@/lib/security';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -487,6 +488,7 @@ export default function OrderDetailPage() {
         <form onSubmit={handleSendMessage} className="mt-4 flex gap-2 border-t border-[#EAE8E3] pt-4">
           <input
             type="text"
+            maxLength={INPUT_LIMITS.message}
             value={chatMessage}
             onChange={(e) => setChatMessage(e.target.value)}
             placeholder="Type a message or instruction for the production artist..."
@@ -533,6 +535,7 @@ export default function OrderDetailPage() {
                 </label>
                 <textarea
                   rows={4}
+                  maxLength={INPUT_LIMITS.message}
                   value={revisionFeedback}
                   onChange={(e) => setRevisionFeedback(e.target.value)}
                   placeholder="e.g., Please thicken the outer crest stroke by 0.5pt, slightly widen the serifs on the letter 'S', and remove the stray anchor node on the falcon eye..."

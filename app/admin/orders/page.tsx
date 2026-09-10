@@ -12,6 +12,7 @@ import {
 } from '@/lib/services/orders';
 import { getCurrentUser } from '@/lib/services/auth';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
+import { INPUT_LIMITS } from '@/lib/security';
 import { Order, OrderStatus, UserProfile } from '@/lib/types';
 import {
   ShieldCheck,
@@ -357,6 +358,9 @@ export default function AdminOrdersPage() {
                 </label>
                 <input
                   type="number"
+                  min={0}
+                  max={10000}
+                  step="0.01"
                   value={adjustedPrice}
                   onChange={(e) => setAdjustedPrice(Number(e.target.value))}
                   className="mt-1 w-full rounded border border-[#E6E4DF] bg-white p-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-hidden"
@@ -384,6 +388,7 @@ export default function AdminOrdersPage() {
                   </select>
                   <input
                     type="text"
+                    maxLength={INPUT_LIMITS.filename}
                     value={deliverableFilename}
                     onChange={(e) => setDeliverableFilename(e.target.value)}
                     placeholder="filename.svg"
@@ -420,6 +425,7 @@ export default function AdminOrdersPage() {
                 </label>
                 <textarea
                   rows={3}
+                  maxLength={INPUT_LIMITS.message}
                   value={operatorMessage}
                   onChange={(e) => setOperatorMessage(e.target.value)}
                   placeholder="e.g., Preview draft v1 uploaded! We cleaned up the distorted AI lettering and matched authentic Futura Bold. Please review above."

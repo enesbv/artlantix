@@ -40,18 +40,18 @@ Gerçek Supabase bağlantısında demo hesap seçimi kapatılır. Tek dosya sın
 
 ### Bilgisayarda çalıştırma
 
-Gerekenler: Git, Node.js ve npm. Bu proje için **Node.js 24** kullanabilirsiniz. Kurulu Next.js paketinin belirttiği asgari sürüm 20.9.0'dır.
+Gerekenler: Git, Node.js ve pnpm. Bu proje için **Node.js 24** ve `package.json` içinde sabitlenen **pnpm 11.19.0** kullanabilirsiniz. Kurulu Next.js paketinin belirttiği asgari Node.js sürümü 20.9.0'dır.
 
 ```sh
 git clone https://github.com/enesbv/artlantix.git
 cd artlantix
-npm install
-npm run dev
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
 Tarayıcıda [localhost:3000](http://localhost:3000) adresini açın. Proje zaten bilgisayarınızdaysa ilk iki adım yerine mevcut proje klasörünü açın.
 
-Depoda npm ve pnpm kilit dosyaları birlikte bulunuyor. Bu rehber npm kullanır; bağımlılıkları değiştirirken paket yöneticilerini gelişigüzel değiştirmeyin.
+Bağımlılıkların tekrarlanabilir kurulumu için tek kaynak `pnpm-lock.yaml` dosyasıdır. Farklı bir paket yöneticisiyle ikinci bir kilit dosyası üretmeyin.
 
 ### Gerçek servis bağlantısı
 
@@ -81,14 +81,14 @@ Proje Next.js, React, TypeScript ve Tailwind CSS kullanır.
 | `tests/` | Belirli hataların tekrar oluşmasını kontrol eden testler |
 
 ```sh
-npm run lint
-npm run build
-node --test tests/regressions.mjs
+pnpm lint
+pnpm build
+pnpm test
 ```
 
-10 Eylül 2026 incelemesinde üretim derlemesi ve 8 test geçti. Kod kontrolünde hata veya uyarı kalmadı. Bunlar canlı ödeme veya veritabanı testlerinin yerine geçmez.
+10 Eylül 2026 güvenlik incelemesinde production derlemesi ve 11 test geçti. Kod kontrolünde hata veya uyarı, dependency taramasında bilinen güvenlik açığı bulunmadı. Bunlar canlı ödeme veya veritabanı testlerinin yerine geçmez.
 
-Ayrıntılar: [inceleme ve geliştirme raporu](REVIEW.md), [AI'lar için proje rehberi — İngilizce](llm.md), [geliştirme talimatları](AGENTS.md). AI asistanları değişiklik yapmadan önce son iki dosyayı okumalıdır.
+Ayrıntılar: [siber güvenlik denetimi](SECURITY_AUDIT.md), [inceleme ve geliştirme raporu](REVIEW.md), [AI'lar için proje rehberi — İngilizce](llm.md), [geliştirme talimatları](AGENTS.md). AI asistanları değişiklik yapmadan önce son iki dosyayı okumalıdır.
 
 ---
 
@@ -130,18 +130,18 @@ Demo account switching is disabled when a real Supabase connection is configured
 
 ### Run locally
 
-Requirements: Git, Node.js and npm. **Node.js 24** can be used for this project. The installed Next.js package specifies a minimum of Node.js 20.9.0.
+Requirements: Git, Node.js and pnpm. This project can use **Node.js 24** and the **pnpm 11.19.0** version pinned in `package.json`. The installed Next.js package specifies a minimum Node.js version of 20.9.0.
 
 ```sh
 git clone https://github.com/enesbv/artlantix.git
 cd artlantix
-npm install
-npm run dev
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
 Open [localhost:3000](http://localhost:3000) in your browser. If you already have the project locally, open its existing folder instead of running the first two commands.
 
-The repository currently contains both npm and pnpm lockfiles. This guide uses npm; avoid switching package managers casually when changing dependencies.
+`pnpm-lock.yaml` is the single source for reproducible dependency installation. Do not generate a second lockfile with another package manager.
 
 ### Connecting real services
 
@@ -171,11 +171,11 @@ The project uses Next.js, React, TypeScript and Tailwind CSS.
 | `tests/` | Regression tests for specific behavior |
 
 ```sh
-npm run lint
-npm run build
-node --test tests/regressions.mjs
+pnpm lint
+pnpm build
+pnpm test
 ```
 
-The September 10, 2026 audit passed the production build and eight tests. Lint reported no errors or warnings. These checks do not replace live payment or database integration tests.
+The September 10, 2026 security audit passed the production build and 11 tests. Lint reported no errors or warnings, and the dependency audit found no known vulnerabilities. These checks do not replace live payment or database integration tests.
 
-Further reading: [audit and improvement report — Turkish](REVIEW.md), [project guide for AI assistants](llm.md), and [development instructions](AGENTS.md). AI assistants should read the last two documents before making changes.
+Further reading: [security audit — Turkish](SECURITY_AUDIT.md), [audit and improvement report — Turkish](REVIEW.md), [project guide for AI assistants](llm.md), and [development instructions](AGENTS.md). AI assistants should read the last two documents before making changes.

@@ -13,6 +13,7 @@ import { processClientFileUpload, UploadedFileData } from '@/lib/services/storag
 import { processCheckout } from '@/lib/services/payments';
 import { getSiteSettings, SiteSettings, DEFAULT_SITE_SETTINGS } from '@/lib/services/content';
 import { clearQuoteDraft, loadQuoteDraft, saveQuoteDraft } from '@/lib/services/quote-draft';
+import { INPUT_LIMITS } from '@/lib/security';
 import { useTranslations } from 'next-intl';
 import {
   ComplexityTier,
@@ -449,6 +450,7 @@ export default function QuotePageContent() {
               <input
                 type="text"
                 value={projectName}
+                maxLength={INPUT_LIMITS.project}
                 onChange={(e) => setProjectName(e.target.value)}
                 placeholder={tQuote('ui.projectPlaceholder')}
                 className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-3 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
@@ -640,6 +642,7 @@ export default function QuotePageContent() {
                 <textarea
                   rows={3}
                   value={notes}
+                  maxLength={INPUT_LIMITS.notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder={tQuote('ui.notesPlaceholder')}
                   className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-3 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
@@ -740,6 +743,7 @@ export default function QuotePageContent() {
                 <input
                   type="text"
                   required
+                  maxLength={INPUT_LIMITS.name}
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder={tQuote('ui.namePlaceholder')}
@@ -754,6 +758,7 @@ export default function QuotePageContent() {
                 <input
                   type="email"
                   required
+                  maxLength={INPUT_LIMITS.email}
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                   placeholder={tQuote('ui.emailPlaceholder')}

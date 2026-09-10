@@ -22,20 +22,31 @@ function load(relative, mocks = {}, globals = {}) {
   return loadedModule.exports;
 }
 
-function auth(remote = false) {
+const securityModule = load('lib/security.ts', {}, { URL });
+
+function auth(remote = false, remoteClient) {
   const store = new Map();
   const customer = { id: 'customer', is_admin: false };
   const service = load('lib/services/auth.ts', {
     '../mock-data': { MOCK_CUSTOMER: customer, MOCK_OPERATOR: { id: 'admin', is_admin: true } },
     '../supabase/client': {
       isSupabaseConfigured: () => remote,
-      createClient: () => ({ auth: { getUser: async () => ({ data: { user: null } }) } }),
+      createClient: () => remoteClient || ({ auth: { getUser: async () => ({ data: { user: null } }) } }),
     },
+    '../security': securityModule,
   }, { window: {}, localStorage: {
     getItem: (key) => store.get(key) ?? null,
     setItem: (key, value) => store.set(key, value),
   } });
   return { service, store };
+}
+
+function mockFile(name, type, size, bytes = []) {
+  const signature = Uint8Array.from(bytes);
+  return {
+    name, type, size,
+    slice: () => ({ arrayBuffer: async () => signature.buffer }),
+  };
 }
 
 test('demo logout stays logged out on subsequent reads', async () => {
@@ -71,10 +82,13 @@ test('pricing breakdown matches the total for every option combination', () => {
 test('uploads reject unsupported, empty and oversized files before reading', async () => {
   const { processClientFileUpload } = load('lib/services/storage.ts', {
     '../supabase/client': {},
-  });
-  await assert.rejects(processClientFileUpload({ name: 'bad.svg', size: 100 }), /JPG/);
-  await assert.rejects(processClientFileUpload({ name: 'empty.png', size: 0 }), /2 MB/);
-  await assert.rejects(processClientFileUpload({ name: 'large.png', size: 3 * 1024 * 1024 }), /2 MB/);
+    '../security': securityModule,
+  }, { TextDecoder });
+  await assert.rejects(processClientFileUpload(mockFile('bad.svg', 'image/svg+xml', 100)), /JPG/);
+  await assert.rejects(processClientFileUpload(mockFile('empty.png', 'image/png', 0)), /2 MB/);
+  await assert.rejects(processClientFileUpload(mockFile('large.png', 'image/png', 3 * 1024 * 1024)), /2 MB/);
+  await assert.rejects(processClientFileUpload(mockFile('fake.png', 'image/jpeg', 100)), /does not match/);
+  await assert.rejects(processClientFileUpload(mockFile('fake.png', 'image/png', 100, [0x4d, 0x5a])), /contents/);
 });
 
 test('artist assessment forces review even for simple artwork and clears when deselected', () => {
@@ -92,8 +106,46 @@ test('artist assessment forces review even for simple artwork and clears when de
 test('file reader failure rejects instead of leaving upload pending', async () => {
   const { processClientFileUpload } = load('lib/services/storage.ts', {
     '../supabase/client': {},
-  }, { FileReader: class { readAsDataURL() { this.onerror(); } } });
-  await assert.rejects(processClientFileUpload({ name: 'valid.png', size: 100 }), /could not be read/);
+    '../security': securityModule,
+  }, { TextDecoder, FileReader: class { readAsDataURL() { this.onerror(); } } });
+  await assert.rejects(processClientFileUpload(mockFile(
+    'valid.png', 'image/png', 100,
+    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+  )), /could not be read/);
+});
+
+test('post-auth redirects stay on allowlisted same-origin portal routes', () => {
+  const { getSafePostAuthRedirect } = securityModule;
+  assert.equal(getSafePostAuthRedirect('/dashboard/orders/123?tab=files'), '/dashboard/orders/123?tab=files');
+  assert.equal(getSafePostAuthRedirect('/admin/orders'), '/admin/orders');
+  for (const unsafe of ['//evil.example', '/\\evil.example', 'https://evil.example', '/login', '/%255cevil.example']) {
+    assert.equal(getSafePostAuthRedirect(unsafe), '/dashboard/orders');
+  }
+});
+
+test('public authentication results do not expose provider errors or account existence', async () => {
+  const providerError = new Error('User not found in internal tenant 42');
+  const client = {
+    auth: {
+      getUser: async () => ({ data: { user: null } }),
+      signInWithPassword: async () => ({ data: { user: null }, error: providerError }),
+      resetPasswordForEmail: async () => ({ error: providerError }),
+    },
+  };
+  const { service } = auth(true, client);
+  const signIn = await service.signInWithEmail('person@example.com', 'not-the-password');
+  assert.equal(signIn.error, 'Unable to sign in. Check your credentials and try again.');
+  assert.doesNotMatch(signIn.error, /tenant|not found/i);
+  assert.equal((await service.requestPasswordReset('person@example.com')).success, true);
+});
+
+test('text, email and price validation rejects oversized and non-finite input', () => {
+  const security = load('lib/security.ts');
+  assert.equal(security.normalizeEmail(' Person@Example.com '), 'person@example.com');
+  assert.throws(() => security.normalizeRequiredText('x'.repeat(11), 'Name', 10), /too long/);
+  assert.throws(() => security.normalizePrice(Number.NaN, 'Price'), /between/);
+  assert.throws(() => security.normalizeMediaUrl('javascript:alert(1)'), /HTTPS/);
+  assert.throws(() => security.normalizeFilename('../invoice.pdf'), /unsafe/);
 });
 
 test('delivery dates and branched status history stay consistent', () => {

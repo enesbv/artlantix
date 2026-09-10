@@ -2,6 +2,7 @@
 
 import { MouseEvent, useState } from 'react';
 import Image from 'next/image';
+import { INPUT_LIMITS } from '@/lib/security';
 import { RevisionAnnotation } from '@/lib/types';
 import { Trash2 } from 'lucide-react';
 
@@ -61,7 +62,7 @@ export default function RevisionAnnotator({ annotations, onChange, imageUrl }: {
             <label htmlFor="marker-note" className="text-xs font-bold">Marker {annotations.findIndex((item) => item.id === selected.id) + 1} note</label>
             <button type="button" onClick={removeSelected} className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-700"><Trash2 className="h-3 w-3" /> Remove</button>
           </div>
-          <input id="marker-note" autoFocus value={selected.message} onChange={(event) => updateSelected(event.target.value)} placeholder="What should change at this point?" className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-white px-3 py-2 text-xs focus:border-[#141414] focus:outline-hidden" />
+          <input id="marker-note" autoFocus maxLength={INPUT_LIMITS.revisionMessage} value={selected.message} onChange={(event) => updateSelected(event.target.value)} placeholder="What should change at this point?" className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-white px-3 py-2 text-xs focus:border-[#141414] focus:outline-hidden" />
         </div>
       )}
 

@@ -3,7 +3,8 @@ import { INITIAL_ORDERS } from '../mock-data';
 import { isSupabaseConfigured, createClient } from '../supabase/client';
 import { getCurrentUser } from './auth';
 import { calculateExpectedDelivery } from '../order-status';
-import { STORAGE_BUCKETS, uploadToStorageBucket } from './storage';
+import { STORAGE_BUCKETS, uploadToStorageBucket, validateStorageUpload } from './storage';
+import { INPUT_LIMITS, normalizeFilename, normalizeOptionalText, normalizeRequiredText } from '../security';
 
 const STORAGE_KEY_ORDERS = 'artlantix_orders_data';
 
@@ -88,22 +89,26 @@ export async function createOrder(
   orderInput: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at' | 'files' | 'messages'>,
   uploadedFile?: { name: string; size: number; format: string; url?: string; rawFile?: File }
 ): Promise<Order> {
+  const projectName = normalizeRequiredText(orderInput.project_name, 'Project name', INPUT_LIMITS.project);
+  const notes = normalizeOptionalText(orderInput.notes, 'Notes', INPUT_LIMITS.notes);
+  const uploadFilename = uploadedFile ? normalizeFilename(uploadedFile.name) : undefined;
   const randomSuffix = crypto.randomUUID();
   const orderNumber = `ATX-${randomSuffix}`;
   const now = new Date().toISOString();
   const orderId = randomSuffix;
 
-  let uploadStoragePath = uploadedFile?.url || (uploadedFile ? `/mock-assets/${uploadedFile.name}` : '');
+  let uploadStoragePath = uploadedFile?.url || (uploadFilename ? `/mock-assets/${uploadFilename}` : '');
   let uploadPublicUrl = uploadedFile?.url;
 
   if (uploadedFile && isSupabaseConfigured()) {
     let uploadBody: File | Blob | undefined = uploadedFile.rawFile instanceof Blob ? uploadedFile.rawFile : undefined;
     if (!uploadBody && uploadedFile.url?.startsWith('data:')) {
-      uploadBody = await fetch(uploadedFile.url).then((response) => response.blob());
+      const restoredBlob = await fetch(uploadedFile.url).then((response) => response.blob());
+      uploadBody = new File([restoredBlob], uploadFilename!, { type: restoredBlob.type });
     }
     if (!uploadBody) throw new Error('Please select the artwork file again before submitting.');
-    const safeFilename = uploadedFile.name.replace(/[^a-zA-Z0-9._-]/g, '-');
-    const destinationPath = `${orderInput.user_id}/${orderId}/${safeFilename}`;
+    const extension = uploadFilename?.split('.').pop()?.toLowerCase() || uploadedFile.format;
+    const destinationPath = `${orderInput.user_id}/${orderId}/${crypto.randomUUID()}.${extension}`;
     const stored = await uploadToStorageBucket(uploadBody as File, STORAGE_BUCKETS.CUSTOMER_ASSETS, destinationPath);
     if (stored.error) throw new Error(`Artwork upload failed: ${stored.error}`);
     uploadStoragePath = stored.path;
@@ -119,7 +124,7 @@ export async function createOrder(
           file_category: 'customer_upload',
           format: (uploadedFile.format || 'png') as FileFormat,
           storage_path: uploadStoragePath,
-          filename: uploadedFile.name,
+          filename: uploadFilename!,
           size_bytes: uploadedFile.size,
           created_at: now,
           url: uploadPublicUrl,
@@ -129,6 +134,8 @@ export async function createOrder(
 
   const newOrder: Order = {
     ...orderInput,
+    project_name: projectName,
+    notes,
     id: orderId,
     order_number: orderNumber,
     created_at: now,
@@ -185,7 +192,7 @@ export async function createOrder(
           revision_annotations: newOrder.revision_annotations,
         }]).select('*').single();
 
-        if (error) throw new Error(error.message);
+        if (error) throw new Error('The order could not be saved securely. Please try again.');
         if (!error) {
           if (uploadedFile) {
             const { error: fileError } = await supabase.from('order_files').insert([{
@@ -194,10 +201,10 @@ export async function createOrder(
               file_category: 'customer_upload',
               format: uploadedFile.format,
               storage_path: uploadStoragePath,
-              filename: uploadedFile.name,
+              filename: uploadFilename!,
               size_bytes: uploadedFile.size,
             }]);
-            if (fileError) throw new Error(fileError.message);
+            if (fileError) throw new Error('The uploaded file could not be attached to the order. Please contact support.');
           }
           return { ...newOrder, ...(savedOrder as Order), files: initialFiles, messages: [] };
         }
@@ -232,7 +239,7 @@ export async function updateOrderStatus(
       ...(revisionAnnotations ? { revision_annotations: revisionAnnotations } : {}),
       ...(assignedArtist ? { assigned_artist: assignedArtist } : {}),
     }).eq('id', orderId);
-    if (error) throw new Error(error.message);
+    if (error) throw new Error('The order update could not be saved. Please try again.');
     return getOrderById(orderId);
   }
   const all = getStoredOrders();
@@ -298,11 +305,24 @@ export async function requestRevision(orderId: string, feedback: string, senderN
   const order = await getOrderById(orderId);
   if (!order) return null;
 
-  const markerSummary = annotations.filter((annotation) => annotation.message.trim()).map((annotation, index) =>
+  if (annotations.length > INPUT_LIMITS.revisionMarkers) throw new Error('Too many revision markers were added.');
+  const cleanFeedback = normalizeOptionalText(feedback, 'Revision feedback', INPUT_LIMITS.message) || '';
+  const cleanAnnotations = annotations.filter((annotation) => annotation.message.trim()).map((annotation) => ({
+    ...annotation,
+    x: Number(annotation.x),
+    y: Number(annotation.y),
+    message: normalizeRequiredText(annotation.message, 'Revision marker', INPUT_LIMITS.revisionMessage),
+  }));
+  if (cleanAnnotations.some((annotation) =>
+    !Number.isFinite(annotation.x) || !Number.isFinite(annotation.y) ||
+    annotation.x < 0 || annotation.x > 100 || annotation.y < 0 || annotation.y > 100
+  )) throw new Error('Revision marker coordinates are invalid.');
+  const markerSummary = cleanAnnotations.map((annotation, index) =>
     `Marker ${index + 1} (${annotation.x.toFixed(1)}%, ${annotation.y.toFixed(1)}%): ${annotation.message.trim()}`
   ).join('\n');
-  await addOrderMessage(orderId, order.user_id, senderName, 'customer', `[Revision Requested]\n${feedback.trim()}${markerSummary ? `\n\nArtwork markers:\n${markerSummary}` : ''}`);
-  const cleanAnnotations = annotations.filter((annotation) => annotation.message.trim());
+  const combinedMessage = `[Revision Requested]\n${cleanFeedback}${markerSummary ? `\n\nArtwork markers:\n${markerSummary}` : ''}`;
+  if (combinedMessage.length > INPUT_LIMITS.message) throw new Error('The revision request is too long.');
+  await addOrderMessage(orderId, order.user_id, senderName, 'customer', combinedMessage);
   const updated = await updateOrderStatus(orderId, 'revision_requested', undefined, cleanAnnotations);
   if (!updated || isSupabaseConfigured()) return updated;
   const all = getStoredOrders();
@@ -336,6 +356,7 @@ export async function addOrderMessage(
   senderType: 'customer' | 'operator',
   messageText: string
 ): Promise<OrderMessage> {
+  const message = normalizeRequiredText(messageText, 'Message', INPUT_LIMITS.message);
   const now = new Date().toISOString();
   const newMessage: OrderMessage = {
     id: `msg_${Date.now()}`,
@@ -343,7 +364,7 @@ export async function addOrderMessage(
     sender_id: senderId,
     sender_name: senderName,
     sender_type: senderType,
-    message: messageText,
+    message,
     created_at: now,
   };
 
@@ -354,9 +375,9 @@ export async function addOrderMessage(
       order_id: orderId,
       sender_id: senderId,
       sender_type: senderType,
-      message: messageText,
+      message,
     }]).select('*').single();
-    if (error) throw new Error(error.message);
+    if (error) throw new Error('The message could not be sent. Please try again.');
     return { ...newMessage, ...(data as OrderMessage), sender_name: senderName };
   }
 
@@ -381,13 +402,14 @@ export async function addOperatorDeliverable(
   const now = new Date().toISOString();
   const order = await getOrderById(orderId);
   if (!order) throw new Error('Order not found.');
-  let storagePath = `/mock-assets/${filename}`;
+  const cleanFilename = normalizeFilename(filename);
+  let storagePath = `/mock-assets/${cleanFilename}`;
 
   if (isSupabaseConfigured()) {
     if (!file) throw new Error('Choose a real deliverable file before changing the delivery status.');
     const bucket = category === 'final_master' ? STORAGE_BUCKETS.MASTER_DELIVERIES : STORAGE_BUCKETS.PREVIEWS;
-    const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '-');
-    const stored = await uploadToStorageBucket(file, bucket, `${order.user_id}/${orderId}/${safeFilename}`);
+    await validateStorageUpload(file, bucket, format);
+    const stored = await uploadToStorageBucket(file, bucket, `${order.user_id}/${orderId}/${crypto.randomUUID()}.${format}`);
     if (stored.error) throw new Error(`Deliverable upload failed: ${stored.error}`);
     storagePath = stored.path;
   }
@@ -399,7 +421,7 @@ export async function addOperatorDeliverable(
     file_category: category,
     format,
     storage_path: storagePath,
-    filename,
+    filename: cleanFilename,
     size_bytes: file?.size || 1850000,
     created_at: now,
   };
@@ -413,10 +435,10 @@ export async function addOperatorDeliverable(
       file_category: category,
       format,
       storage_path: storagePath,
-      filename,
+      filename: cleanFilename,
       size_bytes: file?.size,
     }]).select('*').single();
-    if (error) throw new Error(error.message);
+    if (error) throw new Error('The deliverable record could not be saved. Please try again.');
     return data as OrderFile;
   }
 

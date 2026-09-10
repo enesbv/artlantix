@@ -1,14 +1,12 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { getSafePostAuthRedirect } from '@/lib/security';
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const requestedPath = requestUrl.searchParams.get('next') || '/dashboard/orders';
-  const nextPath = requestedPath.startsWith('/') && !requestedPath.startsWith('//')
-    ? requestedPath
-    : '/dashboard/orders';
+  const nextPath = getSafePostAuthRedirect(requestUrl.searchParams.get('next'));
   const response = NextResponse.redirect(new URL(nextPath, requestUrl.origin));
 
   if (!code || !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {

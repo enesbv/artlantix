@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { getCurrentUser, updateCurrentUserProfile } from '@/lib/services/auth';
 import { UserProfile } from '@/lib/types';
 import { ShieldCheck } from 'lucide-react';
+import { INPUT_LIMITS } from '@/lib/security';
 
 export default function AccountPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -87,6 +88,7 @@ export default function AccountPage() {
           <input
             type="text"
             required
+            maxLength={INPUT_LIMITS.name}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             className="mt-1 w-full rounded border border-[#E6E4DF] bg-white px-3.5 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-hidden"
@@ -97,6 +99,7 @@ export default function AccountPage() {
           <label className="block text-xs font-bold text-[#111111]">Company / Studio Name</label>
           <input
             type="text"
+            maxLength={INPUT_LIMITS.company}
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
             placeholder="e.g. Atelier Creative Studio"
@@ -108,6 +111,7 @@ export default function AccountPage() {
           <label className="block text-xs font-bold text-[#111111]">VAT / Tax Registration Number</label>
           <input
             type="text"
+            maxLength={80}
             value={vatTaxId}
             onChange={(e) => setVatTaxId(e.target.value)}
             placeholder="e.g. US-829104882 or EU-123456789"
@@ -119,6 +123,7 @@ export default function AccountPage() {
           <label className="block text-xs font-bold text-[#111111]">Phone Number</label>
           <input
             type="tel"
+            maxLength={40}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+1 (555) 000-0000"

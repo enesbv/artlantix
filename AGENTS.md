@@ -10,4 +10,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project context for AI assistants
 
-Before working on this repository, read [llm.md](llm.md) for architecture, routes, demo limitations, security boundaries, and verification commands. Read [REVIEW.md](REVIEW.md) when working on known issues or production readiness. Keep these documents accurate when behavior changes; do not describe simulated features as production integrations.
+Before working on this repository, read [llm.md](llm.md) for architecture, routes, demo limitations, security boundaries, and verification commands. Read [SECURITY_AUDIT.md](SECURITY_AUDIT.md) and [REVIEW.md](REVIEW.md) when working on security, known issues, or production readiness. Keep these documents accurate when behavior changes; do not describe simulated features as production integrations.

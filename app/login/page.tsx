@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { requestPasswordReset, signInWithEmail, switchDemoPersona, signInWithGoogle } from '@/lib/services/auth';
 import { Layers, User, ShieldCheck, Lock } from 'lucide-react';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
+import { INPUT_LIMITS, PASSWORD_RESET_RESPONSE } from '@/lib/security';
 
 
 export default function LoginPage() {
@@ -76,7 +77,7 @@ export default function LoginPage() {
     setError(null);
     const result = await requestPasswordReset(email);
     setLoading(false);
-    setError(result.success ? 'Password reset link sent. Check your inbox.' : result.error || 'Password recovery failed.');
+    setError(result.success ? PASSWORD_RESET_RESPONSE : result.error || 'Password recovery failed.');
   };
 
   return (
@@ -139,6 +140,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
+                maxLength={INPUT_LIMITS.email}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
@@ -161,6 +163,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
+                maxLength={128}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"

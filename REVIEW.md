@@ -8,6 +8,12 @@ Ancak mevcut ürün çalışan bir demo/prototip. Supabase anahtarlarını eklem
 
 ## Bu incelemede yapılan düzeltmeler
 
+- Production öncesi güvenlik denetiminde OAuth open redirect, kullanıcı keşfi ve ham servis hata sızıntıları kapatıldı; parola alt sınırı 12 karaktere çıkarıldı.
+- RLS/trigger katmanında profil rol yükseltme, sipariş sahipliği/fiyat/durum mass assignment, çapraz kiracı kopyalama, mesaj ve dosya sahipliği sertleştirildi.
+- Dosyalarda uzantı, MIME, magic-byte, boyut ve güvenli rastgele depolama yolu doğrulaması eklendi; public portföy SVG yüklemesi kaldırıldı ve imzalı URL üretimi başarısızken sistem kapalı kalıyor.
+- CSP, HSTS, clickjacking, MIME sniffing, referrer, permissions ve hassas sayfalarda no-store başlıkları eklendi; framework sürüm başlığı kapatıldı.
+- Tek paket yöneticisi pnpm olarak sabitlendi, ikinci kilit dosyası kaldırıldı. Ayrıntılı bulgular `SECURITY_AUDIT.md` içindedir.
+
 - Turuncu marka vurguları erişilebilir koyu yeşil, hover, açık yüzey ve kenarlık tonlarından oluşan tutarlı bir palete taşındı; bekleme/uyarı anlamındaki amber renkler semantik amaçla korundu.
 - `/login`, `/signup` ve `/auth` yolları dil yönlendirmesinden çıkarıldı. Bu sayfaların `/tr/login` gibi bulunmayan adreslere gitmesi engellendi.
 - Türkçe/Almanca teklif tamamlanınca bulunmayan dil önekli sipariş adresi yerine mevcut `/dashboard/orders/[id]` adresine gidiliyor.
@@ -74,7 +80,7 @@ Migration uygulandığında ilk sipariş fiyatı veritabanında CMS taban fiyatl
 ## Doğrulama ve sınırlar
 
 - Üretim derlemesi ve TypeScript kontrolü geçti.
-- `tests/regressions.mjs`: kimlik, fiyat, dosya doğrulama, sanatçı değerlendirmesi, teslim tarihi ve dallanan durum geçmişi için 8 test geçti.
+- `tests/regressions.mjs`: kimlik, fiyat, dosya/MIME/imza doğrulama, güvenli OAuth yönlendirmesi, genel auth hataları, sanatçı değerlendirmesi, teslim tarihi ve dallanan durum geçmişi için 11 test geçti.
 - Tarayıcıda Türkçe teklif adımları, çevrilmiş alt bilgi/menü, panelde yerinde dil değiştirme ve dar ekranda sipariş kartları kontrol edildi.
 - Lint: hata ve uyarı yok. Üretim derlemesi ve TypeScript kontrolü geçti.
 - Gerçek Supabase hesabı, ödeme sağlayıcısı ve canlı dosya altyapısıyla uçtan uca test yapılmadı. Veritabanı migration'ı uygulanmadı.
