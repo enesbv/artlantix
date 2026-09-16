@@ -194,7 +194,7 @@ export default function DashboardOverviewPage() {
 
                 return (
                   <tr key={order.id} className="hover:bg-[#FAFAF8] transition-colors">
-                    <td className="px-6 py-4 font-mono font-bold text-[#111111]">
+                    <td className="px-6 py-4 font-sans font-bold text-[#111111]">
                       {order.order_number}
                     </td>
                     <td className="px-6 py-4 font-semibold text-[#111111]">

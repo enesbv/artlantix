@@ -83,7 +83,7 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale?: st
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-[#EAE8E3] bg-white px-2.5 py-1 font-mono text-xs font-semibold text-[#141414] shadow-xs transition-colors hover:border-[#141414] focus:outline-hidden"
+        className="inline-flex items-center gap-1.5 rounded-md border border-[#EAE8E3] bg-white px-2.5 py-1 font-sans text-xs font-semibold text-[#141414] shadow-xs transition-colors hover:border-[#141414] focus:outline-hidden"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
@@ -94,7 +94,7 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale?: st
 
       {isOpen && (
         <div className="absolute right-0 top-8 z-50 mt-1 w-36 rounded-xl border border-[#EAE8E3] bg-white p-1.5 shadow-lg animate-in fade-in zoom-in-95 duration-150">
-          <div className="px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-[#737373]">
+          <div className="px-2 py-1 font-sans text-[9px] font-bold uppercase tracking-wider text-[#737373]">
             Language
           </div>
           {LANGUAGES.map((lang) => {
@@ -114,7 +114,7 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale?: st
                   <span>{lang.flag}</span>
                   <span>{lang.label}</span>
                 </div>
-                <span className="font-mono text-[10px] text-[#737373] uppercase">{lang.short}</span>
+                <span className="font-sans text-[10px] text-[#737373] uppercase">{lang.short}</span>
               </button>
             );
           })}

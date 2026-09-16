@@ -81,7 +81,7 @@ export default function BeforeAfterSlider({
       {/* Top Gallery Caption Bar */}
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAE8E3]/70 pb-4">
         <div className="flex items-center gap-3">
-          <span className="rounded-full border border-[#EAE8E3] bg-[#F5F4F0] px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-[#141414]">
+          <span className="rounded-full border border-[#EAE8E3] bg-[#F5F4F0] px-3 py-1 font-sans text-[11px] font-semibold uppercase tracking-wider text-[#141414]">
             {category}
           </span>
           <span className="text-xs font-semibold tracking-tight text-[#141414]">
@@ -353,19 +353,19 @@ export default function BeforeAfterSlider({
       {/* Editorial Meta Bar */}
       <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4 border-t border-[#EAE8E3]/70 pt-4 text-left">
         <div>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-[#737373]">01 / Craftsmanship</span>
+          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">01 / Craftsmanship</span>
           <p className="mt-0.5 text-xs font-bold text-[#141414]">100% Hand-Drawn Beziers</p>
         </div>
         <div>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-[#737373]">02 / Path Efficiency</span>
+          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">02 / Path Efficiency</span>
           <p className="mt-0.5 text-xs font-bold text-emerald-700">94% Node Reduction</p>
         </div>
         <div>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-[#737373]">03 / Master Suite</span>
+          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">03 / Master Suite</span>
           <p className="mt-0.5 text-xs font-bold text-[#141414]">AI · EPS · SVG · PDF · PNG</p>
         </div>
         <div>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-[#737373]">04 / Industrial Readiness</span>
+          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">04 / Industrial Readiness</span>
           <p className="mt-0.5 text-xs font-bold text-[#18794E]">Screen Print &amp; Laser Cut Ready</p>
         </div>
       </div>

@@ -66,7 +66,7 @@ function QuoteSummary({
     <aside className={`rounded-2xl border border-[#DAD8D2] bg-white p-6 shadow-sm ${className}`} aria-label={labels.summary}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#737373]">{labels.summary}</span>
+          <span className="font-sans text-xs font-bold uppercase tracking-wider text-[#737373]">{labels.summary}</span>
           <h3 className="mt-1 truncate text-lg font-bold text-[#141414]">{projectName}</h3>
         </div>
         <span className="rounded-full bg-[#E9F9EE] px-2.5 py-1 text-xs font-bold text-[#115C3B]">USD</span>
@@ -76,7 +76,7 @@ function QuoteSummary({
         {pricing.breakdown.map((item, index) => (
           <div key={`${item.label}-${index}`} className="flex justify-between gap-4 text-sm text-[#656565]">
             <span>{breakdownLabel(item.label)}</span>
-            <span className="shrink-0 font-mono font-bold text-[#141414]">${item.amount}</span>
+            <span className="shrink-0 font-sans font-bold text-[#141414]">${item.amount}</span>
           </div>
         ))}
       </div>
@@ -436,7 +436,7 @@ export default function QuotePageContent() {
         )}
         {/* Studio Questionnaire Header */}
         <div className="mx-auto max-w-3xl text-center">
-          <span className="font-mono text-xs font-semibold uppercase tracking-widest text-[#18794E]">
+          <span className="font-sans text-xs font-semibold uppercase tracking-widest text-[#18794E]">
             {tQuote('badge')}
           </span>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-[#141414] sm:text-4xl">
@@ -568,7 +568,7 @@ export default function QuotePageContent() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1 font-mono text-xs font-bold text-emerald-700">
+                  <span className="flex items-center gap-1 font-sans text-xs font-bold text-emerald-700">
                     <CheckCircle2 className="h-4 w-4" />
                     <span>{tQuote('ui.uploaded')}</span>
                   </span>
@@ -624,7 +624,7 @@ export default function QuotePageContent() {
             <div className="lg:col-span-8 rounded-2xl border border-[#EAE8E3] bg-white p-8 sm:p-10 shadow-xs space-y-10">
               {/* Artwork Type Selection */}
               <div>
-                <label className="block font-mono text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
                   {tQuote('geometryTitle')}
                 </label>
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -705,7 +705,7 @@ export default function QuotePageContent() {
 
               {/* Reconstruction Intensity */}
               <div>
-                <label className="block font-mono text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
                   {tQuote('repairTitle')}
                 </label>
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -726,7 +726,7 @@ export default function QuotePageContent() {
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[#141414]">{opt.title}</span>
-                        <span className="font-mono text-[10px] font-bold text-[#737373]">{opt.addon}</span>
+                        <span className="font-sans text-[10px] font-bold text-[#737373]">{opt.addon}</span>
                       </div>
                       <span className="text-[10px] text-[#737373] mt-2">{opt.desc}</span>
                     </button>
@@ -736,7 +736,7 @@ export default function QuotePageContent() {
 
               {/* Color Separation Count */}
               <div>
-                <label className="block font-mono text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
                   {tQuote('colorsTitle')}
                 </label>
                 <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -757,7 +757,7 @@ export default function QuotePageContent() {
                       }`}
                     >
                       <span className="text-xs">{c.label}</span>
-                      <span className="font-mono text-[10px] mt-1 text-[#737373]">{c.addon}</span>
+                      <span className="font-sans text-[10px] mt-1 text-[#737373]">{c.addon}</span>
                     </button>
                   ))}
                 </div>
@@ -765,7 +765,7 @@ export default function QuotePageContent() {
 
               {/* Turnaround Speed */}
               <div>
-                <label className="block font-mono text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
                   {tQuote('turnaroundTitle')}
                 </label>
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -782,7 +782,7 @@ export default function QuotePageContent() {
                       <div className="text-xs font-bold text-[#141414]">{tQuote('ui.standard')}</div>
                       <div className="text-[11px] text-[#737373] mt-0.5">{tQuote('ui.standardDesc')}</div>
                     </div>
-                    <span className="font-mono text-xs font-bold text-[#141414]">{tQuote('ui.included')}</span>
+                    <span className="font-sans text-xs font-bold text-[#141414]">{tQuote('ui.included')}</span>
                   </button>
 
                   <button
@@ -798,14 +798,14 @@ export default function QuotePageContent() {
                       <div className="text-xs font-bold text-[#141414]">{tQuote('ui.express')}</div>
                       <div className="text-[11px] text-[#737373] mt-0.5">{tQuote('ui.expressDesc')}</div>
                     </div>
-                    <span className="font-mono text-xs font-bold text-[#18794E]">+35%</span>
+                    <span className="font-sans text-xs font-bold text-[#18794E]">+35%</span>
                   </button>
                 </div>
               </div>
 
               {/* Production Notes / Tolerances */}
               <div>
-                <label className="block font-mono text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
                   {tQuote('notesTitle')}
                 </label>
                 <textarea
@@ -898,7 +898,7 @@ export default function QuotePageContent() {
                     <div>
                       <p className="font-bold">{tQuote('ui.payAfter')}</p>
                       <p className="mt-1 leading-relaxed">{tQuote('ui.payAfterDesc')}</p>
-                      <p className="mt-2 font-mono text-xs font-bold text-[#18794E]">{tQuote('complexityGuide.zeroDue')}</p>
+                      <p className="mt-2 font-sans text-xs font-bold text-[#18794E]">{tQuote('complexityGuide.zeroDue')}</p>
                     </div>
                   </div>
                 </div>

@@ -201,3 +201,18 @@ test('public marketing catalogue has unique localized routes and complete copy',
   assert.equal(marketing.localizedPath('tr', '/services'), '/tr/services');
   assert.equal(marketing.localizedPath('de', 'guides'), '/de/guides');
 });
+
+test('the interface never loads or requests the removed monospace typeface', () => {
+  const roots = ['app', 'components', 'lib'];
+  const sourceFiles = [];
+  const visit = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const fullPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) visit(fullPath);
+      else if (/\.(?:ts|tsx|css)$/.test(entry.name)) sourceFiles.push(fullPath);
+    }
+  };
+  roots.map((root) => path.resolve(import.meta.dirname, '..', root)).forEach(visit);
+  const combined = sourceFiles.map((file) => fs.readFileSync(file, 'utf8')).join('\n');
+  assert.doesNotMatch(combined, /font-mono|Geist_Mono|font-geist-mono/);
+});

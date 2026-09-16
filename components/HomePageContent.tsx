@@ -26,8 +26,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
         <section className="relative overflow-hidden border-b border-[#DAD8D2]">
           <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8 lg:py-28">
             <div>
-              <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.home.eyebrow}</p>
-              <h1 className="mt-6 text-5xl font-black leading-[0.92] tracking-[-0.055em] text-[#102A20] sm:text-7xl lg:text-[5.4rem]">
+              <h1 className="text-5xl font-black leading-[0.92] tracking-[-0.055em] text-[#102A20] sm:text-7xl lg:text-[5.4rem]">
                 {copy.home.titleLines.map((line, index) => <span key={line} className={`block ${index === 1 ? 'text-[#18794E]' : ''}`}>{line}</span>)}
               </h1>
               <p className="mt-7 max-w-xl text-lg leading-8 text-[#5E625F]">{copy.home.description}</p>
@@ -45,8 +44,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
 
         <section className="border-b border-[#DAD8D2] bg-white">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.home.proofEyebrow}</p>
-            <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-tight text-[#102A20]">{copy.home.proofTitle}</h2>
+            <h2 className="max-w-2xl text-3xl font-black tracking-tight text-[#102A20]">{copy.home.proofTitle}</h2>
             <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-[#DAD8D2] bg-[#DAD8D2] md:grid-cols-2 lg:grid-cols-4">
               {trustFacts[lang].map((fact, index) => { const Icon = factIcons[index]; return <div key={fact.title} className="bg-white p-6"><Icon className="h-5 w-5 text-[#18794E]" /><h3 className="mt-5 font-bold">{fact.title}</h3><p className="mt-2 text-sm leading-6 text-[#5E625F]">{fact.text}</p></div>; })}
             </div>
@@ -55,13 +53,13 @@ export default function HomePageContent({ locale }: { locale: string }) {
 
         <section id="services" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div><p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.home.servicesEyebrow}</p><h2 className="mt-3 max-w-2xl text-4xl font-black tracking-tight text-[#102A20]">{copy.home.servicesTitle}</h2><p className="mt-4 max-w-2xl text-[#5E625F]">{copy.home.servicesBody}</p></div>
+            <div><h2 className="max-w-2xl text-4xl font-black tracking-tight text-[#102A20]">{copy.home.servicesTitle}</h2><p className="mt-4 max-w-2xl text-[#5E625F]">{copy.home.servicesBody}</p></div>
             <Link href={localizedPath(lang, '/services')} className="inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.allServices}<ArrowRight className="h-4 w-4" /></Link>
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {services.slice(0, 6).map((service, index) => (
+            {services.slice(0, 6).map((service) => (
               <Link key={service.slug} href={localizedPath(lang, `/services/${service.slug}`)} className="group rounded-2xl border border-[#DAD8D2] bg-white p-6 transition hover:-translate-y-1 hover:border-[#8FC9A6] hover:shadow-lg">
-                <div className="flex items-center justify-between"><span className="font-mono text-xs text-[#7A7E7B]">0{index + 1}</span><ArrowRight className="h-4 w-4 text-[#18794E] transition-transform group-hover:translate-x-1" /></div>
+                <div className="flex items-center justify-end"><ArrowRight className="h-4 w-4 text-[#18794E] transition-transform group-hover:translate-x-1" /></div>
                 <h3 className="mt-8 text-xl font-bold text-[#102A20]">{service.title[lang]}</h3><p className="mt-3 text-sm leading-6 text-[#5E625F]">{service.short[lang]}</p>
                 <div className="mt-6 flex items-center justify-between border-t border-[#EAE8E3] pt-4 text-xs"><span>{copy.common.from} <strong>${service.startingPrice}</strong></span><span>{service.turnaround[lang]}</span></div>
               </Link>
@@ -71,13 +69,13 @@ export default function HomePageContent({ locale }: { locale: string }) {
 
         <section id="process" className="bg-[#102A20] text-white">
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#78D5A6]">{copy.home.processEyebrow}</p><h2 className="mt-3 max-w-2xl text-4xl font-black tracking-tight">{copy.home.processTitle}</h2>
-            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">{processSteps[lang].map((step, index) => <div key={step.title} className="border-t border-white/20 pt-5"><span className="font-mono text-xs text-[#78D5A6]">0{index + 1}</span><h3 className="mt-5 text-lg font-bold">{step.title}</h3><p className="mt-2 text-sm leading-6 text-white/65">{step.text}</p></div>)}</div>
+            <h2 className="max-w-2xl text-4xl font-black tracking-tight">{copy.home.processTitle}</h2>
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">{processSteps[lang].map((step) => <div key={step.title} className="border-t border-white/20 pt-5"><h3 className="text-lg font-bold">{step.title}</h3><p className="mt-2 text-sm leading-6 text-white/65">{step.text}</p></div>)}</div>
           </div>
         </section>
 
         <section id="work" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="max-w-3xl"><p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.home.workEyebrow}</p><h2 className="mt-3 text-4xl font-black tracking-tight text-[#102A20]">{copy.home.workTitle}</h2><p className="mt-4 text-[#5E625F]">{copy.home.workBody}</p></div>
+          <div className="max-w-3xl"><h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.workTitle}</h2><p className="mt-4 text-[#5E625F]">{copy.home.workBody}</p></div>
           <div className="mt-10 grid gap-6 lg:grid-cols-3">
             {caseStudies.map((study) => <Link key={study.slug} href={localizedPath(lang, `/work/${study.slug}`)} className="group overflow-hidden rounded-2xl border border-[#DAD8D2] bg-white"><MarketingVisual kind={study.visual} compact /><div className="p-6"><span className="rounded-full bg-[#E9F9EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">{copy.common.demo}</span><h3 className="mt-4 text-xl font-bold text-[#102A20]">{study.title[lang]}</h3><p className="mt-2 text-sm leading-6 text-[#5E625F]">{study.summary[lang]}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.common.viewCase}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></span></div></Link>)}
           </div>
@@ -86,18 +84,18 @@ export default function HomePageContent({ locale }: { locale: string }) {
 
         <section id="pricing" className="border-y border-[#DAD8D2] bg-white">
           <div className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:px-8">
-            <div><p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.home.pricingEyebrow}</p><h2 className="mt-3 text-4xl font-black tracking-tight text-[#102A20]">{copy.home.pricingTitle}</h2><p className="mt-4 leading-7 text-[#5E625F]">{copy.home.pricingBody}</p><Link href={localizedPath(lang, '/pricing')} className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.fullPricing}<ArrowRight className="h-4 w-4" /></Link></div>
+            <div><h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.pricingTitle}</h2><p className="mt-4 leading-7 text-[#5E625F]">{copy.home.pricingBody}</p><Link href={localizedPath(lang, '/pricing')} className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.fullPricing}<ArrowRight className="h-4 w-4" /></Link></div>
             <div className="grid gap-3 sm:grid-cols-3">{[[copy.common.simple, settings.simple_tier_price], [copy.common.standard, settings.standard_tier_price], [copy.common.complex, settings.complex_tier_price]].map(([label, price], index) => <div key={label} className={`rounded-2xl border p-6 ${index === 1 ? 'border-[#18794E] bg-[#E9F9EE]' : 'border-[#DAD8D2] bg-[#F9F8F6]'}`}><CircleDollarSign className="h-5 w-5 text-[#18794E]" /><p className="mt-8 text-sm font-bold">{label}</p><p className="mt-2 text-3xl font-black">${price}</p><p className="mt-2 text-xs text-[#5E625F]">{copy.common.from}</p></div>)}</div>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between gap-6"><div><p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.home.guidesEyebrow}</p><h2 className="mt-3 text-4xl font-black tracking-tight text-[#102A20]">{copy.home.guidesTitle}</h2></div><Link href={localizedPath(lang, '/guides')} className="hidden items-center gap-2 text-sm font-bold text-[#18794E] sm:inline-flex">{copy.home.allGuides}<ArrowRight className="h-4 w-4" /></Link></div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">{guides.map((guide, index) => <Link key={guide.slug} href={localizedPath(lang, `/guides/${guide.slug}`)} className="rounded-2xl border border-[#DAD8D2] bg-white p-6 transition hover:border-[#8FC9A6]"><span className="font-mono text-xs text-[#18794E]">0{index + 1} · {guide.readTime[lang]}</span><h3 className="mt-5 text-xl font-bold text-[#102A20]">{guide.title[lang]}</h3><p className="mt-3 text-sm leading-6 text-[#5E625F]">{guide.excerpt[lang]}</p></Link>)}</div>
+          <div className="flex items-end justify-between gap-6"><h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.guidesTitle}</h2><Link href={localizedPath(lang, '/guides')} className="hidden items-center gap-2 text-sm font-bold text-[#18794E] sm:inline-flex">{copy.home.allGuides}<ArrowRight className="h-4 w-4" /></Link></div>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">{guides.map((guide) => <Link key={guide.slug} href={localizedPath(lang, `/guides/${guide.slug}`)} className="rounded-2xl border border-[#DAD8D2] bg-white p-6 transition hover:border-[#8FC9A6]"><h3 className="text-xl font-bold text-[#102A20]">{guide.title[lang]}</h3><p className="mt-3 text-sm leading-6 text-[#5E625F]">{guide.excerpt[lang]}</p></Link>)}</div>
         </section>
 
         <section id="faq" className="border-t border-[#DAD8D2] bg-white">
-          <div className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[.7fr_1.3fr] lg:px-8"><div><p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.home.faqEyebrow}</p><h2 className="mt-3 text-4xl font-black tracking-tight text-[#102A20]">{copy.home.faqTitle}</h2></div><FaqList items={publicFaqs[lang]} /></div>
+          <div className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[.7fr_1.3fr] lg:px-8"><h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.faqTitle}</h2><FaqList items={publicFaqs[lang]} /></div>
         </section>
 
         <section className="bg-[#18794E] text-white"><div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-16 sm:px-6 md:flex-row md:items-center lg:px-8"><div><h2 className="max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">{copy.home.finalTitle}</h2><p className="mt-3 max-w-2xl text-white/75">{copy.home.finalBody}</p></div><Link href={`${quotePath}?review=1`} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-[#115C3B]">{copy.home.primary}<ArrowRight className="h-4 w-4" /></Link></div></section>

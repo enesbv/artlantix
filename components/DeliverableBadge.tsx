@@ -97,7 +97,7 @@ export default function DeliverableBadge({
   if (variant === 'pill') {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 rounded border border-[#EAE8E3] bg-white px-2 py-0.5 text-[11px] font-mono font-medium tracking-wide text-[#141414] shadow-xs transition-colors hover:border-[#CCCCCC] ${className}`}
+        className={`inline-flex items-center gap-1.5 rounded border border-[#EAE8E3] bg-white px-2 py-0.5 text-[11px] font-sans font-medium tracking-wide text-[#141414] shadow-xs transition-colors hover:border-[#CCCCCC] ${className}`}
         title={`${meta.label} - ${meta.desc}`}
       >
         <span className={`h-1.5 w-1.5 rounded-full ${meta.dotColor}`} />
@@ -112,7 +112,7 @@ export default function DeliverableBadge({
       <div
         className={`inline-flex items-center gap-2 rounded-md border border-[#EAE8E3] bg-white px-2.5 py-1 text-xs shadow-xs ${className}`}
       >
-        <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-[#141414]">
+        <div className="flex items-center gap-1.5 font-sans text-xs font-bold text-[#141414]">
           <span className={`h-2 w-2 rounded-full ${meta.dotColor}`} />
           <span>{meta.label}</span>
         </div>
@@ -129,12 +129,12 @@ export default function DeliverableBadge({
         className={`flex items-center justify-between rounded-lg border border-[#EAE8E3] bg-white p-3.5 shadow-xs transition-all hover:border-[#141414] ${className}`}
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded border border-[#EAE8E3] bg-[#F9F8F6] font-mono text-xs font-bold text-[#141414]">
+          <div className="flex h-9 w-9 items-center justify-center rounded border border-[#EAE8E3] bg-[#F9F8F6] font-sans text-xs font-bold text-[#141414]">
             {meta.label}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold text-[#141414]">{meta.ext}</span>
+              <span className="font-sans text-xs font-bold text-[#141414]">{meta.ext}</span>
               <span className={`h-1.5 w-1.5 rounded-full ${meta.dotColor}`} />
             </div>
             <p className="text-[11px] text-[#737373] leading-tight mt-0.5">{meta.desc}</p>
@@ -160,11 +160,11 @@ export default function DeliverableBadge({
     >
       <div>
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 rounded border border-[#EAE8E3] bg-[#F9F8F6] px-2 py-0.5 font-mono text-xs font-bold text-[#141414]">
+          <span className="inline-flex items-center gap-1.5 rounded border border-[#EAE8E3] bg-[#F9F8F6] px-2 py-0.5 font-sans text-xs font-bold text-[#141414]">
             <span className={`h-1.5 w-1.5 rounded-full ${meta.dotColor}`} />
             <span>{meta.label}</span>
           </span>
-          <span className="font-mono text-[11px] text-[#737373]">{formattedSize}</span>
+          <span className="font-sans text-[11px] text-[#737373]">{formattedSize}</span>
         </div>
 
         <div className="mt-3 font-semibold text-xs text-[#141414] truncate" title={filename || meta.ext}>

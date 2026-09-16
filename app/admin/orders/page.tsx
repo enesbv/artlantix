@@ -193,14 +193,14 @@ export default function AdminOrdersPage() {
 
             <div className="flex items-center gap-3">
               <span className="text-xs text-[#737373]">Active Operator:</span>
-              <span className="rounded-md border border-[#EAE8E3] bg-white px-2.5 py-1 font-mono text-xs font-bold text-[#141414]">
+              <span className="rounded-md border border-[#EAE8E3] bg-white px-2.5 py-1 font-sans text-xs font-bold text-[#141414]">
                 Elena Vance (Senior Vector Lead)
               </span>
             </div>
           </div>
 
           {/* Sub Navigation Tabs */}
-          <nav className="flex space-x-6 border-t border-[#EAE8E3]/60 pt-1 pb-1 font-mono text-xs mt-3">
+          <nav className="flex space-x-6 border-t border-[#EAE8E3]/60 pt-1 pb-1 font-sans text-xs mt-3">
             <Link
               href="/admin/orders"
               className="inline-flex items-center gap-1.5 border-b-2 border-[#18794E] py-2 font-bold text-[#18794E] transition-colors"
@@ -289,7 +289,7 @@ export default function AdminOrdersPage() {
           <div className="divide-y divide-[#E6E4DF] md:hidden">
             {filtered.map((order) => (
               <article key={order.id} className="p-4">
-                <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-bold">{order.project_name}</p><p className="mt-1 font-mono text-xs text-[#666666]">{order.order_number}</p></div><span className="rounded-full bg-[#F4F3EF] px-2.5 py-1 text-xs font-semibold text-[#555]">{ORDER_STATUS_LABELS[order.status]}</span></div>
+                <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-bold">{order.project_name}</p><p className="mt-1 font-sans text-xs text-[#666666]">{order.order_number}</p></div><span className="rounded-full bg-[#F4F3EF] px-2.5 py-1 text-xs font-semibold text-[#555]">{ORDER_STATUS_LABELS[order.status]}</span></div>
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs text-[#777]">Client</p><p className="font-semibold">{order.customer_name || 'Client'}</p></div><div className="text-right"><p className="text-xs text-[#777]">Target</p><p className="font-semibold">{new Date(getExpectedDelivery(order)).toLocaleDateString()}</p></div></div>
                 <button type="button" onClick={() => openOperatorModal(order)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#111111] px-4 py-2.5 text-sm font-bold text-white"><PenTool className="h-4 w-4 text-[#18794E]" />Open production action</button>
               </article>
@@ -324,7 +324,7 @@ export default function AdminOrdersPage() {
 
                   return (
                     <tr key={order.id} className="hover:bg-[#FAFAF8] transition-colors">
-                      <td className="px-6 py-4 font-mono font-bold text-[#111111]">
+                      <td className="px-6 py-4 font-sans font-bold text-[#111111]">
                         {order.order_number}
                       </td>
                       <td className="px-6 py-4">

@@ -211,7 +211,7 @@ export default function AdminContentPage() {
                 <h1 className="text-xl font-bold tracking-tight text-[#141414]">
                   Production Studio Admin Desk
                 </h1>
-                <span className="rounded-full bg-[#141414] px-2.5 py-0.5 font-mono text-[10px] font-bold text-white uppercase">
+                <span className="rounded-full bg-[#141414] px-2.5 py-0.5 font-sans text-[10px] font-bold text-white uppercase">
                   Lead Operator
                 </span>
               </div>
@@ -233,7 +233,7 @@ export default function AdminContentPage() {
           </div>
 
           {/* Sub Navigation Tabs */}
-          <nav className="flex space-x-6 border-t border-[#EAE8E3]/60 pt-1 pb-2 font-mono text-xs">
+          <nav className="flex space-x-6 border-t border-[#EAE8E3]/60 pt-1 pb-2 font-sans text-xs">
             <Link
               href="/admin/orders"
               className="inline-flex items-center gap-1.5 border-b-2 border-transparent py-2 font-medium text-[#737373] hover:border-[#CCCCCC] hover:text-[#141414] transition-colors"
@@ -338,7 +338,7 @@ export default function AdminContentPage() {
                     <div>
                       {/* Thumbnail & Active status bar */}
                       <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-3">
-                        <span className="rounded-full bg-[#F5F4F0] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase text-[#141414]">
+                        <span className="rounded-full bg-[#F5F4F0] px-2.5 py-0.5 font-sans text-[10px] font-bold uppercase text-[#141414]">
                           {item.category}
                         </span>
 
@@ -346,7 +346,7 @@ export default function AdminContentPage() {
                           <button
                             type="button"
                             onClick={() => handleToggleActive(item.id, isActive)}
-                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-mono font-semibold transition-colors ${
+                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-sans font-semibold transition-colors ${
                               isActive
                                 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                                 : 'bg-gray-100 text-gray-600 border border-gray-200'
@@ -393,7 +393,7 @@ export default function AdminContentPage() {
                       </p>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-[#EAE8E3] flex items-center justify-between font-mono text-[10px] text-[#737373]">
+                    <div className="mt-4 pt-3 border-t border-[#EAE8E3] flex items-center justify-between font-sans text-[10px] text-[#737373]">
                       <span>Badge: {item.badge || 'Standard'}</span>
                       <span>Client: {item.clientType || 'Commercial'}</span>
                     </div>
@@ -456,9 +456,9 @@ export default function AdminContentPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] p-5">
-                  <span className="font-mono text-xs font-bold uppercase text-[#737373]">Tier 1: Simple</span>
+                  <span className="font-sans text-xs font-bold uppercase text-[#737373]">Tier 1: Simple</span>
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="font-mono text-lg font-bold text-[#141414]">$</span>
+                    <span className="font-sans text-lg font-bold text-[#141414]">$</span>
                     <input
                       type="number"
                       required
@@ -466,16 +466,16 @@ export default function AdminContentPage() {
                       max={500}
                       value={settings.simple_tier_price}
                       onChange={(e) => setSettings({ ...settings, simple_tier_price: Number(e.target.value) })}
-                      className="w-full rounded border border-[#EAE8E3] bg-white px-3 py-1.5 font-mono text-sm font-bold text-[#141414] focus:border-[#141414]"
+                      className="w-full rounded border border-[#EAE8E3] bg-white px-3 py-1.5 font-sans text-sm font-bold text-[#141414] focus:border-[#141414]"
                     />
                   </div>
                   <p className="mt-2 text-[10px] text-[#737373]">Single-color, basic shapes</p>
                 </div>
 
                 <div className="rounded-xl border-2 border-[#18794E] bg-[#E9F9EE] p-5">
-                  <span className="font-mono text-xs font-bold uppercase text-[#18794E]">Tier 2: Standard</span>
+                  <span className="font-sans text-xs font-bold uppercase text-[#18794E]">Tier 2: Standard</span>
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="font-mono text-lg font-bold text-[#18794E]">$</span>
+                    <span className="font-sans text-lg font-bold text-[#18794E]">$</span>
                     <input
                       type="number"
                       required
@@ -483,16 +483,16 @@ export default function AdminContentPage() {
                       max={500}
                       value={settings.standard_tier_price}
                       onChange={(e) => setSettings({ ...settings, standard_tier_price: Number(e.target.value) })}
-                      className="w-full rounded border border-[#B4DFC4] bg-white px-3 py-1.5 font-mono text-sm font-bold text-[#141414] focus:border-[#18794E]"
+                      className="w-full rounded border border-[#B4DFC4] bg-white px-3 py-1.5 font-sans text-sm font-bold text-[#141414] focus:border-[#18794E]"
                     />
                   </div>
                   <p className="mt-2 text-[10px] text-[#737373]">Multi-color badges &amp; logos</p>
                 </div>
 
                 <div className="rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] p-5">
-                  <span className="font-mono text-xs font-bold uppercase text-[#737373]">Tier 3: Complex</span>
+                  <span className="font-sans text-xs font-bold uppercase text-[#737373]">Tier 3: Complex</span>
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="font-mono text-lg font-bold text-[#141414]">$</span>
+                    <span className="font-sans text-lg font-bold text-[#141414]">$</span>
                     <input
                       type="number"
                       required
@@ -500,7 +500,7 @@ export default function AdminContentPage() {
                       max={1000}
                       value={settings.complex_tier_price}
                       onChange={(e) => setSettings({ ...settings, complex_tier_price: Number(e.target.value) })}
-                      className="w-full rounded border border-[#EAE8E3] bg-white px-3 py-1.5 font-mono text-sm font-bold text-[#141414] focus:border-[#141414]"
+                      className="w-full rounded border border-[#EAE8E3] bg-white px-3 py-1.5 font-sans text-sm font-bold text-[#141414] focus:border-[#141414]"
                     />
                   </div>
                   <p className="mt-2 text-[10px] text-[#737373]">Mascots &amp; fine engravings</p>

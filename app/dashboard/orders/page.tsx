@@ -151,7 +151,7 @@ export default function OrdersListPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold text-[#141414]">{order.project_name}</p>
-                    <p className="mt-0.5 font-mono text-[10px] text-[#737373]">{order.order_number}</p>
+                    <p className="mt-0.5 font-sans text-[10px] text-[#737373]">{order.order_number}</p>
                   </div>
                   <span className="shrink-0 rounded-full border border-[#EAE8E3] bg-[#F9F8F6] px-2 py-1 text-[10px] font-bold text-[#555]">
                     {tStatus(order.status)}
@@ -159,7 +159,7 @@ export default function OrdersListPage() {
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-[#737373]">
                   <span className="capitalize">{order.complexity} · {order.turnaround}</span>
-                  <span className="text-right font-mono font-bold text-[#141414]">${order.final_price || order.estimated_price}</span>
+                  <span className="text-right font-sans font-bold text-[#141414]">${order.final_price || order.estimated_price}</span>
                   <span>{t('expected')} {new Date(getExpectedDelivery(order)).toLocaleDateString()}</span>
                   <span className="flex items-center justify-end gap-1 font-bold text-[#18794E]">{t('manage')} <ArrowRight className="h-3 w-3" /></span>
                 </div>
@@ -168,7 +168,7 @@ export default function OrdersListPage() {
           </div>
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#EAE8E3] bg-[#F9F8F6] font-mono text-[10px] font-bold uppercase tracking-wider text-[#737373]">
+              <thead className="border-b border-[#EAE8E3] bg-[#F9F8F6] font-sans text-[10px] font-bold uppercase tracking-wider text-[#737373]">
                 <tr>
                   <th className="px-6 py-3.5">{t('orderNumber')}</th>
                   <th className="px-6 py-3.5">{t('project')}</th>
@@ -195,12 +195,12 @@ export default function OrdersListPage() {
 
                   return (
                     <tr key={order.id} className="hover:bg-[#F9F8F6] transition-colors">
-                      <td className="px-6 py-4 font-mono font-bold text-[#141414]">
+                      <td className="px-6 py-4 font-sans font-bold text-[#141414]">
                         {order.order_number}
                       </td>
                       <td className="px-6 py-4">
                         <div className="font-semibold text-[#141414]">{order.project_name}</div>
-                        <div className="font-mono text-[10px] text-[#737373]">{new Date(order.created_at).toLocaleDateString()}</div>
+                        <div className="font-sans text-[10px] text-[#737373]">{new Date(order.created_at).toLocaleDateString()}</div>
                       </td>
                       <td className="px-6 py-4 capitalize text-[#737373]">
                         {order.artwork_type.replace('_', ' ')}
@@ -209,7 +209,7 @@ export default function OrdersListPage() {
                         {order.complexity}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[10px] border ${statusBadge.bg}`}>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-sans text-[10px] border ${statusBadge.bg}`}>
                           {statusBadge.label}
                         </span>
                       </td>
@@ -220,7 +220,7 @@ export default function OrdersListPage() {
                           t('standard')
                         )}
                       </td>
-                      <td className="px-6 py-4 font-mono font-semibold text-[#141414]">
+                      <td className="px-6 py-4 font-sans font-semibold text-[#141414]">
                         ${order.final_price || order.estimated_price}
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -245,7 +245,7 @@ export default function OrdersListPage() {
             <span className="text-[#737373]">{t('showing', { start: (page - 1) * pageSize + 1, end: Math.min(page * pageSize, filteredOrders.length), total: filteredOrders.length })}</span>
             <div className="flex items-center gap-2">
               <button type="button" disabled={page === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-[#EAE8E3] p-2 disabled:opacity-40" aria-label={t('previous')}><ChevronLeft className="h-4 w-4" /></button>
-              <span className="font-mono">{page} / {pageCount}</span>
+              <span className="font-sans">{page} / {pageCount}</span>
               <button type="button" disabled={page === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))} className="rounded-lg border border-[#EAE8E3] p-2 disabled:opacity-40" aria-label={t('next')}><ChevronRight className="h-4 w-4" /></button>
             </div>
           </div>

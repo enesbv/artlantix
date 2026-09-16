@@ -252,11 +252,11 @@ export default function OrderDetailPage() {
               <h1 className="text-xl font-bold tracking-tight text-[#141414]">
                 {order.project_name}
               </h1>
-              <span className="font-mono text-xs font-semibold text-[#737373]">
+              <span className="font-sans text-xs font-semibold text-[#737373]">
                 ({order.order_number})
               </span>
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-[#737373]">
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-xs text-[#737373]">
               <span>Submitted {new Date(order.created_at).toLocaleDateString()}</span>
               <span>•</span>
               <span className="capitalize">{order.artwork_type.replace('_', ' ')}</span>
@@ -270,7 +270,7 @@ export default function OrderDetailPage() {
 
         {/* Current status tag */}
         <div>
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-xs border ${statusConfig.color}`}>
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs border ${statusConfig.color}`}>
             <span className="h-1.5 w-1.5 rounded-full bg-current"></span>
             <span>{statusConfig.label}</span>
           </span>
@@ -290,7 +290,7 @@ export default function OrderDetailPage() {
 
       <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]" aria-label="Order progress">
         <div className="rounded-2xl border-2 border-[#18794E] bg-[#E9F9EE] p-5">
-          <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">Your next step</span>
+          <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">Your next step</span>
           <h2 className="mt-2 text-lg font-bold text-[#141414]">{nextAction.title}</h2>
           <p className="mt-1 text-sm text-[#555]">{nextAction.detail}</p>
           <p className="mt-4 text-xs text-[#737373]">Estimated delivery: <strong className="text-[#141414]">{new Date(expectedDelivery).toLocaleString()}</strong></p>
@@ -322,7 +322,7 @@ export default function OrderDetailPage() {
               Side-by-side comparison of original customer upload vs reconstructed vector draft
             </p>
           </div>
-          <div className="font-mono text-xs text-[#737373]">
+          <div className="font-sans text-xs text-[#737373]">
             Curvature Check: <strong className="text-emerald-700">100% Tangent Bezier</strong>
           </div>
         </div>
@@ -332,7 +332,7 @@ export default function OrderDetailPage() {
           <div className="flex flex-col rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#EAE8E3] bg-[#F5F4F0] px-4 py-2 text-xs font-semibold text-[#141414]">
               <span>A. Customer Submission</span>
-              <span className="text-[10px] text-[#737373] font-mono">
+              <span className="text-[10px] text-[#737373] font-sans">
                 {customerUpload?.format.toUpperCase() || 'RASTER'}
               </span>
             </div>
@@ -353,14 +353,14 @@ export default function OrderDetailPage() {
                   <span className="mt-2 text-xs font-medium">
                     {customerUpload?.filename || 'Original Raster File'}
                   </span>
-                  <span className="text-[10px] font-mono text-[#999999]">
+                  <span className="text-[10px] font-sans text-[#999999]">
                     {customerUpload?.size_bytes ? `${(customerUpload.size_bytes / 1024 / 1024).toFixed(1)} MB` : '3.4 MB'}
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="border-t border-[#EAE8E3] bg-white p-3 font-mono text-[11px] text-[#737373] flex justify-between">
+            <div className="border-t border-[#EAE8E3] bg-white p-3 font-sans text-[11px] text-[#737373] flex justify-between">
               <span>Source: Client Upload</span>
               <span>Status: {customerUpload?.scan_status === 'clean' ? 'Security scan passed' : customerUpload?.scan_status === 'infected' ? 'Rejected by security scan' : 'Security scan pending'}</span>
             </div>
@@ -370,7 +370,7 @@ export default function OrderDetailPage() {
           <div className="flex flex-col rounded-xl border-2 border-[#141414] bg-white overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#141414] bg-[#141414] px-4 py-2 text-xs font-bold text-white">
               <span>B. Artlantix Reconstructed Vector</span>
-              <span className="text-[10px] text-[#18794E] uppercase font-mono">
+              <span className="text-[10px] text-[#18794E] uppercase font-sans">
                 {order.status === 'completed' ? 'Master Approved' : 'Watermarked Preview'}
               </span>
             </div>
@@ -401,7 +401,7 @@ export default function OrderDetailPage() {
               )}
             </div>
 
-            <div className="border-t border-[#EAE8E3] bg-white p-3 font-mono text-[11px] flex justify-between">
+            <div className="border-t border-[#EAE8E3] bg-white p-3 font-sans text-[11px] flex justify-between">
               <span className="text-emerald-700 font-semibold">✓ Tangency Verified</span>
               <span className="text-[#737373]">Tolerance: 0.01mm</span>
             </div>
@@ -516,7 +516,7 @@ export default function OrderDetailPage() {
 
         <div className="mt-4 space-y-3 max-h-96 overflow-y-auto pr-2">
           {(!order.messages || order.messages.length === 0) ? (
-            <div className="text-center py-6 font-mono text-xs text-[#737373]">
+            <div className="text-center py-6 font-sans text-xs text-[#737373]">
               No messages logged yet for this order.
             </div>
           ) : (
@@ -535,7 +535,7 @@ export default function OrderDetailPage() {
                     <span className="font-bold text-[#141414]">
                       {msg.sender_name || (isOperator ? 'Elena Vance (Production Lead)' : 'Client')}
                     </span>
-                    <span className="font-mono text-[10px] text-[#737373]">
+                    <span className="font-sans text-[10px] text-[#737373]">
                       {new Date(msg.created_at).toLocaleString()}
                     </span>
                   </div>

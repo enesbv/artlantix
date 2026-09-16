@@ -74,6 +74,7 @@ Supabase mode includes OAuth callback exchange, password-reset email requests, d
 ## Orders, pricing and files
 
 - The visual brand accent uses a Radix-inspired green scale: `#18794E` for primary actions and text, `#115C3B` for hover states, `#E9F9EE` for soft surfaces, and `#B4DFC4` for accent borders. Amber remains reserved for semantic pending/warning states rather than brand decoration.
+- The interface uses Geist Sans only. Do not load a monospace webfont, use the Tailwind `font-mono` utility, or reintroduce letter-spaced monospace eyebrow labels.
 - Order states: `quote_requested`, `in_review`, `in_progress`, `preview_ready`, `approved`, `revision_requested`, `completed`, `cancelled`. Customer approval enters `approved`; only an operator delivery moves the order to `completed`.
 - New order IDs use UUIDs; existing demo order IDs retain their original strings.
 - Base tiers: simple 25, standard 45, complex 75 USD. CMS can override base rates. Add-ons and express pricing are defined in `lib/pricing.ts`.
@@ -118,7 +119,7 @@ pnpm test
 git diff --check
 ```
 
-Latest verification: production build/TypeScript passed; all 13 tests passed, including the scanner authentication and clean/infected protocol paths; ESLint had zero errors and zero warnings; `pnpm audit --prod` reported no known vulnerabilities. Live schema application succeeded, six public tables reported RLS enabled, demo mode is off locally and `/api/health` reports the backend configured. Lighthouse, a real ClamAV engine run and live multi-tenant RLS/Storage tests still need to be performed before launch.
+Latest verification: production build/TypeScript passed; all 15 tests passed, including the scanner authentication, clean/infected protocol and typography guard paths; ESLint had zero errors and zero warnings; `pnpm audit --prod` reported no known vulnerabilities. Live schema application succeeded, six public tables reported RLS enabled, demo mode is off locally and `/api/health` reports the backend configured. Lighthouse, a real ClamAV engine run and live multi-tenant RLS/Storage tests still need to be performed before launch.
 
 Tests isolate auth/storage and exercise the real pricing source. They are not substitutes for database RLS, private-storage and malware-scanning integration tests. Add meaningful regressions for changed behavior, not tests that merely match source text.
 

@@ -82,7 +82,7 @@ export default function ArtworkVaultPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-xs text-[#737373] px-2">
+        <div className="flex items-center gap-2 font-sans text-xs text-[#737373] px-2">
           <span>Archived Masters:</span>
           <strong className="text-[#141414]">{completedOrders.length} Files</strong>
         </div>
@@ -119,7 +119,7 @@ export default function ArtworkVaultPage() {
                   <div className="absolute top-3 left-3">
                     <button
                       onClick={() => handleCopyOrderNumber(order.order_number)}
-                      className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-[10px] font-mono font-semibold text-[#737373] border border-[#EAE8E3] hover:border-[#141414] transition-colors"
+                      className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-[10px] font-sans font-semibold text-[#737373] border border-[#EAE8E3] hover:border-[#141414] transition-colors"
                       title="Copy Order ID"
                     >
                       <span>{order.order_number}</span>
@@ -132,7 +132,7 @@ export default function ArtworkVaultPage() {
                   </div>
 
                   <div className="absolute top-3 right-3">
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-mono text-[10px] font-bold text-emerald-800 border border-emerald-200">
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-sans text-[10px] font-bold text-emerald-800 border border-emerald-200">
                       Master Approved
                     </span>
                   </div>
@@ -148,14 +148,14 @@ export default function ArtworkVaultPage() {
                 {/* Metadata details */}
                 <div className="flex flex-1 flex-col p-6">
                   <h3 className="text-sm font-bold text-[#141414]">{order.project_name}</h3>
-                  <div className="mt-1 flex items-center justify-between font-mono text-[11px] text-[#737373]">
+                  <div className="mt-1 flex items-center justify-between font-sans text-[11px] text-[#737373]">
                     <span>Completed: {new Date(order.updated_at).toLocaleDateString()}</span>
                     <span className="font-semibold text-[#141414]">CMYK / Spot</span>
                   </div>
 
                   {/* Available Formats Badges */}
                   <div className="mt-4 border-t border-[#EAE8E3] pt-3">
-                    <div className="font-mono text-[10px] uppercase tracking-wider text-[#737373]">
+                    <div className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">
                       Master Formats Available:
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1">

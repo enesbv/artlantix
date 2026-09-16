@@ -55,7 +55,7 @@ export default function DashboardLayout({
                   {t('title')}
                 </h1>
                 {user?.account_type === 'business' && (
-                  <span className="rounded-full bg-[#E9F9EE] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#18794E] border border-[#B4DFC4]">
+                  <span className="rounded-full bg-[#E9F9EE] px-2.5 py-0.5 font-sans text-[10px] font-bold text-[#18794E] border border-[#B4DFC4]">
                     {t('partner')}
                   </span>
                 )}
