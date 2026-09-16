@@ -1,0 +1,10 @@
+import React from 'react';
+import Link from 'next/link';
+import type { Metadata } from 'next';
+import { setRequestLocale } from 'next-intl/server';
+import { ArrowRight, BookOpen } from 'lucide-react';
+import PublicPageShell from '@/components/PublicPageShell';
+import { guides, localizedPath, marketingCopy, normalizeMarketingLocale } from '@/lib/marketing';
+
+export const metadata: Metadata = { title: 'Vector Production Guides · Artlantix', description: 'Practical guides for vector artwork, print, cutting and embroidery.' };
+export default async function GuidesPage({ params }: { params: Promise<{ locale: string }> }) { const { locale } = await params; setRequestLocale(locale); const lang = normalizeMarketingLocale(locale); const copy = marketingCopy[lang]; return <PublicPageShell><main><section className="border-b border-[#DAD8D2] bg-white"><div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"><BookOpen className="h-7 w-7 text-[#18794E]" /><p className="mt-8 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.pages.guidesEyebrow}</p><h1 className="mt-4 max-w-4xl text-5xl font-black tracking-[-0.04em] text-[#102A20] sm:text-6xl">{copy.pages.guidesTitle}</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-[#5E625F]">{copy.pages.guidesBody}</p></div></section><section className="mx-auto grid max-w-7xl gap-5 px-4 py-20 sm:px-6 md:grid-cols-3 lg:px-8">{guides.map((guide,index) => <Link key={guide.slug} href={localizedPath(lang, `/guides/${guide.slug}`)} className="group rounded-3xl border border-[#DAD8D2] bg-white p-7 transition hover:border-[#8FC9A6]"><span className="font-mono text-xs text-[#18794E]">0{index+1} · {guide.readTime[lang]}</span><h2 className="mt-8 text-2xl font-black text-[#102A20]">{guide.title[lang]}</h2><p className="mt-3 leading-7 text-[#5E625F]">{guide.excerpt[lang]}</p><span className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.common.read}<ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span></Link>)}</section></main></PublicPageShell>; }

@@ -186,3 +186,18 @@ test('stored history adds the current status when older records are incomplete',
   });
   assert.equal(history.at(-1).status, 'approved');
 });
+
+test('public marketing catalogue has unique localized routes and complete copy', () => {
+  const marketing = load('lib/marketing.ts');
+  for (const collection of [marketing.services, marketing.caseStudies, marketing.guides]) {
+    assert.equal(new Set(collection.map((item) => item.slug)).size, collection.length);
+    for (const item of collection) {
+      for (const locale of ['tr', 'en', 'de']) {
+        assert.ok(item.title[locale]);
+      }
+    }
+  }
+  assert.equal(marketing.localizedPath('en', '/services'), '/services');
+  assert.equal(marketing.localizedPath('tr', '/services'), '/tr/services');
+  assert.equal(marketing.localizedPath('de', 'guides'), '/de/guides');
+});

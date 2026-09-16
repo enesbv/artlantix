@@ -20,12 +20,14 @@ The site markets human redrawing, not automatic vector generation. Do not presen
 
 | Location | Responsibility |
 | --- | --- |
-| `app/[locale]/` | Localized public home and quote pages; next-intl provider |
+| `app/[locale]/` | Localized public home, quote, services, work, pricing, guides and FAQ pages; next-intl provider |
 | `app/page.tsx`, `app/quote/page.tsx` | English entry pages |
 | `app/login`, `app/signup` | Authentication UI, currently not localized routes |
 | `app/dashboard/` | Overview, orders and detail, artwork vault, business hub, profile |
 | `app/admin/` | Operator orders and content management |
 | `components/HomePageContent.tsx` | Public marketing, portfolio and pricing UI |
+| `lib/marketing.ts` | Type-safe Turkish, English and German service, case-study, guide and public FAQ catalogue |
+| `components/MarketingVisual.tsx` | Code-native localized production artwork used across public marketing pages |
 | `components/QuotePageContent.tsx` | Upload/specification/order wizard |
 | `components/ComplexityPicker.tsx` | Illustrated detail-level and artist-assessment selector |
 | `components/OrderNotifications.tsx` | Portal notification polling and dismissal |
@@ -55,7 +57,9 @@ The site markets human redrawing, not automatic vector generation. Do not presen
 
 Public pages support `en`, `de`, `tr`, with the default English prefix optional. Dashboard and admin routes do **not** exist below a locale prefix. Login, signup, and auth routes are excluded from locale middleware. After a quote, navigate to `/dashboard/orders/<id>`, never `/tr/dashboard/...` or `/de/dashboard/...`.
 
-The language selector preserves query parameters and hash and persists `NEXT_LOCALE`. On dashboard/auth routes it refreshes the current route instead of navigating away. The root provider and HTML `lang` use that cookie; public pages have nested locale providers. Public navigation, footer, quote flow, dashboard shell and order list are translated. Several detail, account, B2B and admin strings remain English.
+The language selector preserves query parameters and hash and persists `NEXT_LOCALE`. On dashboard/auth routes it refreshes the current route instead of navigating away. The root provider and HTML `lang` use that cookie; public pages have nested locale providers. Public navigation, footer, marketing pages and quote flow are translated. Several account, B2B and admin strings remain English.
+
+The public marketing information architecture includes `/services`, `/services/<slug>`, `/work`, `/work/<slug>`, `/pricing`, `/guides`, `/guides/<slug>` and `/faq` below every locale. English uses the unprefixed canonical path. Case studies in the code are explicitly labelled studio demonstrations; do not turn them into customer claims unless publication permission and verifiable project information exist.
 
 ## Demo versus real services
 
@@ -76,6 +80,7 @@ Supabase mode includes OAuth callback exchange, password-reset email requests, d
 - Complex artwork plus reconstruction plus text triggers manual review. Customer choice to pay after review also starts at quote_requested.
 - `components/ComplexityPicker.tsx` provides localized illustrated detail levels and an explicit artist-assessment choice. `PricingInput.artistReviewRequested` forces manual review regardless of tier. The shown price is provisional. Every public submission starts as `quote_requested` with `pay_after_quote_review`; the site does not collect payment or claim that a card or invoice transaction occurred.
 - Quote form state is debounced into a browser-local draft and restored after navigation. A prior order can prefill a new quote through `?reorder=<order-id>`. File objects themselves are not serializable; the local demo stores a small data URL while production users may need to choose the file again after a reload.
+- Service pages prefill the quote through `?service=<slug>`. The production brief captures intended use, originating AI tool, requested deadline and optional company/brand. These fields are stored as structured lines within the existing order notes boundary so current deployments remain schema-compatible.
 - Orders have expected-delivery metadata, status-history fallbacks, a next-action panel with direct section links, notification polling and visual revision annotations. Stored coordinates use percentages so they remain aligned responsively. The annotation UI shows its marker limit and supports removing the selected marker or undoing the latest marker.
 - The quote wizard keeps an itemized price, turnaround, privacy and deliverable summary visible beside the specification/review steps. On small screens, the specification step uses a fixed bottom price/action bar; do not add a second mobile forward action.
 - Customer order lists and details use loading skeletons so an unresolved request is not shown as an empty result. Signed preview URL failure must not leave the detail page loading indefinitely; action failures are presented in the page rather than only logged.
@@ -119,12 +124,12 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 
 ## Priorities for future work
 
-1. Improve the UI/UX across public, customer and operator journeys while preserving the production security boundaries introduced in v0.2.0.
+1. Continue UI/UX improvements in the customer and operator portals while preserving the production security boundaries introduced in v0.2.0; the public marketing redesign and content architecture are now implemented.
 2. Run live private-storage/RLS authorization tests for two customers and one admin against the applied schema.
 3. Deploy the included ClamAV stack and verify clean/EICAR uploads end to end; consider PDF CDR for higher-risk customers.
 4. Add idempotency keys, operator-delivery compensation and periodic orphan-object reconciliation.
 5. Configure and verify Supabase Auth rate limits, CAPTCHA, redirect allowlists, leaked-password protection, MFA for admins, OAuth, confirmation, recovery and session invalidation.
-6. Finish translations for detail/account/B2B/admin content and add localized metadata.
+6. Finish translations for account/B2B/admin content and expand localized metadata beyond the public detail pages.
 7. Add server-side order-list pagination, reduce homepage client work and measure LCP/INP with production media.
 8. Add approved company accounts and external invoice reconciliation if commercial invoicing becomes part of the product.
 9. Add verified customer proof only after obtaining permission to publish real project names, artwork and outcomes; do not invent testimonials or performance claims.

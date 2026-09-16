@@ -13,7 +13,8 @@ import { processClientFileUpload, UploadedFileData } from '@/lib/services/storag
 import { getSiteSettings, SiteSettings, DEFAULT_SITE_SETTINGS } from '@/lib/services/content';
 import { clearQuoteDraft, loadQuoteDraft, saveQuoteDraft } from '@/lib/services/quote-draft';
 import { INPUT_LIMITS } from '@/lib/security';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { getService, normalizeMarketingLocale } from '@/lib/marketing';
 import {
   ComplexityTier,
   TurnaroundSpeed,
@@ -118,6 +119,12 @@ export default function QuotePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tQuote = useTranslations('quote');
+  const locale = normalizeMarketingLocale(useLocale());
+  const smartCopy = {
+    tr: { brief: 'Üretim bilgileri', briefDesc: 'Dosyayı nerede kullanacağınızı bilirsek doğru eğri, renk ve sadeleştirme kararlarını veririz.', intended: 'Kullanım amacı', choose: 'Seçin', web: 'Web / dijital', print: 'Baskı / ambalaj', apparel: 'Tekstil / baskı', embroidery: 'Nakış', signage: 'Tabela / folyo', cnc: 'CNC / lazer kesim', unsure: 'Emin değilim · uzman yönlendirsin', aiTool: 'Kullanılan AI aracı (isteğe bağlı)', aiPlaceholder: 'Örn. Midjourney, DALL·E, Ideogram', deadline: 'İstenen teslim tarihi (isteğe bağlı)', company: 'Şirket / marka (isteğe bağlı)' },
+    en: { brief: 'Production brief', briefDesc: 'Knowing the intended use helps us choose the right paths, colours and simplification.', intended: 'Intended use', choose: 'Choose', web: 'Web / digital', print: 'Print / packaging', apparel: 'Apparel / print', embroidery: 'Embroidery', signage: 'Signage / vinyl', cnc: 'CNC / laser cutting', unsure: 'Not sure · let the studio advise', aiTool: 'AI tool used (optional)', aiPlaceholder: 'e.g. Midjourney, DALL·E, Ideogram', deadline: 'Requested deadline (optional)', company: 'Company / brand (optional)' },
+    de: { brief: 'Produktionsbriefing', briefDesc: 'Der Verwendungszweck hilft uns bei Pfaden, Farben und Vereinfachung.', intended: 'Verwendungszweck', choose: 'Auswählen', web: 'Web / digital', print: 'Druck / Verpackung', apparel: 'Textil / Druck', embroidery: 'Stickerei', signage: 'Schild / Folie', cnc: 'CNC / Laserschnitt', unsure: 'Nicht sicher · Studio beraten lassen', aiTool: 'Verwendetes KI-Tool (optional)', aiPlaceholder: 'z. B. Midjourney, DALL·E, Ideogram', deadline: 'Gewünschter Termin (optional)', company: 'Unternehmen / Marke (optional)' },
+  }[locale];
 
   // Wizard Step: 1 = Upload, 2 = Specification, 3 = Review & Order
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -150,6 +157,11 @@ export default function QuotePageContent() {
   const [colorCount, setColorCount] = useState<'1-2' | '3-5' | '6+' | 'gradient'>('3-5');
   const [turnaround, setTurnaround] = useState<TurnaroundSpeed>('standard');
   const [notes, setNotes] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [intendedUse, setIntendedUse] = useState('');
+  const [aiTool, setAiTool] = useState('');
+  const [requestedDeadline, setRequestedDeadline] = useState('');
+  const [serviceSlug, setServiceSlug] = useState<string | undefined>();
   const [sourceOrderId, setSourceOrderId] = useState<string | undefined>();
 
   // Step 3 Checkout / Submission Form
@@ -168,6 +180,7 @@ export default function QuotePageContent() {
       setSettings(siteSettings);
 
       const reorderId = searchParams?.get('reorder');
+      const requestedService = getService(searchParams?.get('service') || '');
       const source = reorderId ? await getOrderById(reorderId) : null;
       const draft = !source ? loadQuoteDraft() : null;
       if (source) {
@@ -193,29 +206,42 @@ export default function QuotePageContent() {
         setColorCount(draft.colorCount);
         setTurnaround(draft.turnaround);
         setNotes(draft.notes);
+        setCompanyName(draft.companyName || '');
+        setIntendedUse(draft.intendedUse || '');
+        setAiTool(draft.aiTool || '');
+        setRequestedDeadline(draft.requestedDeadline || '');
+        setServiceSlug(draft.serviceSlug);
         setCustomerName(draft.customerName || user?.full_name || '');
         setCustomerEmail(draft.customerEmail || user?.email || '');
         setUploadedFile(draft.uploadedFile);
         setSourceOrderId(draft.sourceOrderId);
         setDraftNotice('restored');
       }
+      if (!source && requestedService) {
+        setServiceSlug(requestedService.slug);
+        setArtworkType(requestedService.artworkType);
+        setProjectName(requestedService.title[locale]);
+        if (requestedService.artworkType === 'ai_logo') setAiTool('');
+      }
+      if (searchParams?.get('review') === '1') setArtistReviewRequested(true);
       setDraftReady(true);
     }
     initialize().catch(() => setDraftReady(true));
-  }, [searchParams]);
+  }, [searchParams, locale]);
 
   useEffect(() => {
     if (!draftReady || isSubmitting) return;
     const timer = window.setTimeout(() => {
       const savedWithFile = saveQuoteDraft({
         projectName, artworkType, complexity, artistReviewRequested, hasText,
-        reconstructionOption, colorCount, turnaround, notes, customerName,
+        reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse,
+        aiTool, requestedDeadline, serviceSlug, customerName,
         customerEmail, uploadedFile, sourceOrderId, savedAt: new Date().toISOString(),
       });
       setDraftNotice(savedWithFile ? 'saved' : null);
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [draftReady, isSubmitting, projectName, artworkType, complexity, artistReviewRequested, hasText, reconstructionOption, colorCount, turnaround, notes, customerName, customerEmail, uploadedFile, sourceOrderId]);
+  }, [draftReady, isSubmitting, projectName, artworkType, complexity, artistReviewRequested, hasText, reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse, aiTool, requestedDeadline, serviceSlug, customerName, customerEmail, uploadedFile, sourceOrderId]);
 
   // Compute pricing with CMS dynamic base tier rates
   const pricingInput: PricingInput = {
@@ -335,12 +361,23 @@ export default function QuotePageContent() {
       if (!activeUser) {
         saveQuoteDraft({
           projectName, artworkType, complexity, artistReviewRequested, hasText,
-          reconstructionOption, colorCount, turnaround, notes, customerName,
+          reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse,
+          aiTool, requestedDeadline, serviceSlug, customerName,
           customerEmail, uploadedFile, sourceOrderId, savedAt: new Date().toISOString(),
         });
         router.push('/login?next=/quote');
         return;
       }
+
+      const intakeDetails = [
+        serviceSlug && `[Service: ${serviceSlug}]`,
+        companyName.trim() && `[Company / brand: ${companyName.trim()}]`,
+        intendedUse && `[Intended use: ${intendedUse}]`,
+        aiTool.trim() && `[AI tool: ${aiTool.trim()}]`,
+        requestedDeadline && `[Requested deadline: ${requestedDeadline}]`,
+        artistReviewRequested && '[Artist assessment requested; complexity and price are provisional.]',
+        notes.trim(),
+      ].filter(Boolean).join('\n').slice(0, INPUT_LIMITS.notes);
 
       const orderData = {
         user_id: activeUser?.id || 'usr_guest',
@@ -357,7 +394,7 @@ export default function QuotePageContent() {
         estimated_price: pricing.total,
         final_price: pricing.total,
         status: 'quote_requested' as OrderStatus,
-        notes: artistReviewRequested ? `[Artist assessment requested; complexity and price are provisional.]\n${notes}` : notes,
+        notes: intakeDetails,
         needs_manual_review: pricing.needsManualReview,
         payment_method: 'pay_after_quote_review' as const,
         source_order_id: sourceOrderId,
@@ -616,6 +653,28 @@ export default function QuotePageContent() {
                 </div>
               </div>
 
+              <div className="rounded-2xl border border-[#B4DFC4] bg-[#F3FBF6] p-5">
+                <h3 className="text-sm font-bold text-[#102A20]">{smartCopy.brief}</h3>
+                <p className="mt-1 text-xs leading-5 text-[#5E625F]">{smartCopy.briefDesc}</p>
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-bold text-[#141414]">{smartCopy.intended}</label>
+                    <select value={intendedUse} onChange={(event) => { setIntendedUse(event.target.value); if (event.target.value === 'unsure') setArtistReviewRequested(true); }} className="mt-2 w-full rounded-lg border border-[#DAD8D2] bg-white px-3 py-3 text-sm focus:border-[#18794E] focus:outline-hidden">
+                      <option value="">{smartCopy.choose}</option>
+                      <option value="web-digital">{smartCopy.web}</option><option value="print-packaging">{smartCopy.print}</option><option value="apparel-print">{smartCopy.apparel}</option><option value="embroidery">{smartCopy.embroidery}</option><option value="signage-vinyl">{smartCopy.signage}</option><option value="cnc-laser">{smartCopy.cnc}</option><option value="unsure">{smartCopy.unsure}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#141414]">{smartCopy.deadline}</label>
+                    <input type="date" value={requestedDeadline} onChange={(event) => setRequestedDeadline(event.target.value)} className="mt-2 w-full rounded-lg border border-[#DAD8D2] bg-white px-3 py-3 text-sm focus:border-[#18794E] focus:outline-hidden" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-[#141414]">{smartCopy.aiTool}</label>
+                    <input type="text" value={aiTool} maxLength={120} onChange={(event) => setAiTool(event.target.value)} placeholder={smartCopy.aiPlaceholder} className="mt-2 w-full rounded-lg border border-[#DAD8D2] bg-white px-3 py-3 text-sm focus:border-[#18794E] focus:outline-hidden" />
+                  </div>
+                </div>
+              </div>
+
               <ComplexityPicker
                 value={artistReviewRequested ? 'review' : complexity}
                 prices={customBasePrices}
@@ -794,6 +853,10 @@ export default function QuotePageContent() {
             </div>
 
             <form onSubmit={handleSubmitOrder} className="mx-auto mt-8 max-w-xl space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-[#141414]">{smartCopy.company}</label>
+                <input type="text" maxLength={INPUT_LIMITS.company} value={companyName} onChange={(event) => setCompanyName(event.target.value)} className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-3 text-sm text-[#141414] focus:border-[#18794E] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#B4DFC4]" />
+              </div>
               <div>
                 <label className="block text-sm font-bold text-[#141414]">
                   {tQuote('fullName')}

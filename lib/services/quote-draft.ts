@@ -13,6 +13,11 @@ export interface QuoteDraft {
   colorCount: ColorCount;
   turnaround: TurnaroundSpeed;
   notes: string;
+  companyName?: string;
+  intendedUse?: string;
+  aiTool?: string;
+  requestedDeadline?: string;
+  serviceSlug?: string;
   customerName: string;
   customerEmail: string;
   uploadedFile: UploadedFileData | null;
