@@ -4,6 +4,8 @@
 
 **Güncel sürüm:** 0.2.0 — Güvenli Supabase altyapısı ve production hazırlığı. Bir sonraki odak: UI/UX geliştirmeleri.
 
+Bu sürümde yapılanların tamamı için [Artlantix 0.2.0 sürüm notlarını](RELEASE_NOTES_0.2.md) okuyun.
+
 ## Türkçe
 
 Artlantix; düşük çözünürlüklü logo, taranmış çizim ve yapay zekâ taslaklarının uzman çizerler tarafından baskı, tekstil, tabela ve CNC üretimine uygun vektör dosyalarına dönüştürülme sürecini yöneten bir stüdyo platformudur. Otomatik vektör üretmez; insan eliyle yeniden çizim iş akışını yönetir.
@@ -102,6 +104,8 @@ Mimari ve güvenlik ayrıntıları için [llm.md](llm.md), [SECURITY_AUDIT.md](S
 ## English
 
 **Current version:** 0.2.0 — Secure Supabase foundation and production preparation. Next focus: UI/UX improvements.
+
+See the [Artlantix 0.2.0 release notes](RELEASE_NOTES_0.2.md) for the complete change summary.
 
 Artlantix is a studio workflow platform for turning low-resolution logos, scanned drawings and AI concepts into production-ready vector files for print, apparel, signage and CNC work. It does not generate vectors automatically; it manages a human redrawing workflow.
 
