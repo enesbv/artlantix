@@ -33,6 +33,20 @@ Artlantix 0.4; çok dilli tanıtım sayfaları, hizmet detayları, örnek çalı
 
 Dosya yüklemeleri, kullanıcı hesapları, siparişler, revizyonlar ve teslim dosyaları yetkilendirme kurallarıyla korunacak şekilde tasarlanmıştır. Mevcut model teklif odaklıdır; teklif gönderirken otomatik ödeme alınmaz.
 
+### Sitemap
+
+Sitenin arama motorlarına açık sayfalarını görmek için [sitemap.xml](http://localhost:3000/sitemap.xml) adresini açabilirsin. Canlı ortamda bu adres, sitenin alan adıyla birlikte `/sitemap.xml` şeklinde kullanılır.
+
+### Yönetici paneline giriş
+
+1. [Giriş sayfasını](http://localhost:3000/login) aç.
+2. Yönetici hesabınla giriş yap.
+3. Başarılı girişten sonra yönetici sipariş paneline yönlendirilirsin.
+
+Yönetici panelinin doğrudan adresi: `/admin/orders`. İçerik yönetimi için `/admin/content` adresini kullanabilirsin. Normal müşteri hesapları bu bölümlere erişemez.
+
+Yerel demo açıkken giriş sayfasındaki **Demo Operator** düğmesiyle yönetici görünümünü açabilirsin. Gerçek Supabase ortamında ise hesabın yönetici yetkisine sahip olmalıdır; bu yetki yalnızca sunucu/veritabanı tarafından verilmelidir.
+
 ### Kısa sözlük
 
 - **Raster:** JPG, PNG veya PDF gibi piksel tabanlı görsel.
