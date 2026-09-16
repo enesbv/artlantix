@@ -60,7 +60,7 @@ export interface Order {
   status: OrderStatus;
   notes?: string;
   needs_manual_review?: boolean;
-  payment_method?: 'card_simulated' | 'invoice_b2b' | 'pay_after_quote_review';
+  payment_method?: 'pay_after_quote_review';
   expected_delivery_at?: string;
   assigned_artist?: string;
   source_order_id?: string;
@@ -104,6 +104,9 @@ export interface OrderFile {
   storage_path: string;
   filename: string;
   size_bytes?: number;
+  scan_status?: 'pending' | 'clean' | 'infected' | 'error';
+  scan_checked_at?: string;
+  scan_result?: string;
   created_at: string;
   url?: string;
 }

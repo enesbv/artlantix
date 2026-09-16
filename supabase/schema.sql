@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS orders (
   ),
   notes TEXT CHECK (notes IS NULL OR char_length(notes) <= 5000),
   needs_manual_review BOOLEAN DEFAULT FALSE,
-  payment_method TEXT DEFAULT 'card_simulated' CHECK (payment_method IN ('card_simulated', 'invoice_b2b', 'pay_after_quote_review')),
+  payment_method TEXT DEFAULT 'pay_after_quote_review' CHECK (payment_method = 'pay_after_quote_review'),
   expected_delivery_at TIMESTAMPTZ,
   assigned_artist TEXT CHECK (assigned_artist IS NULL OR char_length(assigned_artist) <= 160),
   source_order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
@@ -67,6 +67,9 @@ CREATE TABLE IF NOT EXISTS order_files (
   storage_path TEXT NOT NULL CHECK (char_length(storage_path) BETWEEN 1 AND 1024 AND position(chr(92) in storage_path) = 0 AND storage_path !~ '[[:cntrl:]]'),
   filename TEXT NOT NULL CHECK (char_length(filename) BETWEEN 1 AND 255 AND position('/' in filename) = 0 AND position(chr(92) in filename) = 0 AND filename !~ '[[:cntrl:]]'),
   size_bytes BIGINT CHECK (size_bytes IS NULL OR size_bytes BETWEEN 1 AND 52428800),
+  scan_status TEXT NOT NULL DEFAULT 'pending' CHECK (scan_status IN ('pending', 'clean', 'infected', 'error')),
+  scan_checked_at TIMESTAMPTZ,
+  scan_result TEXT CHECK (scan_result IS NULL OR char_length(scan_result) <= 500),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -112,6 +115,7 @@ CREATE TABLE IF NOT EXISTS portfolio_items (
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_order_files_order_id ON order_files(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_files_scan_status ON order_files(scan_status);
 CREATE INDEX IF NOT EXISTS idx_order_messages_order_id ON order_messages(order_id);
 
 -- ------------------------------------------------------------------------------
@@ -120,11 +124,13 @@ CREATE INDEX IF NOT EXISTS idx_order_messages_order_id ON order_messages(order_i
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, is_admin)
+  INSERT INTO public.profiles (id, email, full_name, account_type, company_name, is_admin)
   VALUES (
     new.id,
     new.email,
     COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    CASE WHEN new.raw_user_meta_data->>'account_type' = 'business' THEN 'business' ELSE 'individual' END,
+    new.raw_user_meta_data->>'company_name',
     false
   )
   ON CONFLICT (id) DO NOTHING;
@@ -294,30 +300,36 @@ CREATE TRIGGER protect_order_update BEFORE UPDATE ON public.orders
   FOR EACH ROW EXECUTE FUNCTION public.protect_order_update();
 
 -- Profiles Policies
+DROP POLICY IF EXISTS "Users can view own profile or admins view all" ON profiles;
 CREATE POLICY "Users can view own profile or admins view all"
   ON profiles FOR SELECT TO authenticated
   USING (auth.uid() IS NOT NULL AND (auth.uid() = id OR public.is_admin()));
 
+DROP POLICY IF EXISTS "Users can update own profile or admins update all" ON profiles;
 CREATE POLICY "Users can update own profile or admins update all"
   ON profiles FOR UPDATE TO authenticated
   USING (auth.uid() IS NOT NULL AND (auth.uid() = id OR public.is_admin()))
   WITH CHECK (auth.uid() IS NOT NULL AND (auth.uid() = id OR public.is_admin()));
 
 -- Orders Policies
+DROP POLICY IF EXISTS "Users can view own orders or admins view all" ON orders;
 CREATE POLICY "Users can view own orders or admins view all"
   ON orders FOR SELECT TO authenticated
   USING (auth.uid() IS NOT NULL AND (auth.uid() = user_id OR public.is_admin()));
 
+DROP POLICY IF EXISTS "Users can insert own orders" ON orders;
 CREATE POLICY "Users can insert own orders"
   ON orders FOR INSERT TO authenticated
   WITH CHECK (auth.uid() IS NOT NULL AND auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own orders if pending or admins update any" ON orders;
 CREATE POLICY "Users can update own orders if pending or admins update any"
   ON orders FOR UPDATE TO authenticated
   USING (auth.uid() IS NOT NULL AND (auth.uid() = user_id OR public.is_admin()))
   WITH CHECK (auth.uid() IS NOT NULL AND (auth.uid() = user_id OR public.is_admin()));
 
 -- Order Files Policies
+DROP POLICY IF EXISTS "Users can view files for their orders or admins view all" ON order_files;
 CREATE POLICY "Users can view files for their orders or admins view all"
   ON order_files FOR SELECT TO authenticated
   USING (
@@ -328,6 +340,7 @@ CREATE POLICY "Users can view files for their orders or admins view all"
     )
   );
 
+DROP POLICY IF EXISTS "Users and admins can insert files for orders" ON order_files;
 CREATE POLICY "Users and admins can insert files for orders"
   ON order_files FOR INSERT TO authenticated
   WITH CHECK (
@@ -340,6 +353,7 @@ CREATE POLICY "Users and admins can insert files for orders"
   );
 
 -- Order Messages Policies
+DROP POLICY IF EXISTS "Users can view messages for their orders or admins view all" ON order_messages;
 CREATE POLICY "Users can view messages for their orders or admins view all"
   ON order_messages FOR SELECT TO authenticated
   USING (
@@ -350,6 +364,7 @@ CREATE POLICY "Users can view messages for their orders or admins view all"
     )
   );
 
+DROP POLICY IF EXISTS "Users and admins can insert messages" ON order_messages;
 CREATE POLICY "Users and admins can insert messages"
   ON order_messages FOR INSERT TO authenticated
   WITH CHECK (
@@ -361,13 +376,81 @@ CREATE POLICY "Users and admins can insert messages"
     )
   );
 
+DROP POLICY IF EXISTS "Anyone can read site settings" ON site_settings;
 CREATE POLICY "Anyone can read site settings" ON site_settings FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Admins can manage site settings" ON site_settings;
 CREATE POLICY "Admins can manage site settings" ON site_settings FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "Anyone can read active portfolio items" ON portfolio_items;
 CREATE POLICY "Anyone can read active portfolio items" ON portfolio_items FOR SELECT
   USING (active OR public.is_admin());
+DROP POLICY IF EXISTS "Admins can manage portfolio items" ON portfolio_items;
 CREATE POLICY "Admins can manage portfolio items" ON portfolio_items FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
+
+-- Commit customer order metadata and its uploaded file reference atomically.
+CREATE OR REPLACE FUNCTION public.create_order_with_file(p_order JSONB, p_file JSONB DEFAULT NULL)
+RETURNS public.orders
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
+  created_order public.orders;
+  requested_id UUID;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Authentication required';
+  END IF;
+
+  requested_id := COALESCE((p_order->>'id')::UUID, gen_random_uuid());
+
+  INSERT INTO public.orders (
+    id, order_number, user_id, project_name, artwork_type, complexity, colors,
+    has_text, reconstruction_needed, reconstruction_level, turnaround,
+    estimated_price, final_price, status, notes, needs_manual_review,
+    payment_method, source_order_id
+  ) VALUES (
+    requested_id,
+    'ATX-' || replace(requested_id::TEXT, '-', ''),
+    auth.uid(),
+    p_order->>'project_name',
+    p_order->>'artwork_type',
+    p_order->>'complexity',
+    p_order->>'colors',
+    COALESCE((p_order->>'has_text')::BOOLEAN, FALSE),
+    COALESCE((p_order->>'reconstruction_needed')::BOOLEAN, FALSE),
+    COALESCE(p_order->>'reconstruction_level', 'clean'),
+    COALESCE(p_order->>'turnaround', 'standard'),
+    COALESCE((p_order->>'estimated_price')::NUMERIC, 0),
+    COALESCE((p_order->>'final_price')::NUMERIC, 0),
+    'quote_requested',
+    NULLIF(p_order->>'notes', ''),
+    COALESCE((p_order->>'needs_manual_review')::BOOLEAN, FALSE),
+    'pay_after_quote_review',
+    NULLIF(p_order->>'source_order_id', '')::UUID
+  )
+  RETURNING * INTO created_order;
+
+  IF p_file IS NOT NULL THEN
+    INSERT INTO public.order_files (
+      order_id, user_id, file_category, format, storage_path, filename, size_bytes
+    ) VALUES (
+      created_order.id,
+      auth.uid(),
+      'customer_upload',
+      p_file->>'format',
+      p_file->>'storage_path',
+      p_file->>'filename',
+      (p_file->>'size_bytes')::BIGINT
+    );
+  END IF;
+
+  RETURN created_order;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.create_order_with_file(JSONB, JSONB) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.create_order_with_file(JSONB, JSONB) TO authenticated;
 
 -- ==============================================================================
 -- 6. STORAGE BUCKET CONFIGURATION & RLS POLICIES
@@ -390,13 +473,14 @@ ON CONFLICT (id) DO UPDATE SET
   file_size_limit = EXCLUDED.file_size_limit,
   allowed_mime_types = EXCLUDED.allowed_mime_types;
 
--- Enable RLS on storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Supabase owns storage.objects and already enforces RLS on this managed table.
+-- Project roles must not attempt ALTER TABLE here.
 
 -- ------------------------------------------------------------------------------
 -- Bucket A: customer-assets (Private)
 -- ------------------------------------------------------------------------------
 -- Customers can upload their own artwork
+DROP POLICY IF EXISTS "Authenticated users can upload customer-assets" ON storage.objects;
 CREATE POLICY "Authenticated users can upload customer-assets"
   ON storage.objects FOR INSERT
   TO authenticated
@@ -405,19 +489,68 @@ CREATE POLICY "Authenticated users can upload customer-assets"
     (auth.uid()::text = (storage.foldername(name))[1] OR public.is_admin())
   );
 
--- Customers can view/download their own uploaded assets; admins can view all
+-- Customers can access their own originals. Operators can access only files
+-- that a trusted malware scanner marked clean.
+CREATE OR REPLACE FUNCTION public.can_admin_read_customer_asset(asset_path TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT public.is_admin() AND EXISTS (
+    SELECT 1
+    FROM public.order_files AS scanned
+    WHERE scanned.storage_path = asset_path
+      AND scanned.scan_status = 'clean'
+  );
+$$;
+REVOKE ALL ON FUNCTION public.can_admin_read_customer_asset(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.can_admin_read_customer_asset(TEXT) TO authenticated;
+
+DROP POLICY IF EXISTS "Users can read own customer-assets or admins read all" ON storage.objects;
 CREATE POLICY "Users can read own customer-assets or admins read all"
   ON storage.objects FOR SELECT
   TO authenticated
   USING (
-    bucket_id = 'customer-assets' AND
-    (auth.uid()::text = (storage.foldername(name))[1] OR public.is_admin())
+    bucket_id = 'customer-assets' AND (
+      auth.uid()::text = (storage.foldername(name))[1]
+      OR public.can_admin_read_customer_asset(name)
+    )
+  );
+
+CREATE OR REPLACE FUNCTION public.customer_asset_is_attached(asset_path TEXT, owner_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT owner_id = auth.uid() AND EXISTS (
+    SELECT 1
+    FROM public.order_files AS attached
+    WHERE attached.storage_path = asset_path
+      AND attached.user_id = owner_id
+  );
+$$;
+REVOKE ALL ON FUNCTION public.customer_asset_is_attached(TEXT, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.customer_asset_is_attached(TEXT, UUID) TO authenticated;
+
+DROP POLICY IF EXISTS "Users can remove unattached customer uploads" ON storage.objects;
+CREATE POLICY "Users can remove unattached customer uploads"
+  ON storage.objects FOR DELETE
+  TO authenticated
+  USING (
+    bucket_id = 'customer-assets'
+    AND auth.uid()::text = (storage.foldername(name))[1]
+    AND NOT public.customer_asset_is_attached(name, auth.uid())
   );
 
 -- ------------------------------------------------------------------------------
 -- Bucket B: previews (Private / signed for watermarked drafts)
 -- ------------------------------------------------------------------------------
 -- Operators/Admins can upload previews
+DROP POLICY IF EXISTS "Admins and operators can insert previews" ON storage.objects;
 CREATE POLICY "Admins and operators can insert previews"
   ON storage.objects FOR INSERT
   TO authenticated
@@ -426,6 +559,7 @@ CREATE POLICY "Admins and operators can insert previews"
   );
 
 -- Clients can view previews stored below their own user-id folder; admins can view all.
+DROP POLICY IF EXISTS "Users can read own previews or admins read all" ON storage.objects;
 CREATE POLICY "Users can read own previews or admins read all"
   ON storage.objects FOR SELECT
   TO authenticated
@@ -440,6 +574,7 @@ CREATE POLICY "Users can read own previews or admins read all"
 -- generated upon order completion.
 -- ------------------------------------------------------------------------------
 -- Only operators/admins can upload final master packages
+DROP POLICY IF EXISTS "Operators can upload master-deliveries" ON storage.objects;
 CREATE POLICY "Operators can upload master-deliveries"
   ON storage.objects FOR INSERT
   TO authenticated
@@ -448,27 +583,43 @@ CREATE POLICY "Operators can upload master-deliveries"
   );
 
 -- Master files can only be accessed by the order owner if order is completed, or by an admin
+CREATE OR REPLACE FUNCTION public.can_read_master_delivery(asset_path TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT public.is_admin() OR EXISTS (
+    SELECT 1
+    FROM public.orders
+    JOIN public.order_files ON public.order_files.order_id = public.orders.id
+    WHERE public.orders.user_id = auth.uid()
+      AND public.orders.status = 'completed'
+      AND public.order_files.storage_path = asset_path
+  );
+$$;
+REVOKE ALL ON FUNCTION public.can_read_master_delivery(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.can_read_master_delivery(TEXT) TO authenticated;
+
+DROP POLICY IF EXISTS "Completed order clients or admins can read master-deliveries" ON storage.objects;
 CREATE POLICY "Completed order clients or admins can read master-deliveries"
   ON storage.objects FOR SELECT
   TO authenticated
   USING (
-    bucket_id = 'master-deliveries' AND (
-      public.is_admin() OR
-      EXISTS (
-        SELECT 1 FROM public.orders
-        JOIN public.order_files ON order_files.order_id = orders.id
-        WHERE orders.user_id = auth.uid()
-        AND orders.status = 'completed'
-        AND order_files.storage_path = storage.objects.name
-      )
-    )
+    bucket_id = 'master-deliveries'
+    AND public.can_read_master_delivery(name)
   );
 
+DROP POLICY IF EXISTS "Admins can upload portfolio media" ON storage.objects;
 CREATE POLICY "Admins can upload portfolio media" ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'portfolio' AND public.is_admin());
+DROP POLICY IF EXISTS "Anyone can read portfolio media" ON storage.objects;
 CREATE POLICY "Anyone can read portfolio media" ON storage.objects FOR SELECT
   USING (bucket_id = 'portfolio');
+DROP POLICY IF EXISTS "Admins can update portfolio media" ON storage.objects;
 CREATE POLICY "Admins can update portfolio media" ON storage.objects FOR UPDATE TO authenticated
   USING (bucket_id = 'portfolio' AND public.is_admin()) WITH CHECK (bucket_id = 'portfolio' AND public.is_admin());
+DROP POLICY IF EXISTS "Admins can delete portfolio media" ON storage.objects;
 CREATE POLICY "Admins can delete portfolio media" ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'portfolio' AND public.is_admin());

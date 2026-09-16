@@ -24,7 +24,7 @@ function load(relative, mocks = {}, globals = {}) {
 
 const securityModule = load('lib/security.ts', {}, { URL });
 
-function auth(remote = false, remoteClient) {
+function auth(remote = false, remoteClient, demo = !remote) {
   const store = new Map();
   const customer = { id: 'customer', is_admin: false };
   const service = load('lib/services/auth.ts', {
@@ -32,6 +32,10 @@ function auth(remote = false, remoteClient) {
     '../supabase/client': {
       isSupabaseConfigured: () => remote,
       createClient: () => remoteClient || ({ auth: { getUser: async () => ({ data: { user: null } }) } }),
+    },
+    '../runtime-mode': {
+      isDemoModeEnabled: () => demo,
+      BACKEND_NOT_CONFIGURED_ERROR: 'The service is not configured yet.',
     },
     '../security': securityModule,
   }, { window: {}, localStorage: {
@@ -66,6 +70,14 @@ test('remote auth never falls back to a stored demo administrator', async () => 
   assert.ok((await service.signUpWithEmail('test@example.com', 'Test')).error);
 });
 
+test('an unconfigured production runtime fails closed instead of creating demo identities', async () => {
+  const { service } = auth(false, undefined, false);
+  assert.equal(await service.getCurrentUser(), null);
+  assert.match((await service.signInWithEmail('person@example.com', 'password')).error, /not configured/i);
+  assert.match((await service.signUpWithEmail('person@example.com', 'Person', 'long-enough-password')).error, /not configured/i);
+  assert.throws(() => service.switchDemoPersona('customer'), /disabled/i);
+});
+
 test('pricing breakdown matches the total for every option combination', () => {
   const { calculatePricing } = load('lib/pricing.ts');
   for (const complexity of ['simple', 'standard', 'complex'])
@@ -82,6 +94,7 @@ test('pricing breakdown matches the total for every option combination', () => {
 test('uploads reject unsupported, empty and oversized files before reading', async () => {
   const { processClientFileUpload } = load('lib/services/storage.ts', {
     '../supabase/client': {},
+    '../runtime-mode': { isDemoModeEnabled: () => true, BACKEND_NOT_CONFIGURED_ERROR: 'Not configured.' },
     '../security': securityModule,
   }, { TextDecoder });
   await assert.rejects(processClientFileUpload(mockFile('bad.svg', 'image/svg+xml', 100)), /JPG/);
@@ -106,6 +119,7 @@ test('artist assessment forces review even for simple artwork and clears when de
 test('file reader failure rejects instead of leaving upload pending', async () => {
   const { processClientFileUpload } = load('lib/services/storage.ts', {
     '../supabase/client': {},
+    '../runtime-mode': { isDemoModeEnabled: () => true, BACKEND_NOT_CONFIGURED_ERROR: 'Not configured.' },
     '../security': securityModule,
   }, { TextDecoder, FileReader: class { readAsDataURL() { this.onerror(); } } });
   await assert.rejects(processClientFileUpload(mockFile(
@@ -118,6 +132,7 @@ test('post-auth redirects stay on allowlisted same-origin portal routes', () => 
   const { getSafePostAuthRedirect } = securityModule;
   assert.equal(getSafePostAuthRedirect('/dashboard/orders/123?tab=files'), '/dashboard/orders/123?tab=files');
   assert.equal(getSafePostAuthRedirect('/admin/orders'), '/admin/orders');
+  assert.equal(getSafePostAuthRedirect('/quote?step=3'), '/quote?step=3');
   for (const unsafe of ['//evil.example', '/\\evil.example', 'https://evil.example', '/login', '/%255cevil.example']) {
     assert.equal(getSafePostAuthRedirect(unsafe), '/dashboard/orders');
   }

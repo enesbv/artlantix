@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getOrders } from '@/lib/services/orders';
 import { getCurrentUser } from '@/lib/services/auth';
-import { triggerFileDownload, triggerMasterBundleZip } from '@/lib/services/storage';
+import { downloadAllMasterFiles, triggerFileDownload } from '@/lib/services/storage';
 import { Order } from '@/lib/types';
 import DeliverableBadge from '@/components/DeliverableBadge';
 import {
@@ -170,18 +170,18 @@ export default function ArtworkVaultPage() {
                   {/* Action Buttons */}
                   <div className="mt-6 flex flex-col gap-2 pt-2 border-t border-[#EAE8E3]">
                     <button
-                      onClick={() => triggerMasterBundleZip(order)}
+                      onClick={() => void downloadAllMasterFiles(order)}
                       className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#141414] py-2 text-xs font-bold text-white hover:bg-black transition-colors"
                     >
                       <Download className="h-3.5 w-3.5 text-[#18794E]" />
-                      <span>Download Demo Package Manifest</span>
+                      <span>Download All Master Files</span>
                     </button>
 
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => {
                           if (svgFile) triggerFileDownload(svgFile);
-                          else triggerMasterBundleZip(order);
+                          else void downloadAllMasterFiles(order);
                         }}
                         className="flex items-center justify-center gap-1 rounded-lg border border-[#EAE8E3] bg-white py-1.5 text-xs font-medium text-[#141414] hover:bg-[#F5F4F0]"
                       >

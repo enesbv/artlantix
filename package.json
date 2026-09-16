@@ -1,6 +1,6 @@
 {
   "name": "artlantix",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "scripts": {
@@ -8,7 +8,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/regressions.mjs"
+    "test": "node --test tests/regressions.mjs infra/malware-scanner/scanner.test.mjs",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset --local",
+    "db:test": "supabase test db --local",
+    "db:lint": "supabase db lint --local --level error",
+    "scanner:up": "docker compose -f infra/malware-scanner/compose.yml up -d --build",
+    "scanner:down": "docker compose -f infra/malware-scanner/compose.yml down"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -33,6 +39,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "supabase": "^2.117.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -11,7 +11,7 @@ import {
   requestRevision,
   addOrderMessage,
 } from '@/lib/services/orders';
-import { getSignedDownloadUrl, triggerFileDownload, triggerMasterBundleZip } from '@/lib/services/storage';
+import { downloadAllMasterFiles, getSignedDownloadUrl, triggerFileDownload } from '@/lib/services/storage';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { getCurrentUser } from '@/lib/services/auth';
 import { Order, RevisionAnnotation, UserProfile } from '@/lib/types';
@@ -362,7 +362,7 @@ export default function OrderDetailPage() {
 
             <div className="border-t border-[#EAE8E3] bg-white p-3 font-mono text-[11px] text-[#737373] flex justify-between">
               <span>Source: Client Upload</span>
-              <span>Status: Archived in Vault</span>
+              <span>Status: {customerUpload?.scan_status === 'clean' ? 'Security scan passed' : customerUpload?.scan_status === 'infected' ? 'Rejected by security scan' : 'Security scan pending'}</span>
             </div>
           </div>
 
@@ -481,11 +481,11 @@ export default function OrderDetailPage() {
             </div>
 
             <button
-              onClick={() => triggerMasterBundleZip(order)}
+              onClick={() => downloadAllMasterFiles(order).catch((error: unknown) => setActionError(error instanceof Error ? error.message : 'Downloads could not be started.'))}
               className="inline-flex items-center gap-2 rounded-lg bg-[#141414] px-5 py-2.5 text-xs font-bold text-white hover:bg-black transition-colors"
             >
               <Download className="h-4 w-4 text-[#18794E]" />
-              <span>Download Demo Package Manifest</span>
+              <span>Download All Master Files</span>
             </button>
           </div>
 

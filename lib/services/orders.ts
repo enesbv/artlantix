@@ -3,12 +3,14 @@ import { INITIAL_ORDERS } from '../mock-data';
 import { isSupabaseConfigured, createClient } from '../supabase/client';
 import { getCurrentUser } from './auth';
 import { calculateExpectedDelivery } from '../order-status';
-import { STORAGE_BUCKETS, uploadToStorageBucket, validateStorageUpload } from './storage';
+import { removeStorageObject, requestOrderUploadScan, STORAGE_BUCKETS, uploadToStorageBucket, validateStorageUpload } from './storage';
 import { INPUT_LIMITS, normalizeFilename, normalizeOptionalText, normalizeRequiredText } from '../security';
+import { BACKEND_NOT_CONFIGURED_ERROR, isDemoModeEnabled } from '../runtime-mode';
 
 const STORAGE_KEY_ORDERS = 'artlantix_orders_data';
 
 function getStoredOrders(): Order[] {
+  if (!isDemoModeEnabled()) return [];
   if (typeof window === 'undefined') return INITIAL_ORDERS;
   const raw = localStorage.getItem(STORAGE_KEY_ORDERS);
   if (!raw) {
@@ -24,6 +26,7 @@ function getStoredOrders(): Order[] {
 }
 
 function saveOrders(orders: Order[]): void {
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(orders));
@@ -126,6 +129,7 @@ export async function createOrder(
           storage_path: uploadStoragePath,
           filename: uploadFilename!,
           size_bytes: uploadedFile.size,
+          scan_status: isSupabaseConfigured() ? 'pending' : 'clean',
           created_at: now,
           url: uploadPublicUrl,
         },
@@ -167,9 +171,8 @@ export async function createOrder(
     try {
       const supabase = createClient();
       if (supabase) {
-        const { data: savedOrder, error } = await supabase.from('orders').insert([{
+        const orderPayload = {
           id: newOrder.id,
-          order_number: newOrder.order_number,
           user_id: newOrder.user_id,
           project_name: newOrder.project_name,
           artwork_type: newOrder.artwork_type,
@@ -181,33 +184,30 @@ export async function createOrder(
           turnaround: newOrder.turnaround,
           estimated_price: newOrder.estimated_price,
           final_price: newOrder.final_price,
-          status: newOrder.status,
           notes: newOrder.notes,
           needs_manual_review: newOrder.needs_manual_review,
-          payment_method: newOrder.payment_method,
-          expected_delivery_at: newOrder.expected_delivery_at,
-          assigned_artist: newOrder.assigned_artist,
+          payment_method: 'pay_after_quote_review',
           source_order_id: newOrder.source_order_id,
-          status_history: newOrder.status_history,
-          revision_annotations: newOrder.revision_annotations,
-        }]).select('*').single();
+        };
+        const filePayload = uploadedFile ? {
+          format: uploadedFile.format,
+          storage_path: uploadStoragePath,
+          filename: uploadFilename!,
+          size_bytes: uploadedFile.size,
+        } : null;
+        const { data: savedOrder, error } = await supabase.rpc('create_order_with_file', {
+          p_order: orderPayload,
+          p_file: filePayload,
+        }).single();
 
-        if (error) throw new Error('The order could not be saved securely. Please try again.');
-        if (!error) {
-          if (uploadedFile) {
-            const { error: fileError } = await supabase.from('order_files').insert([{
-              order_id: newOrder.id,
-              user_id: newOrder.user_id,
-              file_category: 'customer_upload',
-              format: uploadedFile.format,
-              storage_path: uploadStoragePath,
-              filename: uploadFilename!,
-              size_bytes: uploadedFile.size,
-            }]);
-            if (fileError) throw new Error('The uploaded file could not be attached to the order. Please contact support.');
+        if (error || !savedOrder) {
+          if (uploadedFile && uploadStoragePath) {
+            await removeStorageObject(STORAGE_BUCKETS.CUSTOMER_ASSETS, uploadStoragePath).catch(() => undefined);
           }
-          return { ...newOrder, ...(savedOrder as Order), files: initialFiles, messages: [] };
+          throw new Error('The order could not be saved securely. Please try again.');
         }
+        await requestOrderUploadScan(newOrder.id).catch(() => undefined);
+        return { ...newOrder, ...(savedOrder as Order), files: initialFiles, messages: [] };
       }
     } catch (error) {
       throw error;
@@ -215,6 +215,7 @@ export async function createOrder(
     throw new Error('Unable to save the order. Please try again.');
   }
 
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
   const all = getStoredOrders();
   all.unshift(newOrder);
   saveOrders(all);
@@ -423,6 +424,7 @@ export async function addOperatorDeliverable(
     storage_path: storagePath,
     filename: cleanFilename,
     size_bytes: file?.size || 1850000,
+    scan_status: 'clean',
     created_at: now,
   };
 
@@ -437,6 +439,7 @@ export async function addOperatorDeliverable(
       storage_path: storagePath,
       filename: cleanFilename,
       size_bytes: file?.size,
+      scan_status: 'clean',
     }]).select('*').single();
     if (error) throw new Error('The deliverable record could not be saved. Please try again.');
     return data as OrderFile;

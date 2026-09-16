@@ -2,17 +2,21 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { requestPasswordReset, signInWithEmail, switchDemoPersona, signInWithGoogle } from '@/lib/services/auth';
 import { Layers, User, ShieldCheck, Lock } from 'lucide-react';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { INPUT_LIMITS, PASSWORD_RESET_RESPONSE } from '@/lib/security';
+import { getSafePostAuthRedirect } from '@/lib/security';
+import { isDemoModeEnabled } from '@/lib/runtime-mode';
 
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = getSafePostAuthRedirect(searchParams.get('next'));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,7 +34,7 @@ export default function LoginPage() {
         if (res.user?.is_admin) {
           router.push('/admin/orders');
         } else {
-          router.push('/dashboard/orders');
+          router.push(nextPath);
         }
       }
     } catch {
@@ -53,7 +57,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await signInWithGoogle();
+      const res = await signInWithGoogle(nextPath);
       if (res.error) {
         setError(res.error);
       } else if (res.user) {
@@ -61,7 +65,7 @@ export default function LoginPage() {
         if (res.user.is_admin) {
           router.push('/admin/orders');
         } else {
-          router.push('/dashboard/orders');
+          router.push(nextPath);
         }
       }
       // Real Supabase: redirect handled by OAuth, no action needed
@@ -99,7 +103,7 @@ export default function LoginPage() {
           </div>
 
           {/* Quick 1-Click Zero-Config Demo Switchers for immediate evaluator testing */}
-          {!isSupabaseConfigured() && <div className="mt-6 rounded-lg border border-[#E6E4DF] bg-[#FAFAF8] p-3 text-center">
+          {!isSupabaseConfigured() && isDemoModeEnabled() && <div className="mt-6 rounded-lg border border-[#E6E4DF] bg-[#FAFAF8] p-3 text-center">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#888888]">
               Instant Demo Access (Zero Config)
             </span>
@@ -206,7 +210,7 @@ export default function LoginPage() {
 
           <div className="mt-6 border-t border-[#E6E4DF] pt-4 text-center text-xs text-[#666666]">
             Don&apos;t have an account yet?{' '}
-            <Link href="/signup" className="font-bold text-[#18794E] hover:underline">
+            <Link href={`/signup?next=${encodeURIComponent(nextPath)}`} className="font-bold text-[#18794E] hover:underline">
               Create Account
             </Link>
           </div>

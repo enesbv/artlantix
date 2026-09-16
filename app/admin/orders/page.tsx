@@ -11,6 +11,7 @@ import {
   addOperatorDeliverable,
 } from '@/lib/services/orders';
 import { getCurrentUser } from '@/lib/services/auth';
+import { requestOrderUploadScan } from '@/lib/services/storage';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { INPUT_LIMITS } from '@/lib/security';
 import { getExpectedDelivery, ORDER_STATUS_LABELS } from '@/lib/order-status';
@@ -76,9 +77,30 @@ export default function AdminOrdersPage() {
     setModalOpen(true);
   };
 
+  const retryUploadScan = async () => {
+    if (!selectedOrder || isSubmittingAction) return;
+    setIsSubmittingAction(true);
+    setActionError(null);
+    try {
+      await requestOrderUploadScan(selectedOrder.id);
+      const updatedList = await getOrders(undefined, true, true);
+      setOrders(updatedList);
+      setSelectedOrder(updatedList.find((order) => order.id === selectedOrder.id) || selectedOrder);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'The security scan could not be started.');
+    } finally {
+      setIsSubmittingAction(false);
+    }
+  };
+
   const handleApplyOperatorUpdates = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
+    const sourceUpload = selectedOrder.files?.find((file) => file.file_category === 'customer_upload');
+    if (isSupabaseConfigured() && newStatus !== 'cancelled' && sourceUpload?.scan_status !== 'clean') {
+      setActionError('This customer upload is quarantined. Wait for a clean malware scan before production work.');
+      return;
+    }
     if (isSupabaseConfigured() && ['preview_ready', 'completed'].includes(newStatus) && !deliverableFile) {
       setActionError('Choose the real preview or master file before setting this delivery status.');
       return;
@@ -388,6 +410,15 @@ export default function AdminOrdersPage() {
                 ✕
               </button>
             </div>
+
+            {isSupabaseConfigured() && selectedOrder.files?.find((file) => file.file_category === 'customer_upload')?.scan_status !== 'clean' && (
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+                <span>Customer artwork is quarantined. Production actions remain locked until the malware scan reports clean.</span>
+                <button type="button" onClick={retryUploadScan} disabled={isSubmittingAction} className="shrink-0 rounded bg-amber-900 px-3 py-1.5 font-bold text-white disabled:opacity-50">
+                  Retry scan
+                </button>
+              </div>
+            )}
 
             <form onSubmit={handleApplyOperatorUpdates} className="mt-4 space-y-4 text-xs">
               {/* Status transition dropdown */}

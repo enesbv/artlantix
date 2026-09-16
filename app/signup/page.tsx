@@ -2,15 +2,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { signUpWithEmail } from '@/lib/services/auth';
 import { Layers, ArrowRight, Building2, User } from 'lucide-react';
-import { INPUT_LIMITS } from '@/lib/security';
+import { getSafePostAuthRedirect, INPUT_LIMITS } from '@/lib/security';
 
 export default function SignUpPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = getSafePostAuthRedirect(searchParams.get('next'));
   const [accountType, setAccountType] = useState<'individual' | 'business'>('individual');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -25,13 +27,13 @@ export default function SignUpPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await signUpWithEmail(email, fullName, password, accountType, companyName);
+      const res = await signUpWithEmail(email, fullName, password, accountType, companyName, nextPath);
       if (res.error) {
         setError(res.error);
       } else if (res.confirmationRequired) {
         setConfirmationRequired(true);
       } else {
-        router.push('/dashboard');
+        router.push(nextPath);
       }
     } catch {
       setError('An error occurred while creating your account.');
@@ -162,7 +164,7 @@ export default function SignUpPage() {
 
           <div className="mt-6 border-t border-[#E6E4DF] pt-4 text-center text-xs text-[#666666]">
             Already have an account?{' '}
-            <Link href="/login" className="font-bold text-[#111111] hover:underline">
+            <Link href={`/login?next=${encodeURIComponent(nextPath)}`} className="font-bold text-[#111111] hover:underline">
               Sign In
             </Link>
           </div>

@@ -1,5 +1,6 @@
 import { OrderFile, Order, FileCategory } from '../types';
 import { isSupabaseConfigured, createClient } from '../supabase/client';
+import { BACKEND_NOT_CONFIGURED_ERROR, isDemoModeEnabled } from '../runtime-mode';
 import { normalizeFilename } from '../security';
 
 export const STORAGE_BUCKETS = {
@@ -184,8 +185,27 @@ export async function getSignedDownloadUrl(
     throw new Error('The secure download link could not be created. Please try again.');
   }
 
-  // In mock/offline mode or if direct download is needed
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
+
+  // Explicit development demo download.
   return file.url || file.storage_path;
+}
+
+export async function removeStorageObject(bucket: StorageBucket, path: string): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  const supabase = createClient();
+  if (!supabase) return;
+  await supabase.storage.from(bucket).remove([path]);
+}
+
+export async function requestOrderUploadScan(orderId: string): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  const response = await fetch('/api/uploads/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId }),
+  });
+  if (!response.ok) throw new Error('The artwork is saved but its security scan is still pending.');
 }
 
 export async function uploadToStorageBucket(
@@ -210,6 +230,7 @@ export async function uploadToStorageBucket(
     }
   }
 
+  if (!isDemoModeEnabled()) return { path: destinationPath, error: BACKEND_NOT_CONFIGURED_ERROR };
   const processed = await processClientFileUpload(file);
   return { path: destinationPath, url: processed.url };
 }
@@ -229,7 +250,9 @@ export async function triggerFileDownload(file: OrderFile): Promise<void> {
     return;
   }
 
-  // Demo mode generates representative files so the workflow can be evaluated offline.
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
+
+  // Explicit development demo generates representative files for evaluation.
   let content = `/* Artlantix Production Master - ${file.filename} */\n/* Generated for professional print & CNC output */\n`;
 
   if (file.format === 'svg') {
@@ -269,33 +292,8 @@ export async function triggerFileDownload(file: OrderFile): Promise<void> {
   URL.revokeObjectURL(downloadUrl);
 }
 
-export function triggerMasterBundleZip(order: Order): void {
-  if (typeof window === 'undefined') return;
-
-  const manifest = `ARTLANTIX DEMO PACKAGE MANIFEST
-=============================================
-Order Number: ${order.order_number}
-Project: ${order.project_name}
-This text file represents a future downloadable archive. It is not a ZIP file
-and does not contain production artwork.
-
-Planned format specifications:
-- AI (Adobe Illustrator CC / CS6 compatible, layered)
-- EPS (Illustrator 10 EPS, unflattened CMYK, bounding box strict)
-- SVG (W3C standard, closed bezier paths, zero raster effects)
-- PDF (PDF/X-1a:2001 high quality print press profile)
-- PNG (4000x4000px 300 DPI transparent raster preview)
-
-Demo data only. Connect private object storage and archive generation before production use.
-=============================================`;
-
-  const blob = new Blob([manifest], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${order.order_number}-demo-package-manifest.txt`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+export async function downloadAllMasterFiles(order: Order): Promise<void> {
+  const masterFiles = order.files?.filter((file) => file.file_category === 'final_master') || [];
+  if (masterFiles.length === 0) throw new Error('No master files are available for this order yet.');
+  for (const file of masterFiles) await triggerFileDownload(file);
 }

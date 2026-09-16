@@ -8,9 +8,8 @@ import Footer from '@/components/Footer';
 import DeliverableBadge from '@/components/DeliverableBadge';
 import { calculatePricing, PricingInput } from '@/lib/pricing';
 import { createOrder, getOrderById } from '@/lib/services/orders';
-import { getCurrentUser, signUpWithEmail } from '@/lib/services/auth';
+import { getCurrentUser } from '@/lib/services/auth';
 import { processClientFileUpload, UploadedFileData } from '@/lib/services/storage';
-import { processCheckout } from '@/lib/services/payments';
 import { getSiteSettings, SiteSettings, DEFAULT_SITE_SETTINGS } from '@/lib/services/content';
 import { clearQuoteDraft, loadQuoteDraft, saveQuoteDraft } from '@/lib/services/quote-draft';
 import { INPUT_LIMITS } from '@/lib/security';
@@ -32,8 +31,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Lock,
-  CreditCard,
-  Building,
   Clock3,
   ShieldCheck,
 } from 'lucide-react';
@@ -158,7 +155,6 @@ export default function QuotePageContent() {
   // Step 3 Checkout / Submission Form
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
-  const [paymentOption, setPaymentOption] = useState<'card_simulated' | 'pay_after_quote_review' | 'invoice_b2b'>('card_simulated');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -335,14 +331,15 @@ export default function QuotePageContent() {
     setIsSubmitting(true);
 
     try {
-      let activeUser = currentUser;
+      const activeUser = currentUser;
       if (!activeUser) {
-        const emailToUse = customerEmail.trim() || 'client-order@artlantix.com';
-        const nameToUse = customerName.trim() || 'Valued Client';
-        const { user, error } = await signUpWithEmail(emailToUse, nameToUse);
-        if (error || !user) throw new Error(error || 'Please sign in to continue.');
-        activeUser = user;
-        setCurrentUser(user);
+        saveQuoteDraft({
+          projectName, artworkType, complexity, artistReviewRequested, hasText,
+          reconstructionOption, colorCount, turnaround, notes, customerName,
+          customerEmail, uploadedFile, sourceOrderId, savedAt: new Date().toISOString(),
+        });
+        router.push('/login?next=/quote');
+        return;
       }
 
       const orderData = {
@@ -359,10 +356,10 @@ export default function QuotePageContent() {
         turnaround: turnaround,
         estimated_price: pricing.total,
         final_price: pricing.total,
-        status: (pricing.needsManualReview || paymentOption === 'pay_after_quote_review' ? 'quote_requested' : 'in_progress') as OrderStatus,
+        status: 'quote_requested' as OrderStatus,
         notes: artistReviewRequested ? `[Artist assessment requested; complexity and price are provisional.]\n${notes}` : notes,
         needs_manual_review: pricing.needsManualReview,
-        payment_method: pricing.needsManualReview ? 'pay_after_quote_review' : paymentOption,
+        payment_method: 'pay_after_quote_review' as const,
         source_order_id: sourceOrderId,
       };
 
@@ -377,15 +374,6 @@ export default function QuotePageContent() {
         : undefined;
 
       const created = await createOrder(orderData, filePayload);
-
-      await processCheckout({
-        orderId: created.id,
-        orderNumber: created.order_number,
-        amount: pricing.total,
-        customerEmail: customerEmail || activeUser?.email || '',
-        projectName: projectName,
-        paymentMethod: pricing.needsManualReview ? 'pay_after_quote_review' : paymentOption,
-      });
 
       clearQuoteDraft();
       router.push(`/dashboard/orders/${created.id}`);
@@ -836,98 +824,21 @@ export default function QuotePageContent() {
                 />
               </div>
 
-              {/* Payment Method Selector */}
+              {/* Production quote workflow: no unverified payment claims. */}
               <div>
                 <label className="block text-sm font-bold text-[#141414]">
                   {tQuote('paymentTitle')}
                 </label>
-                {pricing.needsManualReview ? (
-                  <div role="status" className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-                    <p className="font-bold">{tQuote('complexityGuide.zeroDue')}</p>
-                    <p className="mt-2">{tQuote('complexityGuide.reviewDescription')}</p>
+                <div role="status" className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+                  <div className="flex items-start gap-3">
+                    <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#18794E]" />
+                    <div>
+                      <p className="font-bold">{tQuote('ui.payAfter')}</p>
+                      <p className="mt-1 leading-relaxed">{tQuote('ui.payAfterDesc')}</p>
+                      <p className="mt-2 font-mono text-xs font-bold text-[#18794E]">{tQuote('complexityGuide.zeroDue')}</p>
+                    </div>
                   </div>
-                ) : <div className="mt-3 space-y-2">
-                  <div role="note" className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-[11px] leading-relaxed text-sky-900">
-                    {tQuote('ui.demoCheckout')}
-                  </div>
-                  <label
-                    className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
-                      paymentOption === 'card_simulated'
-                        ? 'border-[#141414] bg-[#F5F4F0]'
-                        : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="payment"
-                        checked={paymentOption === 'card_simulated'}
-                        onChange={() => setPaymentOption('card_simulated')}
-                        className="text-[#141414] focus:ring-0"
-                      />
-                      <div>
-                        <div className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
-                          <CreditCard className="h-3.5 w-3.5 text-[#18794E]" />
-                          <span>{tQuote('ui.card')}</span>
-                        </div>
-                        <div className="text-[11px] text-[#737373]">{tQuote('ui.cardDesc')}</div>
-                      </div>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-[#141414]">${pricing.total}</span>
-                  </label>
-
-                  <label
-                    className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
-                      paymentOption === 'pay_after_quote_review'
-                        ? 'border-[#141414] bg-[#F5F4F0]'
-                        : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="payment"
-                        checked={paymentOption === 'pay_after_quote_review'}
-                        onChange={() => setPaymentOption('pay_after_quote_review')}
-                        className="text-[#141414] focus:ring-0"
-                      />
-                      <div>
-                        <div className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
-                          <Lock className="h-3.5 w-3.5 text-[#737373]" />
-                          <span>{tQuote('ui.payAfter')}</span>
-                        </div>
-                        <div className="text-[11px] text-[#737373]">{tQuote('ui.payAfterDesc')}</div>
-                      </div>
-                    </div>
-                    <span className="font-mono text-xs text-[#737373]">{tQuote('complexityGuide.zeroDue')}</span>
-                  </label>
-
-                  <label
-                    className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
-                      paymentOption === 'invoice_b2b'
-                        ? 'border-[#141414] bg-[#F5F4F0]'
-                        : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="payment"
-                        checked={paymentOption === 'invoice_b2b'}
-                        onChange={() => setPaymentOption('invoice_b2b')}
-                        className="text-[#141414] focus:ring-0"
-                      />
-                      <div>
-                        <div className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
-                          <Building className="h-3.5 w-3.5 text-[#737373]" />
-                          <span>{tQuote('ui.b2b')}</span>
-                        </div>
-                        <div className="text-[11px] text-[#737373]">{tQuote('ui.b2bDesc')}</div>
-                      </div>
-                    </div>
-                    <span className="font-mono text-xs text-[#737373]">{tQuote('ui.net30')}</span>
-                  </label>
-                </div>}
+                </div>
               </div>
 
               {/* Submission CTA */}

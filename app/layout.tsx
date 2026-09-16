@@ -18,11 +18,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: "Artlantix · Manual Vectorization & Artwork Reconstruction Studio",
   description:
     "Turn AI concepts, low-resolution artwork, and raster sketches into pristine, production-ready vector files. 100% hand-crafted by master production artists.",
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    type: 'website',
+    title: 'Artlantix · Production-ready vector artwork',
+    description: 'Manual vectorization and artwork reconstruction for print, embroidery, signage and CNC production.',
   },
 };
 

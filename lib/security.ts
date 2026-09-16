@@ -1,6 +1,6 @@
 const INTERNAL_ORIGIN = 'https://artlantix.invalid';
 
-const AUTHENTICATED_DESTINATIONS = ['/dashboard', '/admin'] as const;
+const AUTHENTICATED_DESTINATIONS = ['/dashboard', '/admin', '/quote'] as const;
 
 export const INPUT_LIMITS = {
   name: 120,

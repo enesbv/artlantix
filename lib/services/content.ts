@@ -10,6 +10,7 @@ import {
   normalizeRequiredText,
 } from '../security';
 import { hasAllowedFileSignature } from './storage';
+import { BACKEND_NOT_CONFIGURED_ERROR, isDemoModeEnabled } from '../runtime-mode';
 
 export interface SiteSettings {
   hero_title: string;
@@ -102,7 +103,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     return DEFAULT_SITE_SETTINGS;
   }
 
-  if (typeof window === 'undefined') return DEFAULT_SITE_SETTINGS;
+  if (!isDemoModeEnabled() || typeof window === 'undefined') return DEFAULT_SITE_SETTINGS;
   const raw = localStorage.getItem(STORAGE_KEY_SETTINGS);
   if (!raw) {
     localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(DEFAULT_SITE_SETTINGS));
@@ -139,6 +140,7 @@ export async function updateSiteSettings(settings: Partial<SiteSettings>): Promi
     return updated;
   }
 
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(updated));
     window.dispatchEvent(new Event('artlantix_content_updated'));
@@ -182,6 +184,7 @@ export async function getPortfolioItems(activeOnly: boolean = false): Promise<Be
     return [];
   }
 
+  if (!isDemoModeEnabled()) return [];
   if (typeof window === 'undefined') {
     const list = getInitialShowcases();
     return activeOnly ? list.filter((i) => i.active) : list;
@@ -233,6 +236,7 @@ export async function createPortfolioItem(
     return data as BeforeAfterShowcase;
   }
 
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
   const existing = await getPortfolioItems(false);
   const updated = [newItem, ...existing];
   if (typeof window !== 'undefined') {
@@ -269,6 +273,7 @@ export async function updatePortfolioItem(
     return data as BeforeAfterShowcase;
   }
 
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
   const existing = await getPortfolioItems(false);
   const idx = existing.findIndex((i) => i.id === id);
   if (idx === -1) return null;
@@ -291,6 +296,7 @@ export async function deletePortfolioItem(id: string): Promise<boolean> {
     return true;
   }
 
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
   const existing = await getPortfolioItems(false);
   const filtered = existing.filter((i) => i.id !== id);
   if (typeof window !== 'undefined') {
@@ -324,7 +330,9 @@ export async function uploadShowcaseMedia(file: File, prefix: 'raster' | 'vector
     return data.publicUrl;
   }
 
-  // Fallback: Read file as Data URL for local preview
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
+
+  // Explicit development demo: read file as a local data URL.
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);

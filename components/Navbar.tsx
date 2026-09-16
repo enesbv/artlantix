@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
+import { isDemoModeEnabled } from '@/lib/runtime-mode';
 import { useTranslations } from 'next-intl';
 
 export default function Navbar() {
@@ -62,7 +63,7 @@ export default function Navbar() {
           <div className="relative flex items-center gap-3">
             <LanguageSwitcher />
             <div className="hidden sm:block h-3.5 w-px bg-[#E2E8F0]" />
-            {!isSupabaseConfigured() && <>
+            {!isSupabaseConfigured() && isDemoModeEnabled() && <>
             <span className="hidden md:inline text-[11px] text-[#475569]">{t('persona')}:</span>
             <button
               onClick={() => setPersonaOpen(!personaOpen)}

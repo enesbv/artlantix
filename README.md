@@ -1,46 +1,41 @@
 # Artlantix
 
-[Türkçe](#turkce) · [English](#english)
+[Türkçe](#türkçe) · [English](#english)
 
-<a id="turkce"></a>
+**Güncel sürüm:** 0.2.0 — Güvenli Supabase altyapısı ve production hazırlığı. Bir sonraki odak: UI/UX geliştirmeleri.
 
 ## Türkçe
 
-### Artlantix nedir?
+Artlantix; düşük çözünürlüklü logo, taranmış çizim ve yapay zekâ taslaklarının uzman çizerler tarafından baskı, tekstil, tabela ve CNC üretimine uygun vektör dosyalarına dönüştürülme sürecini yöneten bir stüdyo platformudur. Otomatik vektör üretmez; insan eliyle yeniden çizim iş akışını yönetir.
 
-Artlantix, logo ve görsellerin uzman çizerler tarafından yeniden çizilmesi için geliştirilen bir sipariş ve müşteri takip platformudur. Bulanık logoların, taranmış çizimlerin ve yapay zekâ taslaklarının baskı, tekstil ve tabela üretimine uygun dosyalara dönüştürülme sürecini yönetmeyi amaçlar.
+### Ürün akışı
 
-Vektör, büyütüldüğünde görüntü kalitesi bozulmayan bir çizim türüdür. Artlantix'in temeli insan eliyle yeniden çizimdir; site kendi başına otomatik vektör üretmez.
+1. Müşteri hesap oluşturur veya giriş yapar.
+2. JPG, PNG, WebP ya da PDF dosyasını yükler; karmaşıklık, renk, restorasyon ve teslim süresini seçer.
+3. Sistem bir ön tahmin gösterir ve özel dosyayla birlikte teklif talebi oluşturur.
+4. Stüdyo kapsamı ve nihai fiyatı inceler; üretim durumunu panelden günceller.
+5. Müşteri filigranlı önizlemeyi onaylar veya görsel üzerinde revizyon noktaları bırakır.
+6. Stüdyo gerçek master dosyaları yüklediğinde müşteri bunları süreli özel bağlantılarla indirir.
 
-### Şu anda ne durumda?
+Site çevrim içi ödeme almaz. Kart çekilmiş veya fatura kesilmiş gibi davranan demo adımları kaldırılmıştır. Yayınlanabilir ilk sürüm, ödeme/tahsilatın stüdyo tarafından teklif onayından sonra haricen yönetildiği gerçek bir **teklif talebi** modelidir.
 
-Proje **geliştirme aşamasındaki bir demodur**. Müşteri ve yönetici ekranları denenebilir; gerçek ödeme, dosya teslimi ve bazı hesap işlemleri henüz tamamlanmamıştır.
+### Çalışan özellikler
 
-| Bölüm | Şu anda yapılabilenler | Eksik olanlar |
-| --- | --- | --- |
-| Ana sayfa | Hizmetler, örnek çalışmalar ve önce/sonra karşılaştırması. | Gerçek müşteri örnekleri ve tam çeviri. |
-| Fiyat teklifi | Görselli karmaşıklık seçimi, çizer değerlendirmesi, otomatik taslak kaydı, yeniden sipariş ve tahmini ücret. | Sunucuda fiyat doğrulama ve gerçek ödeme. |
-| Müşteri paneli | Sipariş takibi, teslim tahmini, bildirim, mesaj, görsel revizyon işaretleri ve onay akışı. | Canlı servis üzerinde uçtan uca entegrasyon testi ve kalan panel çevirileri. |
-| Yönetici paneli | Üretim kuyruğu, gerçek servis bağlıyken özel önizleme/master yükleme ve içerik düzenleme ekranları. | İşlemleri atomik hale getirme ve canlı veritabanı testi. |
-| Dosya arşivi | Demo dosyaları ve açıkça etiketlenmiş paket manifesti; Supabase modunda süreli özel indirme bağlantıları. | Gerçek ZIP üretimi ve canlı depolama testi. |
-| Kurumsal bölüm | Toplu dosya seçip tarayıcıya bir parti taslağı kaydetme. | Gerçek toplu yükleme, şirket onayı ve fatura akışı. |
-| Üyelik | Demo hesap geçişi; Supabase için Google dönüşü, şifre sıfırlama ve profil kaydı. | Canlı Supabase projesinde uçtan uca doğrulama. |
+- Supabase kimlik doğrulama, Google OAuth dönüşü, şifre sıfırlama ve profil yönetimi
+- Özel müşteri yüklemeleri, özel önizlemeler ve özel master teslimleri
+- Veritabanında yeniden doğrulanan fiyat ve güvenli ilk sipariş durumu
+- Atomik sipariş + dosya metadata kaydı ve başarısız yükleme temizliği
+- Sipariş durumu, teslim tahmini, mesajlar, onay ve görsel revizyon işaretleri
+- Yönetici üretim kuyruğu, teslim dosyası yükleme ve içerik yönetimi
+- Gerçek çoklu B2B dosya gönderimi; her dosya için ayrı takip edilebilir teklif
+- Türkçe, İngilizce ve Almanca public sayfalar
+- Güvenlik başlıkları, sağlık endpoint'i, sitemap, robots ve CI kalite kontrolleri
 
-Ödeme ekranındaki başarı, gerçek kart tahsilatı yapıldığı anlamına gelmez. Demo verileri tarayıcıda tutulur; başka cihazlara taşınmaz ve tarayıcı verileri temizlenince kaybolabilir. Türkçe, İngilizce ve Almanca desteği başlamıştır; panel ve bazı sayfa metinleri hâlâ İngilizcedir.
+Demo verisi yalnız geliştirme ortamında veya `NEXT_PUBLIC_DEMO_MODE=true` açıkça verildiğinde kullanılır. Production ortamında Supabase eksikse uygulama sahte veriye düşmez. `/api/health` bu durumda `503` döndürür.
 
-### Site nasıl denenir?
+### Yerelde çalıştırma
 
-1. Aşağıdaki kurulum adımlarıyla siteyi açın. Demo için Supabase hesabı veya API anahtarı gerekmez.
-2. Üst menüden veya giriş sayfasından **Demo Customer** hesabını seçerek müşteri ekranlarını inceleyin.
-3. Fiyat teklifi bölümünde dosya seçip çizim seçeneklerini deneyin. Bu sürüm JPG/JPEG, PNG, WebP ve PDF kabul eder; dosya sınırı **2 MB**'tır.
-4. Sipariş detayında teslim tarihini, durum geçmişini, mesajları ve görsel üzerine revizyon işaretlerini inceleyin.
-5. **Demo Operator** hesabına geçerek aynı sürecin yönetici tarafını görün.
-
-Gerçek Supabase bağlantısında demo hesap seçimi kapatılır. Tek dosya sınıra uysa bile biriken dosyalar toplam tarayıcı depolama alanını doldurabilir.
-
-### Bilgisayarda çalıştırma
-
-Gerekenler: Git, Node.js ve pnpm. Bu proje için **Node.js 24** ve `package.json` içinde sabitlenen **pnpm 11.19.0** kullanabilirsiniz. Kurulu Next.js paketinin belirttiği asgari Node.js sürümü 20.9.0'dır.
+Gerekenler: Node.js 20.9+ ve pnpm 11.19.0.
 
 ```sh
 git clone https://github.com/enesbv/artlantix.git
@@ -49,88 +44,95 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Tarayıcıda [localhost:3000](http://localhost:3000) adresini açın. Proje zaten bilgisayarınızdaysa ilk iki adım yerine mevcut proje klasörünü açın.
+Ardından [localhost:3000](http://localhost:3000) adresini açın. Geliştirme demosunu kapatmak için `.env.local` içine `NEXT_PUBLIC_DEMO_MODE=false` yazın.
 
-Bağımlılıkların tekrarlanabilir kurulumu için tek kaynak `pnpm-lock.yaml` dosyasıdır. Farklı bir paket yöneticisiyle ikinci bir kilit dosyası üretmeyin.
+### Production kurulumu
 
-### Gerçek servis bağlantısı
-
-Supabase, kullanıcı hesapları, veritabanı ve dosya depolama için planlanan servistir. Bağlantıyı geliştirmek isteyenler proje kökünde `.env.local` dosyası oluşturup şu alanları kendi proje bilgileriyle doldurabilir:
+1. Bir Supabase projesi oluşturun.
+2. SQL Editor veya güvenilir migration aracınızla sırayla çalıştırın:
+   - `supabase/schema.sql`
+   - `supabase/migrations/20260907_access_hardening.sql`
+   - `supabase/migrations/20260916_production_workflows.sql`
+3. Auth sağlayıcılarını, e-posta doğrulamayı, kesin redirect URL listesini, rate limit/CAPTCHA ve admin MFA'yı yapılandırın.
+4. Hosting secret store'a aşağıdaki public ayarları ekleyin:
 
 ```env
+NEXT_PUBLIC_DEMO_MODE=false
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_APP_URL=https://your-domain.com
 ```
 
-Bu dosyayı GitHub'a yüklemeyin. Gizli yönetici anahtarlarını tarayıcı koduna veya `NEXT_PUBLIC_` alanlarına koymayın.
-
-**Bu bilgileri eklemek siteyi gerçek satışa hazır hale getirmez.** Temel şema `supabase/schema.sql` dosyasındadır. Ardından uygulanmak üzere `supabase/migrations/20260907_access_hardening.sql` hazırlanmıştır; bu düzeltme canlı veritabanında henüz uygulanıp test edilmemiştir. Eksik servisler ve güvenlik kontrolleri tamamlanmalıdır. Mevcut veritabanında SQL dosyalarını incelemeden tekrar çalıştırmayın.
-
-### Geliştiriciler için kısa rehber
-
-Proje Next.js, React, TypeScript ve Tailwind CSS kullanır.
-
-| Dosya / klasör | İçerik |
-| --- | --- |
-| `app/` | Sayfalar, müşteri ve yönetici panelleri |
-| `components/` | Menü, teklif formu ve karşılaştırma gibi ortak parçalar |
-| `lib/pricing.ts` | Fiyat hesaplama kuralları |
-| `lib/services/` | Hesap, sipariş, içerik, dosya ve ödeme işlemleri |
-| `messages/` | Türkçe, İngilizce ve Almanca metinler |
-| `supabase/` | Veritabanı şeması ve güvenlik düzeltmeleri |
-| `tests/` | Belirli hataların tekrar oluşmasını kontrol eden testler |
+5. Docker/Podman bulunan özel bir sunucuda tarama servisini başlatın:
 
 ```sh
-pnpm lint
-pnpm build
-pnpm test
+MALWARE_SCANNER_TOKEN="uzun-rastgele-bir-deger" docker compose -f infra/malware-scanner/compose.yml up -d --build
 ```
 
-10 Eylül 2026 güvenlik incelemesinde production derlemesi ve 11 test geçti. Kod kontrolünde hata veya uyarı, dependency taramasında bilinen güvenlik açığı bulunmadı. Bunlar canlı ödeme veya veritabanı testlerinin yerine geçmez.
+ClamAV signature engine için sunucuda en az 3 GiB, tercihen 4 GiB kullanılabilir RAM ayırın.
 
-Ayrıntılar: [siber güvenlik denetimi](SECURITY_AUDIT.md), [inceleme ve geliştirme raporu](REVIEW.md), [AI'lar için proje rehberi — İngilizce](llm.md), [geliştirme talimatları](AGENTS.md). AI asistanları değişiklik yapmadan önce son iki dosyayı okumalıdır.
+Uygulama sunucusundaki `MALWARE_SCANNER_URL`, `MALWARE_SCANNER_TOKEN` ve server-only `SUPABASE_SERVICE_ROLE_KEY` değerlerini ayarlayın. Müşteri dosyası `pending` olarak karantinada kalır; yalnız ClamAV `clean` sonucu verirse operatör okuyabilir. Zararlı sonuçta Storage nesnesi silinir. Admin panelinde başarısız taramayı yeniden deneme düğmesi bulunur.
+6. İki müşteri ve bir yönetici hesabıyla RLS, Storage, OAuth, reset, yükleme, revizyon ve teslim senaryolarını staging'de test edin.
+7. `/api/health` yanıtının `200` ve `status: ok` olduğunu doğrulayın.
+
+Yerel Supabase için Docker-compatible runtime kurulduktan sonra:
+
+```sh
+pnpm db:start
+pnpm db:reset
+pnpm db:test
+pnpm db:lint
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` gibi gizli anahtarları `NEXT_PUBLIC_` değişkenine veya tarayıcı koduna koymayın. Canlı SQL migration ve zararlı dosya taraması yapılmadan gerçek müşteri dosyası kabul etmeyin.
+
+### Kalite kontrolleri
+
+```sh
+pnpm test
+pnpm lint
+pnpm build
+pnpm audit --prod
+```
+
+Mimari ve güvenlik ayrıntıları için [llm.md](llm.md), [SECURITY_AUDIT.md](SECURITY_AUDIT.md), [REVIEW.md](REVIEW.md) ve [AGENTS.md](AGENTS.md) dosyalarını okuyun.
 
 ---
 
-<a id="english"></a>
-
 ## English
 
-### What is Artlantix?
+**Current version:** 0.2.0 — Secure Supabase foundation and production preparation. Next focus: UI/UX improvements.
 
-Artlantix is an ordering and customer management platform for a studio that redraws logos and artwork by hand. It is designed to manage the process of turning blurry logos, scanned drawings and AI-generated concepts into files for printing, apparel and signage.
+Artlantix is a studio workflow platform for turning low-resolution logos, scanned drawings and AI concepts into production-ready vector files for print, apparel, signage and CNC work. It does not generate vectors automatically; it manages a human redrawing workflow.
 
-A vector is a drawing that can be enlarged without losing image quality. Artlantix is built around work by human artists; the website does not automatically generate production vectors.
+### Product workflow
 
-### Current status
+1. The customer creates an account or signs in.
+2. They upload a JPG, PNG, WebP or PDF and choose complexity, color, restoration and turnaround options.
+3. The system displays a provisional estimate and creates a private quote request with the source file.
+4. The studio reviews scope and final price, then updates production status in the operator portal.
+5. The customer approves the watermarked preview or places visual revision markers.
+6. After the studio uploads real master files, the customer downloads them through expiring private links.
 
-This project is **a demo under development**. You can explore customer and operator screens, but real payments, file delivery and some account operations are not yet complete.
+The site does not collect online payments. Demo steps that pretended to charge a card or issue an invoice have been removed. The first deployable model is a real **quote-request workflow**, with collection handled externally by the studio after quote approval.
 
-| Area | Available now | Still needed |
-| --- | --- | --- |
-| Homepage | Service information, example work and before/after comparisons. | Real client examples and complete translations. |
-| Quote builder | Illustrated complexity choices, artist assessment, autosaved drafts, reorder prefills and estimated pricing. | Server-validated pricing and real checkout. |
-| Customer portal | Order tracking, delivery estimates, notifications, messages, visual revision markers and approval flow. | End-to-end testing on live services and remaining portal translations. |
-| Operator portal | Production queue, private preview/master upload in Supabase mode and content management. | Atomic operations and live database testing. |
-| File archive | Demo files and a clearly labelled package manifest; signed private downloads in Supabase mode. | Real ZIP generation and live storage testing. |
-| Business hub | Select multiple files and save a browser-local batch draft. | Actual batch upload, company approval and invoicing. |
-| Accounts | Demo switching plus Supabase OAuth callback, password reset request and profile persistence. | End-to-end validation against a live Supabase project. |
+### Implemented features
 
-A successful payment message does not mean a card was charged. Demo data stays in the browser, does not sync to other devices and may disappear when browser data is cleared. English, German and Turkish support is partial; the portal and some page content are still in English.
+- Supabase authentication, Google OAuth callback, password recovery and profiles
+- Private customer uploads, private previews and private master deliveries
+- Database-recalculated pricing and a server-enforced initial order status
+- Atomic order/file metadata creation with failed-upload cleanup
+- Order status, delivery estimates, messages, approvals and visual revision markers
+- Operator production queue, deliverable upload and content management
+- Real multi-file business submissions with one trackable quote per file
+- Turkish, English and German public pages
+- Security headers, health endpoint, sitemap, robots and CI quality checks
 
-### Try the demo
-
-1. Start the site using the instructions below. No Supabase account or API key is required for the demo.
-2. Select **Demo Customer** from the top menu or login page to explore the customer experience.
-3. Select a file in the quote builder and try the artwork options. This version accepts JPG/JPEG, PNG, WebP and PDF files up to **2 MB**.
-4. Open an order to explore delivery dates, status history, messages and visual revision markers.
-5. Switch to **Demo Operator** to see the production side of the workflow.
-
-Demo account switching is disabled when a real Supabase connection is configured. Accumulated files may fill total browser storage even when individual files meet the upload limit.
+Demo data is available only in development or when `NEXT_PUBLIC_DEMO_MODE=true` is explicitly set. Production never falls back to fake data when Supabase is missing. `/api/health` returns `503` for that configuration.
 
 ### Run locally
 
-Requirements: Git, Node.js and pnpm. This project can use **Node.js 24** and the **pnpm 11.19.0** version pinned in `package.json`. The installed Next.js package specifies a minimum Node.js version of 20.9.0.
+Requirements: Node.js 20.9+ and pnpm 11.19.0.
 
 ```sh
 git clone https://github.com/enesbv/artlantix.git
@@ -139,43 +141,55 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open [localhost:3000](http://localhost:3000) in your browser. If you already have the project locally, open its existing folder instead of running the first two commands.
+Open [localhost:3000](http://localhost:3000). Add `NEXT_PUBLIC_DEMO_MODE=false` to `.env.local` to test fail-closed behavior.
 
-`pnpm-lock.yaml` is the single source for reproducible dependency installation. Do not generate a second lockfile with another package manager.
+### Production setup
 
-### Connecting real services
-
-Supabase is the intended service for accounts, database and file storage. To develop the integration, create `.env.local` in the project root and enter your project values:
+1. Create a Supabase project.
+2. Apply these files in order with the SQL Editor or your trusted migration tool:
+   - `supabase/schema.sql`
+   - `supabase/migrations/20260907_access_hardening.sql`
+   - `supabase/migrations/20260916_production_workflows.sql`
+3. Configure auth providers, email verification, exact redirect URLs, rate limits/CAPTCHA and admin MFA.
+4. Add these public settings to the hosting secret store:
 
 ```env
+NEXT_PUBLIC_DEMO_MODE=false
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_APP_URL=https://your-domain.com
 ```
 
-Do not upload this file to GitHub. Never place secret administrative keys in browser code or `NEXT_PUBLIC_` variables.
-
-**Adding these values does not make the site ready for real sales.** The base schema is in `supabase/schema.sql`. The follow-up `supabase/migrations/20260907_access_hardening.sql` is intended to run afterward; it has not yet been applied and tested against a live database. Incomplete services and permission checks still need work. Review the SQL before rerunning it on an existing database.
-
-### Quick developer guide
-
-The project uses Next.js, React, TypeScript and Tailwind CSS.
-
-| File / folder | Purpose |
-| --- | --- |
-| `app/` | Pages, customer portal and operator screens |
-| `components/` | Shared navigation, quote forms and comparison elements |
-| `lib/pricing.ts` | Pricing rules |
-| `lib/services/` | Accounts, orders, content, files and payments |
-| `messages/` | Turkish, English and German text |
-| `supabase/` | Database schema and security updates |
-| `tests/` | Regression tests for specific behavior |
+5. Start the included private scanner on a Docker/Podman host:
 
 ```sh
-pnpm lint
-pnpm build
-pnpm test
+MALWARE_SCANNER_TOKEN="a-long-random-value" docker compose -f infra/malware-scanner/compose.yml up -d --build
 ```
 
-The September 10, 2026 security audit passed the production build and 11 tests. Lint reported no errors or warnings, and the dependency audit found no known vulnerabilities. These checks do not replace live payment or database integration tests.
+Reserve at least 3 GiB, preferably 4 GiB, of available RAM for the ClamAV signature engine.
 
-Further reading: [security audit — Turkish](SECURITY_AUDIT.md), [audit and improvement report — Turkish](REVIEW.md), [project guide for AI assistants](llm.md), and [development instructions](AGENTS.md). AI assistants should read the last two documents before making changes.
+Set `MALWARE_SCANNER_URL`, `MALWARE_SCANNER_TOKEN` and the server-only `SUPABASE_SERVICE_ROLE_KEY` on the application server. Customer files remain quarantined as `pending`; operators can read them only after a clean ClamAV result. Infected objects are removed, and the admin portal can retry failed scans.
+6. Test RLS, Storage, OAuth, recovery, upload, revision and delivery with two customer accounts and one admin in staging.
+7. Confirm `/api/health` returns `200` with `status: ok`.
+
+After installing a Docker-compatible runtime, verify the local database with:
+
+```sh
+pnpm db:start
+pnpm db:reset
+pnpm db:test
+pnpm db:lint
+```
+
+Never put secrets such as `SUPABASE_SERVICE_ROLE_KEY` in a `NEXT_PUBLIC_` variable or browser code. Do not accept real customer files until the live SQL migrations and malware-scanning workflow are verified.
+
+### Quality checks
+
+```sh
+pnpm test
+pnpm lint
+pnpm build
+pnpm audit --prod
+```
+
+For architecture and security details, read [llm.md](llm.md), [SECURITY_AUDIT.md](SECURITY_AUDIT.md), [REVIEW.md](REVIEW.md) and [AGENTS.md](AGENTS.md).

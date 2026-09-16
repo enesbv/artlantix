@@ -1,204 +1,165 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ArrowRight, Building2, CheckCircle2, ShieldCheck, UploadCloud } from 'lucide-react';
 import { getCurrentUser } from '@/lib/services/auth';
-import { UserProfile } from '@/lib/types';
-import {
-  Building2,
-  Zap,
-  ShieldCheck,
-  UploadCloud,
-  ArrowRight,
-  Receipt,
-} from 'lucide-react';
+import { createOrder } from '@/lib/services/orders';
+import { processClientFileUpload } from '@/lib/services/storage';
+import { calculatePricing } from '@/lib/pricing';
+import { Order, UserProfile } from '@/lib/types';
+
+const MAX_BATCH_FILES = 20;
 
 export default function BusinessHubPage() {
-  const [bulkFiles, setBulkFiles] = useState<string[]>([]);
-  const [whiteLabelActive, setWhiteLabelActive] = useState(true);
-  const [batchSuccess, setBatchSuccess] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [whiteLabel, setWhiteLabel] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [createdOrders, setCreatedOrders] = useState<Order[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => { getCurrentUser().then(setUser); }, []);
 
-  const handleSimulateBulkDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const names = Array.from(e.target.files).map((f) => f.name);
-      setBulkFiles(names);
-    }
+  const handleFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(event.target.files || []).slice(0, MAX_BATCH_FILES);
+    setFiles(selected);
+    setCreatedOrders([]);
+    setError(event.target.files && event.target.files.length > MAX_BATCH_FILES
+      ? `You can submit up to ${MAX_BATCH_FILES} files in one batch.`
+      : null);
   };
 
-  const handleQueueBatch = () => {
-    if (bulkFiles.length === 0) return;
-    localStorage.setItem('artlantix_b2b_batch_draft', JSON.stringify({
-      id: crypto.randomUUID(),
-      filenames: bulkFiles,
-      whiteLabel: whiteLabelActive,
-      createdAt: new Date().toISOString(),
-    }));
-    setBatchSuccess(true);
-    setTimeout(() => setBatchSuccess(false), 4000);
+  const submitBatch = async () => {
+    if (!user || files.length === 0 || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    setProgress(0);
+    const completed: Order[] = [];
+
+    try {
+      const estimate = calculatePricing({
+        complexity: 'standard', turnaround: 'standard', colorCount: '3-5',
+        hasText: true, reconstructionNeeded: true, artistReviewRequested: true,
+      });
+
+      for (let index = 0; index < files.length; index += 1) {
+        const file = files[index];
+        const processed = await processClientFileUpload(file);
+        const projectName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' ').trim() || `Batch artwork ${index + 1}`;
+        const order = await createOrder({
+          user_id: user.id,
+          customer_name: user.full_name,
+          customer_email: user.email,
+          project_name: projectName,
+          artwork_type: 'lowres_logo',
+          complexity: 'standard',
+          colors: '3-5 colors',
+          has_text: true,
+          reconstruction_needed: true,
+          reconstruction_level: 'moderate',
+          turnaround: 'standard',
+          estimated_price: estimate.total,
+          final_price: estimate.total,
+          status: 'quote_requested',
+          notes: `[Batch quote request ${index + 1}/${files.length}] White-label delivery preference: ${whiteLabel ? 'yes' : 'no'}.`,
+          needs_manual_review: true,
+          payment_method: 'pay_after_quote_review',
+        }, {
+          name: processed.name,
+          size: processed.size,
+          format: processed.format,
+          url: processed.url,
+          rawFile: processed.file,
+        });
+        completed.push(order);
+        setCreatedOrders([...completed]);
+        setProgress(index + 1);
+      }
+      setFiles([]);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'The batch could not be submitted. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E6E4DF] pb-6">
+      <div className="flex flex-col gap-4 border-b border-[#E6E4DF] pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
             <Building2 className="h-6 w-6 text-[#18794E]" />
-            <h1 className="text-xl font-bold tracking-tight text-[#111111]">
-              B2B Commercial Production Hub
-            </h1>
+            <h1 className="text-xl font-bold tracking-tight text-[#111111]">Business batch quotes</h1>
           </div>
-          <p className="text-xs text-[#666666] mt-0.5">
-            Designed for commercial printers, screen printing shops, apparel decorators, and signage fabricators who need high-volume artwork prep.
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[#666666]">
+            Upload several customer artworks at once. Each file becomes a private, trackable quote request in your order portal.
           </p>
         </div>
+        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">Secure batch intake</span>
+      </div>
 
-        <div className="flex items-center gap-2">
-          <span className="rounded bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200">
-            Demo planning mode
-          </span>
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xs">
+          <ShieldCheck className="h-7 w-7 text-[#18794E]" />
+          <h2 className="mt-3 text-base font-bold text-[#111111]">What happens next</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#666666]">
+            The studio reviews every file, confirms scope and price, and then updates each order independently. No payment is collected during submission.
+          </p>
+        </div>
+        <div className="rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xs">
+          <h2 className="text-base font-bold text-[#111111]">Business profile</h2>
+          <dl className="mt-3 space-y-2 text-sm">
+            <div className="flex justify-between gap-4"><dt className="text-[#777777]">Company</dt><dd className="font-semibold text-[#111111]">{user?.company_name || 'Not provided'}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-[#777777]">Tax ID</dt><dd className="font-semibold text-[#111111]">{user?.vat_tax_id || 'Not provided'}</dd></div>
+            <div className="flex justify-between gap-4"><dt className="text-[#777777]">Account</dt><dd className="font-semibold capitalize text-[#111111]">{user?.account_type || '—'}</dd></div>
+          </dl>
+          <Link href="/dashboard/profile" className="mt-4 inline-flex text-xs font-bold text-[#18794E] hover:underline">Update business details</Link>
         </div>
       </div>
 
-      {/* B2B Operational Perks Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xs">
-          <div className="flex h-9 w-9 items-center justify-center rounded bg-[#F2FCF5] text-[#18794E]">
-            <Zap className="h-5 w-5" />
-          </div>
-          <h3 className="mt-3 text-sm font-bold text-[#111111]">Priority Production Queue</h3>
-          <p className="mt-1 text-xs text-[#666666] leading-relaxed">
-            Planned routing for approved partners. Priority scheduling requires a production-service integration.
-          </p>
-          <div className="mt-3 text-[11px] font-semibold text-[#18794E]">
-            Status: Not connected
-          </div>
-        </div>
+      <section className="rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xs sm:p-8">
+        <h2 className="text-base font-bold text-[#111111]">Upload a batch</h2>
+        <p className="mt-1 text-sm text-[#666666]">JPG, PNG, WebP or PDF · maximum 2 MB per file · up to {MAX_BATCH_FILES} files</p>
 
-        <div className="rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xs">
-          <div className="flex h-9 w-9 items-center justify-center rounded bg-[#F2FCF5] text-[#18794E]">
-            <Receipt className="h-5 w-5" />
-          </div>
-          <h3 className="mt-3 text-sm font-bold text-[#111111]">Consolidated Monthly Invoicing</h3>
-          <p className="mt-1 text-xs text-[#666666] leading-relaxed">
-            Planned consolidated invoices with line items and purchase-order references.
-          </p>
-          <div className="mt-3 text-[11px] font-semibold text-emerald-700">
-            Terms: Requires account approval
-          </div>
-        </div>
+        {error && <div role="alert" className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
-        <div className="rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xs">
-          <div className="flex h-9 w-9 items-center justify-center rounded bg-[#F2FCF5] text-[#18794E]">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <h3 className="mt-3 text-sm font-bold text-[#111111]">White-Label Delivery Packages</h3>
-          <p className="mt-1 text-xs text-[#666666] leading-relaxed">
-            Save a packaging preference for future unbranded or agency-labelled deliveries.
-          </p>
-          <div className="mt-3 flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="whitelabel"
-              checked={whiteLabelActive}
-              onChange={(e) => setWhiteLabelActive(e.target.checked)}
-              className="accent-[#18794E]"
-            />
-            <label htmlFor="whitelabel" className="text-xs font-semibold text-[#111111] cursor-pointer">
-              Prefer white-label delivery
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Bulk Batch Upload Tool */}
-      <div className="rounded-xl border border-[#E6E4DF] bg-white p-8 shadow-xs">
-        <div className="flex items-center justify-between border-b border-[#E6E4DF] pb-4">
-          <div>
-            <h2 className="text-base font-bold text-[#111111]">
-              Bulk Batch Artwork Upload
-            </h2>
-            <p className="text-xs text-[#666666]">
-              Submit 5 to 50 client raster files at once for overnight shop prep.
-            </p>
-          </div>
-          <span className="text-xs font-bold text-[#18794E]">Illustrative volume pricing: up to 20%</span>
-        </div>
-
-        {batchSuccess && (
-          <div className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-xs font-medium text-emerald-800">
-            ✓ Batch draft saved locally with {bulkFiles.length} file{bulkFiles.length === 1 ? '' : 's'}. No files were uploaded and no production job was created.
-          </div>
-        )}
-
-        <div className="mt-6 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#D9D6CE] bg-[#FAFAF8] p-8 text-center">
+        <label className="mt-6 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#D9D6CE] bg-[#FAFAF8] p-8 text-center hover:border-[#18794E]">
           <UploadCloud className="h-10 w-10 text-[#18794E]" />
-          <div className="mt-3 text-sm font-bold text-[#111111]">
-            Drop multi-file ZIP archive or select multiple artwork files
-          </div>
-          <p className="mt-1 text-xs text-[#777777]">
-            Upload customer logos, embroidery patches, or raster sketches together.
-          </p>
-          <label className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded bg-[#111111] px-4 py-2 text-xs font-bold text-white hover:bg-black">
-            <span>Select Files from Machine</span>
-            <input
-              type="file"
-              multiple
-              accept="image/*,application/pdf,.zip"
-              className="hidden"
-              onChange={handleSimulateBulkDrop}
-            />
-          </label>
-        </div>
+          <span className="mt-3 text-sm font-bold text-[#111111]">Select artwork files</span>
+          <span className="mt-1 text-xs text-[#777777]">Files are uploaded only when you submit the batch.</span>
+          <input type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={handleFiles} />
+        </label>
 
-        {bulkFiles.length > 0 && (
+        {files.length > 0 && (
           <div className="mt-6 rounded-lg border border-[#E6E4DF] bg-[#FAFAF8] p-4">
-            <div className="text-xs font-bold text-[#111111]">Selected Files ({bulkFiles.length}):</div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {bulkFiles.map((fn, idx) => (
-                <span key={idx} className="rounded bg-white border border-[#E6E4DF] px-2 py-1 text-xs font-mono text-[#555555]">
-                  {fn}
-                </span>
-              ))}
-            </div>
-
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={handleQueueBatch}
-                disabled={bulkFiles.length === 0}
-                className="inline-flex items-center gap-2 rounded bg-[#18794E] px-5 py-2 text-xs font-bold text-white hover:bg-[#18794E] disabled:opacity-50"
-              >
-                <span>Save Batch Draft</span>
-                <ArrowRight className="h-3.5 w-3.5" />
+            <p className="text-sm font-bold text-[#111111]">Selected files ({files.length})</p>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              {files.map((file) => <li key={`${file.name}-${file.lastModified}`} className="truncate rounded border border-[#E6E4DF] bg-white px-3 py-2 text-xs text-[#555555]">{file.name}</li>)}
+            </ul>
+            <label className="mt-4 flex items-center gap-2 text-sm font-medium text-[#111111]">
+              <input type="checkbox" checked={whiteLabel} onChange={(event) => setWhiteLabel(event.target.checked)} className="accent-[#18794E]" />
+              Prefer white-label delivery packaging
+            </label>
+            <div className="mt-5 flex items-center justify-between gap-4">
+              <span className="text-xs text-[#666666]">{submitting ? `Submitting ${Math.min(progress + 1, files.length)} of ${files.length}…` : 'A separate quote will be created for every file.'}</span>
+              <button onClick={submitBatch} disabled={!user || submitting} className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-5 py-3 text-sm font-bold text-white hover:bg-[#115C3B] disabled:cursor-not-allowed disabled:opacity-50">
+                <span>{submitting ? 'Submitting…' : 'Submit batch for review'}</span><ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Corporate Billing & VAT Profile */}
-      <div className="rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xs">
-        <h2 className="text-sm font-bold text-[#111111] border-b border-[#E6E4DF] pb-3">
-          Corporate Billing &amp; Tax Information
-        </h2>
-
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          <div>
-            <span className="text-[#888888]">Company Legal Name:</span>
-            <div className="font-semibold text-[#111111] mt-0.5">{user?.company_name || 'Not provided'}</div>
+        {createdOrders.length > 0 && (
+          <div role="status" className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+            <div className="flex items-center gap-2 font-bold text-emerald-900"><CheckCircle2 className="h-5 w-5" />Submitted quote requests</div>
+            <ul className="mt-3 space-y-2">
+              {createdOrders.map((order) => <li key={order.id}><Link href={`/dashboard/orders/${order.id}`} className="text-sm font-semibold text-emerald-900 underline">{order.project_name} · {order.order_number}</Link></li>)}
+            </ul>
           </div>
-          <div>
-            <span className="text-[#888888]">VAT / Tax Registration:</span>
-            <div className="font-semibold text-[#111111] mt-0.5">{user?.vat_tax_id || 'Not provided'}</div>
-          </div>
-          <div>
-            <span className="text-[#888888]">Invoice Billing Cycle:</span>
-            <div className="font-semibold text-[#111111] mt-0.5">Not active in demo mode</div>
-          </div>
-        </div>
-      </div>
+        )}
+      </section>
     </div>
   );
 }

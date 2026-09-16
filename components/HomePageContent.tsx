@@ -16,6 +16,7 @@ import {
 } from '@/lib/services/content';
 import { useTranslations } from 'next-intl';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
+import { isDemoModeEnabled } from '@/lib/runtime-mode';
 import {
   ArrowRight,
   ChevronDown,
@@ -40,7 +41,7 @@ export default function HomePageContent({ locale = 'en' }: HomePageContentProps)
   const tPricing = useTranslations('pricing');
   const tCta = useTranslations('cta');
   const tServices = useTranslations('services');
-  const demoMode = !isSupabaseConfigured();
+  const demoMode = !isSupabaseConfigured() && isDemoModeEnabled();
 
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS);
   const [portfolioItems, setPortfolioItems] = useState<BeforeAfterShowcase[]>([]);

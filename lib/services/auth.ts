@@ -1,6 +1,7 @@
 import { UserProfile } from '../types';
 import { MOCK_CUSTOMER, MOCK_OPERATOR } from '../mock-data';
 import { isSupabaseConfigured, createClient } from '../supabase/client';
+import { BACKEND_NOT_CONFIGURED_ERROR, isDemoModeEnabled } from '../runtime-mode';
 import {
   INPUT_LIMITS,
   normalizeEmail,
@@ -44,7 +45,9 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     return null;
   }
 
-  // Fallback to local storage
+  if (!isDemoModeEnabled()) return null;
+
+  // Explicit development demo storage.
   const stored = localStorage.getItem(STORAGE_KEY_AUTH);
   if (stored) {
     try {
@@ -102,6 +105,7 @@ export async function updateCurrentUserProfile(
     }
   }
 
+  if (!isDemoModeEnabled()) return { user: null, error: BACKEND_NOT_CONFIGURED_ERROR };
   const updated = { ...current, ...safeUpdates, updated_at: new Date().toISOString() };
   setCurrentUserMock(updated);
   return { user: updated };
@@ -115,7 +119,9 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
     return { success: false, error: error instanceof Error ? error.message : 'Enter a valid email address.' };
   }
   if (!isSupabaseConfigured()) {
-    return { success: false, error: 'Password email is unavailable in demo mode. Use a demo access button instead.' };
+    return { success: false, error: isDemoModeEnabled()
+      ? 'Password email is unavailable in demo mode. Use a demo access button instead.'
+      : BACKEND_NOT_CONFIGURED_ERROR };
   }
 
   try {
@@ -152,7 +158,9 @@ export async function signInWithEmail(email: string, password?: string): Promise
 
   if (isSupabaseConfigured()) return { user: null, error: 'Unable to sign in. Please try again.' };
 
-  // Mock sign-in logic
+  if (!isDemoModeEnabled()) return { user: null, error: BACKEND_NOT_CONFIGURED_ERROR };
+
+  // Explicit development demo sign-in.
   if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('operator')) {
     setCurrentUserMock(MOCK_OPERATOR);
     return { user: MOCK_OPERATOR };
@@ -167,7 +175,7 @@ export async function signInWithEmail(email: string, password?: string): Promise
   return { user: customCustomer };
 }
 
-export async function signUpWithEmail(email: string, fullName: string, password?: string, accountType: 'individual' | 'business' = 'individual', companyName?: string): Promise<{ user: UserProfile | null; error?: string; confirmationRequired?: boolean }> {
+export async function signUpWithEmail(email: string, fullName: string, password?: string, accountType: 'individual' | 'business' = 'individual', companyName?: string, nextPath = '/dashboard/orders'): Promise<{ user: UserProfile | null; error?: string; confirmationRequired?: boolean }> {
   if (isSupabaseConfigured()) {
     if (!password) return { user: null, error: 'Please create an account or sign in before ordering.' };
     if (password.length < 12 || password.length > 128) return { user: null, error: 'Use a password between 12 and 128 characters.' };
@@ -182,6 +190,7 @@ export async function signUpWithEmail(email: string, fullName: string, password?
           email: normalizedEmail,
           password,
           options: {
+            emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback?next=${encodeURIComponent(nextPath)}`,
             data: {
               full_name: normalizedName,
               account_type: accountType,
@@ -210,6 +219,7 @@ export async function signUpWithEmail(email: string, fullName: string, password?
 
   if (isSupabaseConfigured()) return { user: null, error: 'Unable to create the account. Please try again.' };
 
+  if (!isDemoModeEnabled()) return { user: null, error: BACKEND_NOT_CONFIGURED_ERROR };
   const newUser: UserProfile = {
     id: `usr_${Date.now()}`,
     email,
@@ -223,7 +233,7 @@ export async function signUpWithEmail(email: string, fullName: string, password?
   return { user: newUser };
 }
 
-export async function signInWithGoogle(): Promise<{ user: UserProfile | null; error?: string }> {
+export async function signInWithGoogle(nextPath = '/dashboard/orders'): Promise<{ user: UserProfile | null; error?: string }> {
   if (isSupabaseConfigured()) {
     try {
       const supabase = createClient();
@@ -231,7 +241,7 @@ export async function signInWithGoogle(): Promise<{ user: UserProfile | null; er
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
+            redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback?next=${encodeURIComponent(nextPath)}`,
           },
         });
         if (error) return { user: null, error: PUBLIC_AUTH_ERRORS.oauth };
@@ -245,7 +255,9 @@ export async function signInWithGoogle(): Promise<{ user: UserProfile | null; er
 
   if (isSupabaseConfigured()) return { user: null, error: 'Unable to start Google sign-in.' };
 
-  // Mock fallback: simulate Google sign-in
+  if (!isDemoModeEnabled()) return { user: null, error: BACKEND_NOT_CONFIGURED_ERROR };
+
+  // Explicit development demo Google sign-in.
   const googleUser: UserProfile = {
     id: `google_${Date.now()}`,
     email: 'google_user@artlantix-demo.com',
@@ -274,7 +286,7 @@ export async function signOutUser(): Promise<void> {
 }
 
 export function switchDemoPersona(type: 'customer' | 'operator'): UserProfile {
-  if (isSupabaseConfigured()) throw new Error('Demo accounts are disabled when connected to Supabase.');
+  if (isSupabaseConfigured() || !isDemoModeEnabled()) throw new Error('Demo accounts are disabled.');
   const target = type === 'operator' ? MOCK_OPERATOR : MOCK_CUSTOMER;
   setCurrentUserMock(target);
   return target;
