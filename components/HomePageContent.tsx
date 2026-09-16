@@ -27,7 +27,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
           <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8 lg:py-28">
             <div>
               <h1 className="text-5xl font-black leading-[0.92] tracking-[-0.055em] text-[#102A20] sm:text-7xl lg:text-[5.4rem]">
-                {copy.home.titleLines.map((line, index) => <span key={line} className={`block ${index === 1 ? 'text-[#18794E]' : ''}`}>{line}</span>)}
+                {copy.home.titleLines.map((line, index) => <span key={line} className={`block ${index === 1 ? 'mt-[0.045em] text-[#18794E]' : ''}`}>{line}</span>)}
               </h1>
               <p className="mt-7 max-w-xl text-lg leading-8 text-[#5E625F]">{copy.home.description}</p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
