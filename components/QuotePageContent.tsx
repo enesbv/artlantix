@@ -4,8 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import ComplexityPicker from '@/components/ComplexityPicker';
+import AgencyServicesPicker from '@/components/AgencyServicesPicker';
+import { AGENCY_SERVICES, AgencyService, getAgencyServices, getAgencyServicesTotal } from '@/lib/agency-services';
 import Footer from '@/components/Footer';
-import DeliverableBadge from '@/components/DeliverableBadge';
+import Image from 'next/image';
 import { calculatePricing, PricingInput } from '@/lib/pricing';
 import { createOrder, getOrderById } from '@/lib/services/orders';
 import { getCurrentUser } from '@/lib/services/auth';
@@ -21,7 +23,6 @@ import {
   ArtworkType,
   UserProfile,
   OrderStatus,
-  ColorCount,
   PricingCalculation,
 } from '@/lib/types';
 import {
@@ -34,6 +35,7 @@ import {
   Lock,
   Clock3,
   ShieldCheck,
+  Zap,
 } from 'lucide-react';
 
 function QuoteSummary({
@@ -43,6 +45,11 @@ function QuoteSummary({
   breakdownLabel,
   labels,
   className = '',
+  agencyServices = [],
+  agencyTitle = '',
+  agencyNote = '',
+  onContinue,
+  continueLabel,
 }: {
   projectName: string;
   pricing: PricingCalculation;
@@ -61,6 +68,11 @@ function QuoteSummary({
     privacy: string;
   };
   className?: string;
+  agencyServices?: string[];
+  agencyTitle?: string;
+  agencyNote?: string;
+  onContinue?: () => void;
+  continueLabel?: string;
 }) {
   return (
     <aside className={`rounded-2xl border border-[#DAD8D2] bg-white p-6 shadow-sm ${className}`} aria-label={labels.summary}>
@@ -80,6 +92,14 @@ function QuoteSummary({
           </div>
         ))}
       </div>
+
+      {agencyServices.length > 0 && (
+        <div className="mt-4 rounded-xl border border-[#B4DFC4] bg-[#E9F9EE] p-4">
+          <p className="text-sm font-bold text-[#115C3B]">{agencyTitle}</p>
+          <ul className="mt-2 space-y-1 text-sm text-[#102A20]">{agencyServices.map((service) => <li key={service}>{service}</li>)}</ul>
+          <p className="mt-2 text-xs leading-5 text-[#555]">{agencyNote}</p>
+        </div>
+      )}
 
       <div className="mt-5 flex items-end justify-between gap-4">
         <div>
@@ -103,14 +123,19 @@ function QuoteSummary({
 
       <div className="mt-5 border-t border-[#EAE8E3] pt-4">
         <span className="text-xs font-semibold text-[#737373]">{labels.deliverables}</span>
-        <div className="mt-2 flex flex-wrap gap-1">
-          <DeliverableBadge format="ai" variant="pill" />
-          <DeliverableBadge format="eps" variant="pill" />
-          <DeliverableBadge format="svg" variant="pill" />
-          <DeliverableBadge format="pdf" variant="pill" />
-          <DeliverableBadge format="png" variant="pill" />
+        <div className="mt-3 flex items-center gap-3">
+          {(['png', 'pdf', 'svg', 'eps', 'ai'] as const).map((format) => (
+            <div key={format} className="flex justify-center" title={format.toUpperCase()}>
+              <Image src={`/${format}.svg`} alt={format.toUpperCase()} width={24} height={30} className="h-[30px] w-6 object-contain" />
+            </div>
+          ))}
         </div>
       </div>
+      {onContinue && (
+        <button type="button" onClick={onContinue} className="mt-6 hidden w-full items-center justify-center gap-2 rounded-xl bg-[#18794E] px-5 py-4 text-sm font-bold text-white transition-colors hover:bg-[#115C3B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#18794E] lg:flex">
+          <span>{continueLabel}</span><ArrowRight className="h-4 w-4 shrink-0" />
+        </button>
+      )}
     </aside>
   );
 }
@@ -121,9 +146,9 @@ export default function QuotePageContent() {
   const tQuote = useTranslations('quote');
   const locale = normalizeMarketingLocale(useLocale());
   const smartCopy = {
-    tr: { brief: 'Üretim bilgileri', briefDesc: 'Dosyayı nerede kullanacağınızı bilirsek doğru eğri, renk ve sadeleştirme kararlarını veririz.', intended: 'Kullanım amacı', choose: 'Seçin', web: 'Web / dijital', print: 'Baskı / ambalaj', apparel: 'Tekstil / baskı', embroidery: 'Nakış', signage: 'Tabela / folyo', cnc: 'CNC / lazer kesim', unsure: 'Emin değilim · uzman yönlendirsin', aiTool: 'Kullanılan AI aracı (isteğe bağlı)', aiPlaceholder: 'Örn. Midjourney, DALL·E, Ideogram', deadline: 'İstenen teslim tarihi (isteğe bağlı)', company: 'Şirket / marka (isteğe bağlı)' },
-    en: { brief: 'Production brief', briefDesc: 'Knowing the intended use helps us choose the right paths, colours and simplification.', intended: 'Intended use', choose: 'Choose', web: 'Web / digital', print: 'Print / packaging', apparel: 'Apparel / print', embroidery: 'Embroidery', signage: 'Signage / vinyl', cnc: 'CNC / laser cutting', unsure: 'Not sure · let the studio advise', aiTool: 'AI tool used (optional)', aiPlaceholder: 'e.g. Midjourney, DALL·E, Ideogram', deadline: 'Requested deadline (optional)', company: 'Company / brand (optional)' },
-    de: { brief: 'Produktionsbriefing', briefDesc: 'Der Verwendungszweck hilft uns bei Pfaden, Farben und Vereinfachung.', intended: 'Verwendungszweck', choose: 'Auswählen', web: 'Web / digital', print: 'Druck / Verpackung', apparel: 'Textil / Druck', embroidery: 'Stickerei', signage: 'Schild / Folie', cnc: 'CNC / Laserschnitt', unsure: 'Nicht sicher · Studio beraten lassen', aiTool: 'Verwendetes KI-Tool (optional)', aiPlaceholder: 'z. B. Midjourney, DALL·E, Ideogram', deadline: 'Gewünschter Termin (optional)', company: 'Unternehmen / Marke (optional)' },
+    tr: { brief: 'Üretim bilgileri', briefDesc: 'Dosyayı nerede kullanacağınızı bilirsek doğru eğri, renk ve sadeleştirme kararlarını veririz.', intended: 'Kullanım amacı', choose: 'Seçin', web: 'Web / dijital', print: 'Baskı / ambalaj', apparel: 'Tekstil / baskı', embroidery: 'Nakış', signage: 'Tabela / folyo', cnc: 'CNC / lazer kesim', unsure: 'Emin değilim · uzman yönlendirsin', company: 'Şirket / marka (isteğe bağlı)' },
+    en: { brief: 'Production brief', briefDesc: 'Knowing the intended use helps us choose the right paths, colours and simplification.', intended: 'Intended use', choose: 'Choose', web: 'Web / digital', print: 'Print / packaging', apparel: 'Apparel / print', embroidery: 'Embroidery', signage: 'Signage / vinyl', cnc: 'CNC / laser cutting', unsure: 'Not sure · let the studio advise', company: 'Company / brand (optional)' },
+    de: { brief: 'Produktionsbriefing', briefDesc: 'Der Verwendungszweck hilft uns bei Pfaden, Farben und Vereinfachung.', intended: 'Verwendungszweck', choose: 'Auswählen', web: 'Web / digital', print: 'Druck / Verpackung', apparel: 'Textil / Druck', embroidery: 'Stickerei', signage: 'Schild / Folie', cnc: 'CNC / Laserschnitt', unsure: 'Nicht sicher · Studio beraten lassen', company: 'Unternehmen / Marke (optional)' },
   }[locale];
 
   // Wizard Step: 1 = Upload, 2 = Specification, 3 = Review & Order
@@ -151,16 +176,15 @@ export default function QuotePageContent() {
     ['simple', 'standard', 'complex'].includes(searchParams?.get('tier') || '')
       ? searchParams.get('tier') as ComplexityTier : 'standard'
   );
-  const [hasText, setHasText] = useState(true);
+  const hasText = false;
   const [artistReviewRequested, setArtistReviewRequested] = useState(false);
-  const [reconstructionOption, setReconstructionOption] = useState<'clean' | 'moderate' | 'heavy'>('moderate');
-  const [colorCount, setColorCount] = useState<'1-2' | '3-5' | '6+' | 'gradient'>('3-5');
+  const reconstructionOption = 'clean' as const;
+  const colorCount = '1-2' as const;
   const [turnaround, setTurnaround] = useState<TurnaroundSpeed>('standard');
   const [notes, setNotes] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [intendedUse, setIntendedUse] = useState('');
-  const [aiTool, setAiTool] = useState('');
-  const [requestedDeadline, setRequestedDeadline] = useState('');
+  const [agencyServices, setAgencyServices] = useState<AgencyService[]>([]);
   const [serviceSlug, setServiceSlug] = useState<string | undefined>();
   const [sourceOrderId, setSourceOrderId] = useState<string | undefined>();
 
@@ -186,11 +210,8 @@ export default function QuotePageContent() {
       if (source) {
         setProjectName(`${source.project_name} Variation`);
         setArtworkType(source.artwork_type);
+        setAgencyServices(source.agency_services || []);
         setComplexity(source.complexity);
-        setHasText(source.has_text);
-        setReconstructionOption(source.reconstruction_needed ? 'moderate' : 'clean');
-        const previousColors = source.colors.match(/1-2|3-5|6\+|gradient/)?.[0] as ColorCount | undefined;
-        if (previousColors) setColorCount(previousColors);
         setTurnaround(source.turnaround);
         setNotes(`Based on ${source.order_number}. ${source.notes || ''}`.trim());
         setSourceOrderId(source.id);
@@ -201,15 +222,11 @@ export default function QuotePageContent() {
         setArtworkType(draft.artworkType);
         setComplexity(draft.complexity);
         setArtistReviewRequested(draft.artistReviewRequested);
-        setHasText(draft.hasText);
-        setReconstructionOption(draft.reconstructionOption);
-        setColorCount(draft.colorCount);
         setTurnaround(draft.turnaround);
         setNotes(draft.notes);
         setCompanyName(draft.companyName || '');
         setIntendedUse(draft.intendedUse || '');
-        setAiTool(draft.aiTool || '');
-        setRequestedDeadline(draft.requestedDeadline || '');
+        setAgencyServices((draft.agencyServices || []).filter((id) => AGENCY_SERVICES.some((service) => service.id === id)));
         setServiceSlug(draft.serviceSlug);
         setCustomerName(draft.customerName || user?.full_name || '');
         setCustomerEmail(draft.customerEmail || user?.email || '');
@@ -221,7 +238,6 @@ export default function QuotePageContent() {
         setServiceSlug(requestedService.slug);
         setArtworkType(requestedService.artworkType);
         setProjectName(requestedService.title[locale]);
-        if (requestedService.artworkType === 'ai_logo') setAiTool('');
       }
       if (searchParams?.get('review') === '1') setArtistReviewRequested(true);
       setDraftReady(true);
@@ -234,21 +250,21 @@ export default function QuotePageContent() {
     const timer = window.setTimeout(() => {
       const savedWithFile = saveQuoteDraft({
         projectName, artworkType, complexity, artistReviewRequested, hasText,
-        reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse,
-        aiTool, requestedDeadline, serviceSlug, customerName,
+        reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse, agencyServices,
+        serviceSlug, customerName,
         customerEmail, uploadedFile, sourceOrderId, savedAt: new Date().toISOString(),
       });
       setDraftNotice(savedWithFile ? 'saved' : null);
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [draftReady, isSubmitting, projectName, artworkType, complexity, artistReviewRequested, hasText, reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse, aiTool, requestedDeadline, serviceSlug, customerName, customerEmail, uploadedFile, sourceOrderId]);
+  }, [draftReady, isSubmitting, projectName, artworkType, complexity, artistReviewRequested, hasText, reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse, agencyServices, serviceSlug, customerName, customerEmail, uploadedFile, sourceOrderId]);
 
   // Compute pricing with CMS dynamic base tier rates
   const pricingInput: PricingInput = {
     complexity,
     hasText,
-    reconstructionNeeded: reconstructionOption === 'moderate' || reconstructionOption === 'heavy',
-    heavyReconstruction: reconstructionOption === 'heavy',
+    reconstructionNeeded: false,
+    heavyReconstruction: false,
     colorCount,
     turnaround,
     artworkType,
@@ -261,9 +277,18 @@ export default function QuotePageContent() {
     complex: settings.complex_tier_price,
   };
 
-  const pricing = calculatePricing(pricingInput, customBasePrices);
+  const vectorPricing = calculatePricing(pricingInput, customBasePrices);
+  const selectedAgencyServices = getAgencyServices(agencyServices);
+  const agencyTotal = getAgencyServicesTotal(agencyServices);
+  const pricing = {
+    ...vectorPricing,
+    subtotal: vectorPricing.subtotal + agencyTotal,
+    total: vectorPricing.total + agencyTotal,
+    breakdown: [...vectorPricing.breakdown, ...selectedAgencyServices.map((service) => ({ label: `agency:${service.key}`, amount: service.price }))],
+  };
   const localizedBreakdownLabel = (label: string) => {
-    if (label.endsWith('Geometry Base')) return `${tQuote(`complexityGuide.${complexity}.title`)} ${tQuote('ui.geometryBase')}`;
+    if (label.startsWith('agency:')) return tQuote(`agency.${label.slice(7)}Title`);
+    if (label.endsWith('Geometry Base')) return `${tQuote(`complexityGuide.${complexity}Title`)} ${tQuote('ui.geometryBase')}`;
     if (label.startsWith('Font &')) return tQuote('ui.fontRebuild');
     if (label.startsWith('Heavy Missing')) return tQuote('ui.heavyRebuild');
     if (label.startsWith('Reconstruct Missing')) return tQuote('ui.missingRebuild');
@@ -361,8 +386,8 @@ export default function QuotePageContent() {
       if (!activeUser) {
         saveQuoteDraft({
           projectName, artworkType, complexity, artistReviewRequested, hasText,
-          reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse,
-          aiTool, requestedDeadline, serviceSlug, customerName,
+          reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse, agencyServices,
+          serviceSlug, customerName,
           customerEmail, uploadedFile, sourceOrderId, savedAt: new Date().toISOString(),
         });
         router.push('/login?next=/quote');
@@ -373,9 +398,8 @@ export default function QuotePageContent() {
         serviceSlug && `[Service: ${serviceSlug}]`,
         companyName.trim() && `[Company / brand: ${companyName.trim()}]`,
         intendedUse && `[Intended use: ${intendedUse}]`,
-        aiTool.trim() && `[AI tool: ${aiTool.trim()}]`,
-        requestedDeadline && `[Requested deadline: ${requestedDeadline}]`,
         artistReviewRequested && '[Artist assessment requested; complexity and price are provisional.]',
+        ...selectedAgencyServices.map((service) => `[Agency service: ${service.id}; USD ${service.price}; separate delivery: ${service.minBusinessDays}-${service.maxBusinessDays} business days after studio approval; vector express does not apply.]`),
         notes.trim(),
       ].filter(Boolean).join('\n').slice(0, INPUT_LIMITS.notes);
 
@@ -385,10 +409,11 @@ export default function QuotePageContent() {
         customer_email: customerEmail || activeUser?.email || '',
         project_name: projectName || 'Vector Reconstruction',
         artwork_type: artworkType,
+        agency_services: selectedAgencyServices.map((service) => service.id),
         complexity: complexity,
         colors: `${colorCount} colors`,
         has_text: hasText,
-        reconstruction_needed: reconstructionOption !== 'clean',
+        reconstruction_needed: false,
         reconstruction_level: reconstructionOption,
         turnaround: turnaround,
         estimated_price: pricing.total,
@@ -599,7 +624,7 @@ export default function QuotePageContent() {
                 maxLength={INPUT_LIMITS.project}
                 onChange={(e) => setProjectName(e.target.value)}
                 placeholder={tQuote('ui.projectPlaceholder')}
-                className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-3 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-3 text-sm text-[#141414] focus:border-[#18794E] focus:bg-white focus:outline-hidden"
               />
             </div>
 
@@ -621,42 +646,11 @@ export default function QuotePageContent() {
         {currentStep === 2 && (
           <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left Questionnaire Form */}
-            <div className="lg:col-span-8 rounded-2xl border border-[#EAE8E3] bg-white p-8 sm:p-10 shadow-xs space-y-10">
-              {/* Artwork Type Selection */}
-              <div>
-                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
-                  {tQuote('geometryTitle')}
-                </label>
-                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {[
-                    { id: 'ai_logo', label: tQuote('ui.aiLogo'), desc: 'Midjourney / DALL-E' },
-                    { id: 'lowres_logo', label: tQuote('ui.lowRes'), desc: tQuote('ui.lowResDesc') },
-                    { id: 'sketch_scan', label: tQuote('ui.handDrawing'), desc: tQuote('ui.handDrawingDesc') },
-                    { id: 'lettering_typography', label: tQuote('ui.typography'), desc: tQuote('ui.typographyDesc') },
-                    { id: 'mascot_badge', label: tQuote('ui.mascot'), desc: tQuote('ui.mascotDesc') },
-                    { id: 'apparel_signage', label: tQuote('ui.apparel'), desc: tQuote('ui.apparelDesc') },
-                  ].map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setArtworkType(item.id as ArtworkType)}
-                      className={`flex flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
-                        artworkType === item.id
-                          ? 'border-[#141414] bg-[#F5F4F0] shadow-xs'
-                          : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                      }`}
-                    >
-                      <span className="text-xs font-bold text-[#141414]">{item.label}</span>
-                      <span className="text-[10px] text-[#737373] mt-0.5">{item.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-[#B4DFC4] bg-[#F3FBF6] p-5">
-                <h3 className="text-sm font-bold text-[#102A20]">{smartCopy.brief}</h3>
-                <p className="mt-1 text-xs leading-5 text-[#5E625F]">{smartCopy.briefDesc}</p>
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div className="lg:col-span-8 rounded-2xl border border-[#EAE8E3] bg-white p-8 sm:p-10 shadow-xs space-y-8">
+              <section className="rounded-2xl border border-[#EAE8E3] bg-white p-5 sm:p-6">
+                <h3 className="text-lg font-bold tracking-tight text-[#102A20]">{smartCopy.brief}</h3>
+                <p className="mt-2 text-sm leading-6 text-[#5E625F]">{smartCopy.briefDesc}</p>
+                <div className="mt-5 grid gap-4">
                   <div>
                     <label className="block text-xs font-bold text-[#141414]">{smartCopy.intended}</label>
                     <select value={intendedUse} onChange={(event) => { setIntendedUse(event.target.value); if (event.target.value === 'unsure') setArtistReviewRequested(true); }} className="mt-2 w-full rounded-lg border border-[#DAD8D2] bg-white px-3 py-3 text-sm focus:border-[#18794E] focus:outline-hidden">
@@ -664,16 +658,8 @@ export default function QuotePageContent() {
                       <option value="web-digital">{smartCopy.web}</option><option value="print-packaging">{smartCopy.print}</option><option value="apparel-print">{smartCopy.apparel}</option><option value="embroidery">{smartCopy.embroidery}</option><option value="signage-vinyl">{smartCopy.signage}</option><option value="cnc-laser">{smartCopy.cnc}</option><option value="unsure">{smartCopy.unsure}</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#141414]">{smartCopy.deadline}</label>
-                    <input type="date" value={requestedDeadline} onChange={(event) => setRequestedDeadline(event.target.value)} className="mt-2 w-full rounded-lg border border-[#DAD8D2] bg-white px-3 py-3 text-sm focus:border-[#18794E] focus:outline-hidden" />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-[#141414]">{smartCopy.aiTool}</label>
-                    <input type="text" value={aiTool} maxLength={120} onChange={(event) => setAiTool(event.target.value)} placeholder={smartCopy.aiPlaceholder} className="mt-2 w-full rounded-lg border border-[#DAD8D2] bg-white px-3 py-3 text-sm focus:border-[#18794E] focus:outline-hidden" />
-                  </div>
                 </div>
-              </div>
+              </section>
 
               <ComplexityPicker
                 value={artistReviewRequested ? 'review' : complexity}
@@ -684,139 +670,48 @@ export default function QuotePageContent() {
                 }}
               />
 
-              {/* Font / Lettering Reconstruction Toggle */}
-              <div className="rounded-xl border border-[#EAE8E3] p-5 bg-[#F9F8F6]">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-[#141414]">{tQuote('fontTitle')}</span>
-                    <p className="mt-1 text-[11px] text-[#737373] max-w-md">{tQuote('fontDesc')}</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={hasText}
-                      onChange={(e) => setHasText(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-[#CCCCCC] peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#18794E]"></div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Reconstruction Intensity */}
-              <div>
-                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
-                  {tQuote('repairTitle')}
-                </label>
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    { id: 'clean', title: tQuote('ui.clean'), desc: tQuote('ui.cleanDesc'), addon: '+$0' },
-                    { id: 'moderate', title: tQuote('ui.moderate'), desc: tQuote('ui.moderateDesc'), addon: '+$20' },
-                    { id: 'heavy', title: tQuote('ui.heavy'), desc: tQuote('ui.heavyDesc'), addon: '+$35' },
-                  ].map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setReconstructionOption(opt.id as 'clean' | 'moderate' | 'heavy')}
-                      className={`flex flex-col justify-between rounded-xl border p-4 text-left transition-all ${
-                        reconstructionOption === opt.id
-                          ? 'border-[#141414] bg-[#F5F4F0] shadow-xs'
-                          : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#141414]">{opt.title}</span>
-                        <span className="font-sans text-[10px] font-bold text-[#737373]">{opt.addon}</span>
-                      </div>
-                      <span className="text-[10px] text-[#737373] mt-2">{opt.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Color Separation Count */}
-              <div>
-                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
-                  {tQuote('colorsTitle')}
-                </label>
-                <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {[
-                    { id: '1-2', label: tQuote('ui.oneTwoColors'), addon: tQuote('ui.included') },
-                    { id: '3-5', label: tQuote('ui.threeFiveColors'), addon: '+$5' },
-                    { id: '6+', label: tQuote('ui.sixPlusColors'), addon: '+$15' },
-                    { id: 'gradient', label: tQuote('ui.gradients'), addon: '+$15' },
-                  ].map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setColorCount(c.id as ColorCount)}
-                      className={`flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${
-                        colorCount === c.id
-                          ? 'border-[#141414] bg-[#F5F4F0] font-bold text-[#141414]'
-                          : 'border-[#EAE8E3] bg-white text-[#737373] hover:border-[#CCCCCC]'
-                      }`}
-                    >
-                      <span className="text-xs">{c.label}</span>
-                      <span className="font-sans text-[10px] mt-1 text-[#737373]">{c.addon}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Turnaround Speed */}
-              <div>
-                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
-                  {tQuote('turnaroundTitle')}
-                </label>
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setTurnaround('standard')}
-                    className={`flex items-center justify-between rounded-xl border p-4 text-left transition-all ${
-                      turnaround === 'standard'
-                        ? 'border-[#141414] bg-[#F5F4F0] shadow-xs'
-                        : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                    }`}
-                  >
-                    <div>
-                      <div className="text-xs font-bold text-[#141414]">{tQuote('ui.standard')}</div>
-                      <div className="text-[11px] text-[#737373] mt-0.5">{tQuote('ui.standardDesc')}</div>
-                    </div>
-                    <span className="font-sans text-xs font-bold text-[#141414]">{tQuote('ui.included')}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setTurnaround('express')}
-                    className={`flex items-center justify-between rounded-xl border p-4 text-left transition-all ${
-                      turnaround === 'express'
-                        ? 'border-2 border-[#18794E] bg-[#E9F9EE] shadow-xs'
-                        : 'border-[#EAE8E3] bg-white hover:border-[#CCCCCC]'
-                    }`}
-                  >
-                    <div>
-                      <div className="text-xs font-bold text-[#141414]">{tQuote('ui.express')}</div>
-                      <div className="text-[11px] text-[#737373] mt-0.5">{tQuote('ui.expressDesc')}</div>
-                    </div>
-                    <span className="font-sans text-xs font-bold text-[#18794E]">+35%</span>
-                  </button>
+              <fieldset className="rounded-2xl border border-[#EAE8E3] bg-white p-5 sm:p-6">
+                <legend className="sr-only">{tQuote('turnaroundTitle')}</legend>
+                <h3 className="mb-5 text-lg font-bold tracking-tight text-[#102A20]">{tQuote('turnaroundTitle')}</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {(['standard', 'express'] as const).map((speed) => {
+                    const selected = turnaround === speed;
+                    const Icon = speed === 'express' ? Zap : Clock3;
+                    return (
+                      <label key={speed} className={`relative flex min-h-56 cursor-pointer flex-col rounded-xl border-2 p-4 transition-colors ${selected ? 'border-[#18794E] bg-[#E9F9EE]' : 'border-[#DAD8D2] bg-white hover:border-[#B4DFC4]'}`}>
+                        <input type="radio" name="turnaround" value={speed} checked={selected} onChange={() => setTurnaround(speed)} className="peer sr-only" />
+                        <span className="pointer-events-none absolute inset-0 rounded-xl peer-focus-visible:shadow-[inset_0_0_0_2px_#115C3B]" />
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F7F7F4] text-[#18794E]"><Icon className="h-5 w-5" /></span>
+                          <span aria-hidden="true" className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${selected ? 'border-[#18794E] bg-[#18794E] text-white' : 'border-[#CCC]'}`}>{selected && <CheckCircle2 className="h-5 w-5" />}</span>
+                        </div>
+                        <span className="mt-5 text-sm font-bold text-[#102A20]">{tQuote(`ui.${speed}`)}</span>
+                        <span className="mt-1 text-2xl font-extrabold tracking-tight text-[#102A20]">{tQuote(`ui.${speed}Time`)}</span>
+                        <span className={`mt-5 border-t border-[#EAE8E3] pt-4 text-sm font-semibold ${speed === 'express' ? 'text-[#18794E]' : 'text-[#737373]'}`}>{speed === 'express' ? '+35%' : tQuote('ui.included')}</span>
+                      </label>
+                    );
+                  })}
                 </div>
-              </div>
+              </fieldset>
+
+              <AgencyServicesPicker value={agencyServices} onChange={setAgencyServices} />
 
               {/* Production Notes / Tolerances */}
-              <div>
-                <label className="block font-sans text-xs font-bold uppercase tracking-wider text-[#141414]">
+              <section className="rounded-2xl border border-[#EAE8E3] bg-white p-5 sm:p-6">
+                <label htmlFor="production-notes" className="block text-lg font-bold tracking-tight text-[#102A20]">
                   {tQuote('notesTitle')}
                 </label>
                 <textarea
+                  id="production-notes"
                   rows={3}
                   value={notes}
                   maxLength={INPUT_LIMITS.notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder={tQuote('ui.notesPlaceholder')}
-                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-3 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-white p-3 text-sm text-[#141414] focus:border-[#18794E] focus:bg-white focus:outline-hidden"
                 />
-              </div>
+              </section>
 
               {/* Back / Next Buttons */}
               <div className="flex items-center justify-between pt-4 border-t border-[#EAE8E3]">
@@ -828,18 +723,11 @@ export default function QuotePageContent() {
                   <ArrowLeft className="h-4 w-4" />
                   <span>{tQuote('ui.backUpload')}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => goToStep(3)}
-                  className="hidden items-center gap-2 rounded-lg bg-[#18794E] px-7 py-3 text-sm font-bold text-white hover:bg-[#115C3B] transition-colors lg:inline-flex"
-                >
-                  <span>{tQuote('ui.continueReview')}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+
               </div>
             </div>
 
-            <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} className="sticky top-24 lg:col-span-4" />
+            <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} agencyServices={AGENCY_SERVICES.filter((service) => agencyServices.includes(service.id)).map((service) => `${tQuote(`agency.${service.key}Title`)} · ${tQuote('agency.delivery', { min: service.minBusinessDays, max: service.maxBusinessDays })}`)} agencyTitle={tQuote('agency.title')} agencyNote={tQuote('agency.note')} onContinue={() => goToStep(3)} continueLabel={tQuote('ui.continueReview')} className="sticky top-24 lg:col-span-4" />
           </div>
         )}
 
@@ -926,7 +814,7 @@ export default function QuotePageContent() {
               </div>
             </form>
           </div>
-          <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} className="sticky top-24 lg:col-span-4" />
+          <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} agencyServices={AGENCY_SERVICES.filter((service) => agencyServices.includes(service.id)).map((service) => `${tQuote(`agency.${service.key}Title`)} · ${tQuote('agency.delivery', { min: service.minBusinessDays, max: service.maxBusinessDays })}`)} agencyTitle={tQuote('agency.title')} agencyNote={tQuote('agency.note')} className="sticky top-24 lg:col-span-4" />
           </div>
         )}
 

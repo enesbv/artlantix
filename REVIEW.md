@@ -55,3 +55,7 @@ pnpm build  başarılı; TypeScript ve 24 route üretimi geçti
 ## Son değerlendirme
 
 Uygulama kodu artık dürüst ve işlevsel bir quote-first MVP sınırına sahiptir. Production deployment için kod tarafındaki ana demo engelleri kaldırılmıştır. Yayın kararı, yukarıdaki P0 dış sistem kontrollerinin kanıtlanmasına bağlıdır.
+
+## 17 Eylül 2026 — Ek hizmet fiyatları
+
+`20260917_agency_services.sql` yerelde hazırlandı; canlı veritabanına uygulanmadı. Üç ajans hizmeti ayrı ayrı 50 USD; veritabanı yalnız izin verilen hizmet kimliklerini kabul eder, tekrarları tekilleştirir ve ek hizmet bedelini vektör ekspres çarpanından sonra ekler. Canlı kullanım öncesinde migration ve veritabanı doğrulaması gerekir. Ayrı teslim tahmini her hizmet için stüdyo onayından sonra 3–5 iş günüdür.

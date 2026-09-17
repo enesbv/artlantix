@@ -34,6 +34,11 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   project_name TEXT NOT NULL CHECK (char_length(project_name) BETWEEN 1 AND 160),
   artwork_type TEXT NOT NULL CHECK (artwork_type IN ('ai_logo', 'lowres_logo', 'sketch_scan', 'lettering_typography', 'mascot_badge', 'apparel_signage')),
+  agency_services TEXT[] NOT NULL DEFAULT '{}' CHECK (
+    cardinality(agency_services) <= 3
+    AND array_position(agency_services, NULL) IS NULL
+    AND agency_services <@ ARRAY['brand-identity', 'alternative-logo', 'social-media-kit']::TEXT[]
+  ),
   complexity TEXT NOT NULL CHECK (complexity IN ('simple', 'standard', 'complex')),
   colors TEXT NOT NULL CHECK (colors IN ('1-2 colors', '3-5 colors', '6+ colors', 'gradient colors')),
   has_text BOOLEAN NOT NULL DEFAULT FALSE,
@@ -178,6 +183,12 @@ BEGIN
   ELSIF NEW.colors ILIKE '6+%' OR NEW.colors ILIKE 'gradient%' THEN calculated_amount := calculated_amount + 15;
   END IF;
   IF NEW.turnaround = 'express' THEN calculated_amount := ROUND(calculated_amount * 1.35); END IF;
+  -- Canonical selection prevents duplicate charges; express applies only to vector work.
+  NEW.agency_services := ARRAY(
+    SELECT DISTINCT service FROM unnest(NEW.agency_services) AS service ORDER BY service
+  );
+  calculated_amount := calculated_amount + 50 * cardinality(NEW.agency_services);
+
 
   NEW.estimated_price := calculated_amount;
   NEW.final_price := calculated_amount;
@@ -409,7 +420,7 @@ BEGIN
     id, order_number, user_id, project_name, artwork_type, complexity, colors,
     has_text, reconstruction_needed, reconstruction_level, turnaround,
     estimated_price, final_price, status, notes, needs_manual_review,
-    payment_method, source_order_id
+    payment_method, source_order_id, agency_services
   ) VALUES (
     requested_id,
     'ATX-' || replace(requested_id::TEXT, '-', ''),
@@ -428,7 +439,8 @@ BEGIN
     NULLIF(p_order->>'notes', ''),
     COALESCE((p_order->>'needs_manual_review')::BOOLEAN, FALSE),
     'pay_after_quote_review',
-    NULLIF(p_order->>'source_order_id', '')::UUID
+    NULLIF(p_order->>'source_order_id', '')::UUID,
+    ARRAY(SELECT jsonb_array_elements_text(COALESCE(p_order->'agency_services', '[]'::JSONB)))
   )
   RETURNING * INTO created_order;
 

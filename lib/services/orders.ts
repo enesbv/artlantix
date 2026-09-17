@@ -176,6 +176,7 @@ export async function createOrder(
           user_id: newOrder.user_id,
           project_name: newOrder.project_name,
           artwork_type: newOrder.artwork_type,
+          agency_services: newOrder.agency_services || [],
           complexity: newOrder.complexity,
           colors: newOrder.colors,
           has_text: newOrder.has_text,

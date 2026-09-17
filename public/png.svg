@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="katman_2" data-name="katman 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 311.94 384">
+  <defs>
+    <style>
+      .cls-1 {
+        font-family: Poppins-Medium, Poppins;
+        font-size: 115.1px;
+        font-weight: 500;
+      }
+
+      .cls-1, .cls-2 {
+        fill: #2b2b2b;
+      }
+
+      .cls-3 {
+        fill: #8e8e8e;
+      }
+
+      .cls-4 {
+        fill: #d9d9d9;
+      }
+    </style>
+  </defs>
+  <g id="katman_1" data-name="katman 1">
+    <g>
+      <path class="cls-2" d="M311.94,105.87v231.74c0,25.62-20.77,46.39-46.4,46.39H81.61c-25.62,0-46.39-20.77-46.39-46.39V46.39C35.22,20.77,55.99,0,81.61,0h123.3l107.03,105.87Z"/>
+      <path class="cls-3" d="M311.94,105.87h-87.76c-10.64,0-19.27-8.63-19.27-19.27V0l107.03,105.87Z"/>
+      <rect class="cls-4" y="158.43" width="286.7" height="125.48" rx="27.52" ry="27.52"/>
+      <text class="cls-1" transform="translate(47.32 261.11)"><tspan x="0" y="0">Png</tspan></text>
+    </g>
+  </g>
+</svg>

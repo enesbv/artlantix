@@ -216,3 +216,22 @@ test('the interface never loads or requests the removed monospace typeface', () 
   const combined = sourceFiles.map((file) => fs.readFileSync(file, 'utf8')).join('\n');
   assert.doesNotMatch(combined, /font-mono|Geist_Mono|font-geist-mono/);
 });
+
+
+test('agency prices are independent from vector express and duplicate selections', () => {
+  const agency = load('lib/agency-services.ts');
+  const { calculatePricing } = load('lib/pricing.ts');
+  const ids = ['brand-identity', 'alternative-logo', 'social-media-kit'];
+  assert.equal(agency.getAgencyServicesTotal(ids), 150);
+  assert.equal(agency.getAgencyServicesTotal(['brand-identity', 'brand-identity']), 50);
+  assert.equal(agency.getAgencyServicesTotal([]), 0);
+  for (const turnaround of ['standard', 'express']) {
+    const vector = calculatePricing({ complexity: 'standard', hasText: false, reconstructionNeeded: false, colorCount: '1-2', turnaround });
+    assert.equal(vector.total + agency.getAgencyServicesTotal(ids), (turnaround === 'express' ? 61 : 45) + 150);
+  }
+  for (const service of agency.getAgencyServices(ids)) {
+    assert.equal(service.price, 50);
+    assert.equal(service.minBusinessDays, 3);
+    assert.equal(service.maxBusinessDays, 5);
+  }
+});

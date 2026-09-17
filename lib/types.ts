@@ -48,6 +48,7 @@ export interface Order {
   customer_name?: string;
   customer_email?: string;
   project_name: string;
+  agency_services?: import('./agency-services').AgencyService[];
   artwork_type: ArtworkType;
   complexity: ComplexityTier;
   colors: string;

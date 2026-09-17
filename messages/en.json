@@ -139,26 +139,40 @@
     "secondaryBtn": "B2B Volume Inquiries"
   },
   "quote": {
+    "agency": {
+      "delivery": "{min}–{max} business days",
+      "title": "(Optional) Additional services",
+      "eyebrow": "Agency services",
+      "description": "Take your design further. Choose the services that fit your needs.",
+      "note": "Each service has its own delivery window starting after studio approval. Additional services are included in the total estimate. Express applies only to vectorization.",
+      "selected": "Selected",
+      "brandTitle": "Brand identity",
+      "brandDescription": "A consistent brand language with a colour palette, typography and a basic usage guide.",
+      "logoTitle": "Alternative logo design",
+      "logoDescription": "A new logo alternative that takes your existing idea in a different direction.",
+      "socialTitle": "Social media design kit",
+      "socialDescription": "Brand-matched profile artwork, post and story templates."
+    },
     "badge": "Studio Specification Engine",
     "headline": "Configure Your Artwork Reconstruction",
     "subheadline": "A calm, distraction-free questionnaire to inspect geometry and calculate guaranteed studio pricing.",
     "step1": "01. Upload",
     "step2": "02. Geometry",
     "step3": "03. Order",
-    "uploadTitle": "Step 01 / Upload Artwork",
+    "uploadTitle": "Step Upload Artwork",
     "uploadDesc": "Drag and drop a JPG, PNG, WebP or PDF file. Maximum 2 MB per file in this version.",
     "dropzone": "Drop your artwork here, or click to browse",
     "dropzoneSub": "AI concept outputs, sketches, blurry scans, or photograph labels",
     "projectName": "Project Title / Brand Mark Name",
     "continueBtn": "Continue to Geometry Specifications",
-    "geometryTitle": "01 / Artwork Classification",
+    "geometryTitle": "Artwork Classification",
     "complexityTitle": "02 / Geometry Complexity Tier",
     "complexitySub": "Determines path node density",
     "fontTitle": "Font & Lettering Restoration (+$15)",
     "fontDesc": "Identify closest authentic typeface, re-typeset wording, or hand-craft bespoke vector letterforms.",
     "repairTitle": "03 / Missing Details & Damage Repair",
     "colorsTitle": "04 / Color Separation Count",
-    "turnaroundTitle": "05 / Turnaround Speed",
+    "turnaroundTitle": "Turnaround Speed",
     "notesTitle": "Production Instructions & Tolerances (Optional)",
     "summaryTitle": "Live Estimate Summary",
     "totalPrice": "Total Price",
@@ -178,7 +192,7 @@
       "complexTitle": "Complex",
       "complexDescription": "Many fine lines and small details. Example: a botanical engraving or detailed mascot.",
       "from": "From ${price}",
-      "examples": "Illustrations show example detail levels. Text repair, colors and turnaround can change the price.",
+      "examples": "The illustrations show example detail levels. Production speed may change the estimate.",
       "reviewTitle": "Not sure — let an artist assess it",
       "reviewDescription": "We will review your artwork to determine its level and price. The displayed amount is a provisional estimate only. No payment is taken at this step; you must approve the price before production.",
       "estimate": "Provisional estimate",
@@ -193,7 +207,7 @@
       "clear": "Clear draft"
     },
     "ui": {
-      "aiLogo": "AI concept logo", "lowRes": "Low-resolution artwork", "lowResDesc": "Low-quality raster graphic", "handDrawing": "Hand drawing", "handDrawingDesc": "Sketch on paper", "typography": "Lettering and typography", "typographyDesc": "Custom wordmark", "mascot": "Mascot or crest", "mascotDesc": "Detailed character", "apparel": "Apparel or signage", "apparelDesc": "Print or cut contour", "clean": "Clean original", "cleanDesc": "Sharp edges; paths can be redrawn directly", "moderate": "Moderate repair", "moderateDesc": "Blurry edges and missing parts are rebuilt", "heavy": "Deep restoration", "heavyDesc": "Heavy pixelation and manual re-drafting", "oneTwoColors": "1–2 spot colors", "threeFiveColors": "3–5 colors", "sixPlusColors": "6+ colors", "gradients": "Gradients or mesh", "included": "Included", "standard": "Standard studio delivery", "standardDesc": "24–48 hours", "express": "Priority express", "expressDesc": "Delivery within 12–16 hours", "notesPlaceholder": "Add production method, minimum line width, color codes or other requirements...", "backUpload": "Back to upload", "continueReview": "Continue to review and order", "deliverables": "Formats included:", "card": "Credit or debit card", "cardDesc": "Production starts after payment", "payAfter": "Pay after artist review", "payAfterDesc": "No charge now; approve the price after review", "b2b": "Business account / invoice terms", "b2bDesc": "Billed to an approved company account", "net30": "Net-30 invoice", "backSpecs": "Back to specifications", "submitting": "Submitting order...", "demoCheckout": "Demo checkout: no card is charged and no invoice is issued in this build. Connect a payment provider before production use.", "defaultProject": "My Vector Project", "ready": "Ready for hand rebuild", "uploaded": "Uploaded", "changeFile": "Change file", "projectPlaceholder": "e.g., Apex Falcon Crest Reconstruction", "namePlaceholder": "e.g., Alex Morgan", "emailPlaceholder": "e.g., alex@designstudio.com", "geometryBase": "geometry base", "fontRebuild": "Font and lettering rebuild", "heavyRebuild": "Heavy geometry reconstruction", "missingRebuild": "Missing or blurred detail reconstruction", "gradientSeparation": "Complex gradient separation", "colorSeparation": "{count} color separation", "expressDispatch": "Priority express dispatch", "estimatedDelivery": "Estimated delivery", "standardTime": "24–48 hours", "expressTime": "12–16 hours", "privateFiles": "Files stay private in the client portal", "progress": "Quote progress", "uploadFirst": "Upload your artwork before continuing.", "projectFirst": "Enter a project name before continuing."
+      "aiLogo": "AI concept logo", "lowRes": "Low-resolution artwork", "lowResDesc": "Low-quality raster graphic", "handDrawing": "Hand drawing", "handDrawingDesc": "Sketch on paper", "typography": "Lettering and typography", "typographyDesc": "Custom wordmark", "mascot": "Mascot or crest", "mascotDesc": "Detailed character", "apparel": "Apparel or signage", "apparelDesc": "Print or cut contour", "clean": "Clean original", "cleanDesc": "Sharp edges; paths can be redrawn directly", "moderate": "Moderate repair", "moderateDesc": "Blurry edges and missing parts are rebuilt", "heavy": "Deep restoration", "heavyDesc": "Heavy pixelation and manual re-drafting", "oneTwoColors": "1–2 spot colors", "threeFiveColors": "3–5 colors", "sixPlusColors": "6+ colors", "gradients": "Gradients or mesh", "included": "Included", "standard": "Standard studio delivery", "standardDesc": "24–48 hours", "express": "Priority express", "expressDesc": "Delivery within 12–16 hours", "notesPlaceholder": "Add production method, minimum line width, color codes or other requirements...", "backUpload": "Back to upload", "continueReview": "Continue to review and order", "deliverables": "Formats included:", "card": "Credit or debit card", "cardDesc": "Production starts after payment", "payAfter": "Pay after artist review", "payAfterDesc": "No charge now; approve the price after review", "b2b": "Business account / invoice terms", "b2bDesc": "Billed to an approved company account", "net30": "Net-30 invoice", "backSpecs": "Back to specifications", "submitting": "Submitting order...", "demoCheckout": "Demo checkout: no card is charged and no invoice is issued in this build. Connect a payment provider before production use.", "defaultProject": "My Vector Project", "ready": "Ready for hand rebuild", "uploaded": "Uploaded", "changeFile": "Change file", "projectPlaceholder": "e.g., Apex Falcon Crest Reconstruction", "namePlaceholder": "e.g., Alex Morgan", "emailPlaceholder": "e.g., alex@designstudio.com", "geometryBase": "geometry base", "fontRebuild": "Font and lettering rebuild", "heavyRebuild": "Heavy geometry reconstruction", "missingRebuild": "Missing or blurred detail reconstruction", "gradientSeparation": "Complex gradient separation", "colorSeparation": "{count} color separation", "expressDispatch": "Priority express dispatch", "estimatedDelivery": "Vectorization delivery", "standardTime": "24–48 hours", "expressTime": "12–16 hours", "privateFiles": "Files stay private in the client portal", "progress": "Quote progress", "uploadFirst": "Upload your artwork before continuing.", "projectFirst": "Enter a project name before continuing."
     }
   }
 }

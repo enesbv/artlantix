@@ -96,3 +96,7 @@ Yayın öncesinde en az şu kanıtlar gerekir:
 **CONDITIONAL NO-GO**
 
 Kod tabanı quote-first yayın modeline hazırlanmıştır; ancak H-01 ve H-02 dış sistem kontrolleri kanıtlanmadan gerçek müşteri dosyasıyla production'a çıkılmamalıdır. Bu kontroller tamamlandığında ödeme entegrasyonu olmadan da teklif talebi ürünü olarak yayınlanabilir; çevrim içi ödeme sonradan eklenirse ayrı bir ödeme güvenlik incelemesi gerekir.
+
+## 17 Eylül 2026 — Ek hizmet fiyatları
+
+`20260917_agency_services.sql` yerelde hazırlandı; canlı veritabanına uygulanmadı. Üç ajans hizmeti ayrı ayrı 50 USD; veritabanı yalnız izin verilen hizmet kimliklerini kabul eder, tekrarları tekilleştirir ve ek hizmet bedelini vektör ekspres çarpanından sonra ekler. Canlı kullanım öncesinde migration ve veritabanı doğrulaması gerekir. Ayrı teslim tahmini her hizmet için stüdyo onayından sonra 3–5 iş günüdür.

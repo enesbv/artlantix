@@ -139,26 +139,40 @@
     "secondaryBtn": "B2B Großkunden-Portal"
   },
   "quote": {
+    "agency": {
+      "delivery": "{min}–{max} Werktage",
+      "title": "(Optional) Zusätzliche Leistungen",
+      "eyebrow": "Agenturleistungen",
+      "description": "Entwickeln Sie Ihr Design weiter. Wählen Sie die passenden Leistungen.",
+      "note": "Jede Leistung hat eine eigene Lieferzeit ab Studiofreigabe. Zusatzleistungen sind in der Gesamtschätzung enthalten. Express gilt nur für die Vektorisierung.",
+      "selected": "Ausgewählt",
+      "brandTitle": "Markenidentität",
+      "brandDescription": "Eine einheitliche Markensprache mit Farbpalette, Typografie und grundlegenden Gestaltungsrichtlinien.",
+      "logoTitle": "Alternativer Logoentwurf",
+      "logoDescription": "Eine neue Logoalternative, die Ihrer bestehenden Idee eine andere Richtung gibt.",
+      "socialTitle": "Social-Media-Designset",
+      "socialDescription": "Passende Profilgrafik sowie Vorlagen für Beiträge und Storys."
+    },
     "badge": "Studio Spezifikations-Rechner",
     "headline": "Konfigurieren Sie Ihre Vektorisierung",
     "subheadline": "Ruhiger, fokussierter Fragebogen zur Prüfung der Geometrie und Ermittlung des garantierten Studiopreises.",
     "step1": "01. Upload",
     "step2": "02. Geometrie",
     "step3": "03. Bestätigung",
-    "uploadTitle": "Schritt 01 / Vorlage Hochladen",
+    "uploadTitle": "Schritt Vorlage Hochladen",
     "uploadDesc": "Ziehen Sie eine JPG-, PNG-, WebP- oder PDF-Datei hierher. In dieser Version maximal 2 MB pro Datei.",
     "dropzone": "Datei hier ablegen oder zum Auswählen klicken",
     "dropzoneSub": "KI-Bilder, Handskizzen, unscharfe Scans oder Etiketten-Fotos",
     "projectName": "Projektname / Markenbezeichnung",
     "continueBtn": "Weiter zu den Geometrie-Details",
-    "geometryTitle": "01 / Vorlagen-Klassifizierung",
+    "geometryTitle": "Vorlagen-Klassifizierung",
     "complexityTitle": "02 / Pfad-Komplexitätsstufe",
     "complexitySub": "Bestimmt die notwendige Knotendichte",
     "fontTitle": "Schrift- & Typografie-Restaurierung (+15 $)",
     "fontDesc": "Ermittlung der Originalschriftart oder manuelle Vektor-Zeichnung der Lettern.",
     "repairTitle": "03 / Fehlende Details & Schadensbehebung",
     "colorsTitle": "04 / Anzahl Farbauszüge (Spot-Farben)",
-    "turnaroundTitle": "05 / Produktionsgeschwindigkeit",
+    "turnaroundTitle": "Produktionsgeschwindigkeit",
     "notesTitle": "Produktionshinweise & Toleranzen (Optional)",
     "summaryTitle": "Kalkulations-Übersicht",
     "totalPrice": "Gesamtpreis",
@@ -178,7 +192,7 @@
       "complexTitle": "Komplex",
       "complexDescription": "Viele feine Linien und kleine Details. Beispiel: eine botanische Gravur oder ein detailliertes Maskottchen.",
       "from": "Ab ${price}",
-      "examples": "Die Zeichnungen zeigen beispielhafte Detailstufen. Schriftkorrektur, Farben und Lieferzeit können den Preis ändern.",
+      "examples": "Die Illustrationen zeigen beispielhafte Detailstufen. Die Produktionsgeschwindigkeit kann die Schätzung ändern.",
       "reviewTitle": "Unsicher — vom Zeichner bewerten lassen",
       "reviewDescription": "Wir prüfen Ihre Vorlage und bestimmen Aufwand und Preis. Der angezeigte Betrag ist nur eine vorläufige Schätzung. Jetzt wird nichts berechnet; vor Produktionsbeginn müssen Sie den Preis bestätigen.",
       "estimate": "Vorläufige Schätzung",
@@ -193,7 +207,7 @@
       "clear": "Entwurf löschen"
     },
     "ui": {
-      "aiLogo": "KI-Logoentwurf", "lowRes": "Niedrig aufgelöste Vorlage", "lowResDesc": "Rastergrafik in geringer Qualität", "handDrawing": "Handzeichnung", "handDrawingDesc": "Skizze auf Papier", "typography": "Schrift und Typografie", "typographyDesc": "Individueller Schriftzug", "mascot": "Maskottchen oder Wappen", "mascotDesc": "Detaillierter Charakter", "apparel": "Textil oder Beschilderung", "apparelDesc": "Druck- oder Schnittkontur", "clean": "Saubere Vorlage", "cleanDesc": "Scharfe Kanten; Pfade können direkt nachgezeichnet werden", "moderate": "Mittlere Reparatur", "moderateDesc": "Unscharfe Kanten und fehlende Teile werden rekonstruiert", "heavy": "Intensive Restaurierung", "heavyDesc": "Starke Pixelbildung und manuelle Neuzeichnung", "oneTwoColors": "1–2 Volltonfarben", "threeFiveColors": "3–5 Farben", "sixPlusColors": "6+ Farben", "gradients": "Verläufe oder Mesh", "included": "Inklusive", "standard": "Standardlieferung", "standardDesc": "24–48 Stunden", "express": "Prioritäts-Express", "expressDesc": "Lieferung innerhalb 12–16 Stunden", "notesPlaceholder": "Produktionsverfahren, minimale Linienstärke, Farbcodes oder weitere Anforderungen...", "backUpload": "Zurück zum Upload", "continueReview": "Weiter zur Prüfung und Bestellung", "deliverables": "Enthaltene Formate:", "card": "Kredit- oder Debitkarte", "cardDesc": "Die Produktion beginnt nach der Zahlung", "payAfter": "Nach Künstlerprüfung bezahlen", "payAfterDesc": "Jetzt keine Zahlung; Preis nach der Prüfung bestätigen", "b2b": "Geschäftskonto / Zahlungsziel", "b2bDesc": "Abrechnung über ein genehmigtes Firmenkonto", "net30": "30-Tage-Rechnung", "backSpecs": "Zurück zu den Angaben", "submitting": "Auftrag wird gesendet...", "demoCheckout": "Demo-Zahlung: In dieser Version werden keine Karten belastet und keine echten Rechnungen erstellt. Vor dem Produktiveinsatz muss ein Zahlungsanbieter verbunden werden.", "defaultProject": "Mein Vektorprojekt", "ready": "Bereit zum manuellen Nachzeichnen", "uploaded": "Hochgeladen", "changeFile": "Datei ändern", "projectPlaceholder": "z. B. Rekonstruktion eines Falkenwappens", "namePlaceholder": "z. B. Alex Morgan", "emailPlaceholder": "z. B. alex@designstudio.de", "geometryBase": "Geometrie-Grundpreis", "fontRebuild": "Schrift- und Buchstabenrekonstruktion", "heavyRebuild": "Intensive Geometrie-Rekonstruktion", "missingRebuild": "Rekonstruktion fehlender oder unscharfer Details", "gradientSeparation": "Komplexe Verlaufsseparation", "colorSeparation": "{count} Farbseparation", "expressDispatch": "Prioritäts-Expressbearbeitung", "estimatedDelivery": "Voraussichtliche Lieferung", "standardTime": "24–48 Stunden", "expressTime": "12–16 Stunden", "privateFiles": "Dateien bleiben im Kundenportal privat", "progress": "Angebotsfortschritt", "uploadFirst": "Laden Sie vor dem Fortfahren Ihre Vorlage hoch.", "projectFirst": "Geben Sie vor dem Fortfahren einen Projektnamen ein."
+      "aiLogo": "KI-Logoentwurf", "lowRes": "Niedrig aufgelöste Vorlage", "lowResDesc": "Rastergrafik in geringer Qualität", "handDrawing": "Handzeichnung", "handDrawingDesc": "Skizze auf Papier", "typography": "Schrift und Typografie", "typographyDesc": "Individueller Schriftzug", "mascot": "Maskottchen oder Wappen", "mascotDesc": "Detaillierter Charakter", "apparel": "Textil oder Beschilderung", "apparelDesc": "Druck- oder Schnittkontur", "clean": "Saubere Vorlage", "cleanDesc": "Scharfe Kanten; Pfade können direkt nachgezeichnet werden", "moderate": "Mittlere Reparatur", "moderateDesc": "Unscharfe Kanten und fehlende Teile werden rekonstruiert", "heavy": "Intensive Restaurierung", "heavyDesc": "Starke Pixelbildung und manuelle Neuzeichnung", "oneTwoColors": "1–2 Volltonfarben", "threeFiveColors": "3–5 Farben", "sixPlusColors": "6+ Farben", "gradients": "Verläufe oder Mesh", "included": "Inklusive", "standard": "Standardlieferung", "standardDesc": "24–48 Stunden", "express": "Prioritäts-Express", "expressDesc": "Lieferung innerhalb 12–16 Stunden", "notesPlaceholder": "Produktionsverfahren, minimale Linienstärke, Farbcodes oder weitere Anforderungen...", "backUpload": "Zurück zum Upload", "continueReview": "Weiter zur Prüfung und Bestellung", "deliverables": "Enthaltene Formate:", "card": "Kredit- oder Debitkarte", "cardDesc": "Die Produktion beginnt nach der Zahlung", "payAfter": "Nach Künstlerprüfung bezahlen", "payAfterDesc": "Jetzt keine Zahlung; Preis nach der Prüfung bestätigen", "b2b": "Geschäftskonto / Zahlungsziel", "b2bDesc": "Abrechnung über ein genehmigtes Firmenkonto", "net30": "30-Tage-Rechnung", "backSpecs": "Zurück zu den Angaben", "submitting": "Auftrag wird gesendet...", "demoCheckout": "Demo-Zahlung: In dieser Version werden keine Karten belastet und keine echten Rechnungen erstellt. Vor dem Produktiveinsatz muss ein Zahlungsanbieter verbunden werden.", "defaultProject": "Mein Vektorprojekt", "ready": "Bereit zum manuellen Nachzeichnen", "uploaded": "Hochgeladen", "changeFile": "Datei ändern", "projectPlaceholder": "z. B. Rekonstruktion eines Falkenwappens", "namePlaceholder": "z. B. Alex Morgan", "emailPlaceholder": "z. B. alex@designstudio.de", "geometryBase": "Geometrie-Grundpreis", "fontRebuild": "Schrift- und Buchstabenrekonstruktion", "heavyRebuild": "Intensive Geometrie-Rekonstruktion", "missingRebuild": "Rekonstruktion fehlender oder unscharfer Details", "gradientSeparation": "Komplexe Verlaufsseparation", "colorSeparation": "{count} Farbseparation", "expressDispatch": "Prioritäts-Expressbearbeitung", "estimatedDelivery": "Lieferung der Vektorisierung", "standardTime": "24–48 Stunden", "expressTime": "12–16 Stunden", "privateFiles": "Dateien bleiben im Kundenportal privat", "progress": "Angebotsfortschritt", "uploadFirst": "Laden Sie vor dem Fortfahren Ihre Vorlage hoch.", "projectFirst": "Geben Sie vor dem Fortfahren einen Projektnamen ein."
     }
   }
 }

@@ -15,6 +15,7 @@ export interface QuoteDraft {
   notes: string;
   companyName?: string;
   intendedUse?: string;
+  agencyServices?: ('brand-identity' | 'alternative-logo' | 'social-media-kit')[];
   aiTool?: string;
   requestedDeadline?: string;
   serviceSlug?: string;

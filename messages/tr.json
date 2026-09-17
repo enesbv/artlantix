@@ -27,7 +27,7 @@
     "title": "Müşteri Üretim Portalı", "partner": "Kurumsal İş Ortağı", "loggedIn": "Oturum açan:", "client": "Müşteri", "adminDesk": "Üretim Masası (Yönetici)", "newQuote": "Yeni Proje Teklifi", "overview": "Genel Bakış", "orders": "Siparişlerim", "vault": "Çalışma Arşivi", "business": "Kurumsal Stüdyo", "account": "Hesap ve Faturalama", "notificationCount": "{count} sipariş bildirimi", "updates": "Sipariş güncellemeleri", "caughtUp": "Tüm bildirimleri gördünüz.", "dismissNotification": "{project} bildirimini kapat", "overdue": "Tahmini teslim zamanı geçti"
   },
   "orderStatus": {"quote_requested":"Teklif istendi","in_review":"İnceleniyor","in_progress":"Çizim sürüyor","preview_ready":"Önizleme hazır","approved":"Onaylandı · Paketleniyor","revision_requested":"Revizyon istendi","completed":"Tamamlandı","cancelled":"İptal edildi"},
-  "ordersPage": {"title":"Sipariş Geçmişi ve Projeler","description":"Çizim çalışmalarını inceleyin, revizyonları takip edin ve üretim dosyalarına erişin.","newQuote":"Yeni Proje Teklifi","all":"Tüm Siparişler","active":"Aktif","preview":"Önizleme Hazır","review":"İncelenenler","completed":"Tamamlananlar","search":"Sipariş numarası veya başlık ara...","emptyTitle":"Sipariş bulunamadı","emptySearch":"Aramanızla eşleşen sipariş yok.","emptyCategory":"Bu kategoride siparişiniz yok.","startProject":"Yeni Proje Başlat","expected":"Tahmini teslim","manage":"Yönet","orderNumber":"Sipariş #","project":"Proje","type":"Tür","complexity":"Karmaşıklık","status":"Durum","turnaround":"Teslim süresi","price":"Fiyat","details":"Ayrıntılar","express":"Ekspres (<16 sa)","standard":"Standart (24–48 sa)","showing":"{total} kaydın {start}–{end} arası gösteriliyor","previous":"Önceki sayfa","next":"Sonraki sayfa"},
+  "ordersPage": {"title":"Sipariş Geçmişi ve Projeler","description":"Çizim çalışmalarını inceleyin, revizyonları takip edin ve üretim dosyalarına erişin.","newQuote":"Yeni Proje Teklifi","all":"Tüm Siparişler","active":"Aktif","preview":"Önizleme Hazır","review":"İncelenenler","completed":"Tamamlananlar","search":"Sipariş numarası veya başlık ara...","emptyTitle":"Sipariş bulunamadı","emptySearch":"Aramanızla eşleşen sipariş yok.","emptyCategory":"Bu kategoride siparişiniz yok.","startProject":"Yeni Proje Başlat","expected":"Vektör çizimi teslimi","manage":"Yönet","orderNumber":"Sipariş #","project":"Proje","type":"Tür","complexity":"Karmaşıklık","status":"Durum","turnaround":"Teslim süresi","price":"Fiyat","details":"Ayrıntılar","express":"Ekspres (<16 sa)","standard":"Standart (24–48 sa)","showing":"{total} kaydın {start}–{end} arası gösteriliyor","previous":"Önceki sayfa","next":"Sonraki sayfa"},
   "passwordReset": {"title":"Yeni parola belirleyin","description":"Bu sayfayı e-postanıza gönderilen güvenli kurtarma bağlantısından açın.","newPassword":"Yeni parola","confirm":"Parolayı doğrulayın","update":"Parolayı güncelle","updating":"Güncelleniyor…","return":"Girişe dön","lengthError":"12–128 karakter arasında bir parola kullanın.","matchError":"Parolalar eşleşmiyor.","demoError":"Demo modunda parola kurtarma kullanılamaz.","success":"Parolanız güncellendi."},
   "hero": {
     "eyebrow": "Yaratıcı Üretim Stüdyosu · Elle Çizilen Vektör Rekonstrüksiyonu",
@@ -139,26 +139,40 @@
     "secondaryBtn": "B2B Kurumsal Başvuru"
   },
   "quote": {
+    "agency": {
+      "delivery": "{min}–{max} iş günü",
+      "title": "(Opsiyonel) Ek hizmetler",
+      "eyebrow": "Ajans hizmetleri",
+      "description": "Tasarımınızı bir adım ileri taşıyın. İhtiyacınıza uygun hizmetleri seçin.",
+      "note": "Her hizmetin ayrı teslim süresi vardır; süre stüdyo onayından sonra başlar. Ek hizmetler toplam tahmine dahildir. Ekspres üretim yalnızca vektör çizimini kapsar.",
+      "selected": "Seçildi",
+      "brandTitle": "Marka kimliği",
+      "brandDescription": "Renk paleti, tipografi ve temel kullanım rehberiyle tutarlı bir marka dili.",
+      "logoTitle": "Alternatif logo tasarımı",
+      "logoDescription": "Mevcut fikrinize farklı bir yön kazandıran yeni bir logo alternatifi.",
+      "socialTitle": "Sosyal medya tasarım seti",
+      "socialDescription": "Markanıza uyumlu profil görseli, gönderi ve hikâye şablonları."
+    },
     "badge": "Stüdyo Spesifikasyon Hesaplayıcı",
     "headline": "Vektör Çizim Projenizi Yapılandırın",
     "subheadline": "Geometriyi incelemek ve garantili stüdyo fiyatını hesaplamak için sakin ve odaklı soru formu.",
     "step1": "01. Yükleme",
     "step2": "02. Geometri",
     "step3": "03. Sipariş",
-    "uploadTitle": "Adım 01 / Görsel Dosyasını Yükleyin",
+    "uploadTitle": "Adım Görsel Dosyasını Yükleyin",
     "uploadDesc": "JPG, PNG, WebP veya PDF dosyanızı sürükleyip bırakın. Bu sürümde dosya sınırı 2 MB.",
     "dropzone": "Görseli buraya bırakın veya seçmek için tıklayın",
     "dropzoneSub": "Yapay zeka taslakları, el çizimleri, bulanık taramalar veya etiket fotoğrafları",
     "projectName": "Proje Adı / Marka İsmi",
     "continueBtn": "Geometri Özelliklerine Devam Et",
-    "geometryTitle": "01 / Görsel Sınıflandırması",
+    "geometryTitle": "Görsel Sınıflandırması",
     "complexityTitle": "02 / Geometri Karmaşıklık Seviyesi",
     "complexitySub": "Gerekli düğüm noktası yoğunluğunu belirler",
     "fontTitle": "Yazı Tipi & Tipografi Yenileme (+15 $)",
     "fontDesc": "Orijinal fontu tespit etme veya harfleri sıfırdan elle vektör olarak çizme.",
     "repairTitle": "03 / Eksik Parça & Hasar Onarımı",
     "colorsTitle": "04 / Renk Ayrımı Sayısı (Spot Renkler)",
-    "turnaroundTitle": "05 / Üretim Hızı",
+    "turnaroundTitle": "Üretim Hızı",
     "notesTitle": "Üretim Talimatları & Tolerans Notları (İsteğe Bağlı)",
     "summaryTitle": "Canlı Fiyat Özeti",
     "totalPrice": "Toplam Fiyat",
@@ -178,7 +192,7 @@
       "complexTitle": "Karmaşık",
       "complexDescription": "Çok sayıda küçük çizgi ve ince detay. Örnek: yapraklı bir gravür veya ayrıntılı maskot.",
       "from": "Başlangıç: ${price}",
-      "examples": "Çizimler seviyeleri anlatan örneklerdir. Yazı onarımı, renk ve hız seçenekleri ücreti değiştirebilir.",
+      "examples": "Çizimler detay seviyelerini anlatan örneklerdir. Üretim hızı tahmini ücreti değiştirebilir.",
       "reviewTitle": "Emin değilim — çizer değerlendirsin",
       "reviewDescription": "Görselinizi inceleyip uygun seviyeyi ve fiyatı belirleyelim. Görünen tutar yalnızca ön tahmindir. Bu adımda ödeme alınmaz; üretimden önce fiyatı onaylamanız gerekir.",
       "estimate": "Ön tahmin",
@@ -233,7 +247,7 @@
       "backSpecs": "Özelliklere dön",
       "submitting": "Sipariş gönderiliyor...",
       "demoCheckout": "Demo ödeme: bu sürümde karttan çekim yapılmaz ve gerçek fatura oluşturulmaz. Canlı kullanım öncesinde bir ödeme sağlayıcısı bağlanmalıdır.",
-      "defaultProject": "Vektör Projem", "ready": "Elle çizime hazır", "uploaded": "Yüklendi", "changeFile": "Dosyayı değiştir", "projectPlaceholder": "örn. Şahin Arması Yeniden Çizimi", "namePlaceholder": "örn. Ali Yılmaz", "emailPlaceholder": "örn. ali@tasarimstudyo.com", "geometryBase": "geometri tabanı", "fontRebuild": "Yazı tipi ve harf yenileme", "heavyRebuild": "Yoğun geometri onarımı", "missingRebuild": "Eksik veya bulanık ayrıntı onarımı", "gradientSeparation": "Karmaşık geçiş ayrımı", "colorSeparation": "{count} renk ayrımı", "expressDispatch": "Öncelikli ekspres üretim", "estimatedDelivery": "Tahmini teslim", "standardTime": "24–48 saat", "expressTime": "12–16 saat", "privateFiles": "Dosyalar müşteri portalında gizli kalır", "progress": "Teklif ilerlemesi", "uploadFirst": "Devam etmeden önce görselinizi yükleyin.", "projectFirst": "Devam etmeden önce proje adını yazın."
+      "defaultProject": "Vektör Projem", "ready": "Elle çizime hazır", "uploaded": "Yüklendi", "changeFile": "Dosyayı değiştir", "projectPlaceholder": "örn. Şahin Arması Yeniden Çizimi", "namePlaceholder": "örn. Ali Yılmaz", "emailPlaceholder": "örn. ali@tasarimstudyo.com", "geometryBase": "geometri tabanı", "fontRebuild": "Yazı tipi ve harf yenileme", "heavyRebuild": "Yoğun geometri onarımı", "missingRebuild": "Eksik veya bulanık ayrıntı onarımı", "gradientSeparation": "Karmaşık geçiş ayrımı", "colorSeparation": "{count} renk ayrımı", "expressDispatch": "Öncelikli ekspres üretim", "estimatedDelivery": "Vektör çizimi teslimi", "standardTime": "24–48 saat", "expressTime": "12–16 saat", "privateFiles": "Dosyalar müşteri portalında gizli kalır", "progress": "Teklif ilerlemesi", "uploadFirst": "Devam etmeden önce görselinizi yükleyin.", "projectFirst": "Devam etmeden önce proje adını yazın."
     }
   }
 }
