@@ -8,6 +8,8 @@ Artlantix is a manual vectorization and artwork reconstruction studio platform. 
 
 The site markets human redrawing, not automatic vector generation. Do not present generated demo artwork as a real production deliverable.
 
+Public pricing grids (home, comparison home, pricing and business) include a fourth, price-free Contact us option for complex artwork and business/custom scopes. It opens the quote wizard with `review=1`; the detail-level picker also offers this choice to all customers. Its summary hides the automatic vector estimate and leaves price and delivery subject to studio review. The existing internal estimate remains in the order contract; the request is explicitly marked in notes and requires operator review before any agreed price.
+
 ## Stack and entry points
 
 - Next.js 16.3.4 App Router, React 19.2.8, TypeScript, Tailwind CSS 4.
@@ -27,6 +29,7 @@ The site markets human redrawing, not automatic vector generation. Do not presen
 | `app/admin/` | Operator orders and content management |
 | `components/HomePageContent.tsx` | Public marketing, portfolio and pricing UI |
 | `lib/marketing.ts` | Type-safe Turkish, English and German service, case-study, guide and public FAQ catalogue |
+| `components/ServiceVisual.tsx` | Six code-native service illustrations displayed in homepage service cards |
 | `components/MarketingVisual.tsx` | Code-native localized production artwork used across public marketing pages |
 | `components/QuotePageContent.tsx` | Upload/specification/order wizard |
 | `components/ComplexityPicker.tsx` | Illustrated detail-level and artist-assessment selector |
@@ -58,6 +61,8 @@ The site markets human redrawing, not automatic vector generation. Do not presen
 Public pages support `en`, `de`, `tr`, with the default English prefix optional. Dashboard and admin routes do **not** exist below a locale prefix. Login, signup, and auth routes are excluded from locale middleware. After a quote, navigate to `/dashboard/orders/<id>`, never `/tr/dashboard/...` or `/de/dashboard/...`.
 
 The language selector preserves query parameters and hash and persists `NEXT_LOCALE`. On dashboard/auth routes it refreshes the current route instead of navigating away. The root provider and HTML `lang` use that cookie; public pages have nested locale providers. Public navigation, footer, marketing pages and quote flow are translated. Several account, B2B and admin strings remain English.
+
+The public `/business` page in all three locales targets sign manufacturers, print/card producers, apparel companies and agencies, with a split hero and labelled workspace preview, an interactive industry selector with code-native signage/card/apparel/brand illustrations in BusinessArtwork.tsx, operational benefits and CMS-backed tier starting prices. CTAs open the real batch workspace or preselect business signup with a safe dashboard return path. It does not implement volume discounts or invoicing.
 
 The public marketing information architecture includes `/services`, `/services/<slug>`, `/work`, `/work/<slug>`, `/pricing`, `/guides`, `/guides/<slug>` and `/faq` below every locale. English uses the unprefixed canonical path. Case studies in the code are explicitly labelled studio demonstrations; do not turn them into customer claims unless publication permission and verifiable project information exist.
 
@@ -138,3 +143,5 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 ## Keeping this context useful
 
 Update this document and the audit when fixing a listed limitation. Clearly distinguish local changes, committed code, pushed code, deployed code and applied database migrations. Use Git history for current revision status instead of maintaining a hardcoded commit hash here. Do not report tests, deployments, integrations or performance improvements that have not been verified.
+
+The temporary `/tr1` route renders the Turkish homepage before the latest visual refresh using `PreviousHomePageContent.tsx`, including the service illustrations and process icons. It bypasses locale redirection, is marked noindex and is omitted from the sitemap. `/tr` remains the current homepage.

@@ -1,0 +1,5 @@
+export const customQuoteCopy = {
+  tr: { title: 'İletişime geçin', description: 'Çok karmaşık görseller, özel üretim ihtiyaçları ve işletme işleri için kapsamı birlikte belirleyelim.', action: 'Dosyanızı paylaşın', pending: 'İnceleme sonrası belirlenir', note: 'Bu seçenekte sabit fiyat yoktur. Stüdyo dosyanızı inceleyerek fiyat ve teslim planını onayınıza sunar.' },
+  en: { title: 'Contact us', description: 'Let’s define the scope for highly complex artwork, custom production needs and business projects.', action: 'Share your artwork', pending: 'Confirmed after review', note: 'This option has no fixed price. The studio reviews your artwork and proposes a price and delivery plan for your approval.' },
+  de: { title: 'Kontakt aufnehmen', description: 'Gemeinsam planen wir komplexe Grafiken, besondere Produktionsanforderungen und Geschäftsprojekte.', action: 'Grafik einreichen', pending: 'Nach Prüfung bestätigt', note: 'Diese Option hat keinen Festpreis. Das Studio prüft Ihre Grafik und legt Preis und Lieferplan zur Freigabe vor.' },
+} as const;

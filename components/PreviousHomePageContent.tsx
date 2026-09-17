@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ContactPricingCard from '@/components/ContactPricingCard';
-import { ArrowRight, Check, CircleDollarSign, FileCheck2, LockKeyhole, ScanSearch, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, CircleDollarSign, FileCheck2, LockKeyhole, ScanSearch, Sparkles, UploadCloud, PenTool, PackageCheck } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
@@ -12,9 +12,11 @@ import FaqList from '@/components/FaqList';
 import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/services/content';
 import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, publicFaqs, services, trustFacts } from '@/lib/marketing';
 
+const processIcons = [UploadCloud, ScanSearch, PenTool, PackageCheck];
+
 const factIcons = [Sparkles, LockKeyhole, ScanSearch, FileCheck2];
 
-export default function HomePageContent({ locale }: { locale: string }) {
+export default function PreviousHomePageContent({ locale }: { locale: string }) {
   const lang = normalizeMarketingLocale(locale);
   const copy = marketingCopy[lang];
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS);
@@ -63,7 +65,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
               <Link key={service.slug} href={localizedPath(lang, `/services/${service.slug}`)} className="group rounded-2xl border border-[#DAD8D2] bg-white p-6 transition hover:-translate-y-1 hover:border-[#8FC9A6] hover:shadow-lg">
                 <ServiceVisual slug={service.slug} />
                 <div className="flex items-center justify-end"><ArrowRight className="h-4 w-4 text-[#18794E] transition-transform group-hover:translate-x-1" /></div>
-                <h3 className="mt-8 text-xl font-bold text-[#102A20]">{service.title[lang]}</h3><p className="mt-3 text-sm leading-6 text-[#5E625F]">{service.short[lang]}</p>
+                <h3 className="mt-3 text-xl font-bold text-[#102A20]">{service.title[lang]}</h3><p className="mt-3 text-sm leading-6 text-[#5E625F]">{service.short[lang]}</p>
                 <div className="mt-6 flex items-center justify-between border-t border-[#EAE8E3] pt-4 text-xs"><span>{copy.common.from} <strong>${service.startingPrice}</strong></span><span>{service.turnaround[lang]}</span></div>
               </Link>
             ))}
@@ -73,7 +75,24 @@ export default function HomePageContent({ locale }: { locale: string }) {
         <section id="process" className="bg-[#102A20] text-white">
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
             <h2 className="max-w-2xl text-4xl font-black tracking-tight">{copy.home.processTitle}</h2>
-            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">{processSteps[lang].map((step) => <div key={step.title} className="border-t border-white/20 pt-5"><h3 className="text-lg font-bold">{step.title}</h3><p className="mt-2 text-sm leading-6 text-white/65">{step.text}</p></div>)}</div>
+            <ol className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+              {processSteps[lang].map((step, index) => {
+                const Icon = processIcons[index];
+                return (
+                  <li key={step.title}>
+                    <div className="mb-6 flex items-center gap-4" aria-hidden="true">
+                      <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-[#78D5A6]/30 bg-[#18794E]/30 text-[#78D5A6]">
+                        <Icon className="h-7 w-7" strokeWidth={1.75} />
+                        <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#78D5A6]/30 bg-[#102A20] text-[10px] font-bold text-[#B4DFC4]">{String(index + 1).padStart(2, '0')}</span>
+                      </div>
+                      {index < processSteps[lang].length - 1 && <div className="hidden flex-1 items-center gap-2 lg:flex"><span className="h-px flex-1 bg-[#78D5A6]/25" /><ArrowRight className="h-4 w-4 text-[#78D5A6]/50" /></div>}
+                    </div>
+                    <h3 className="text-lg font-bold">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-white/65">{step.text}</p>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         </section>
 

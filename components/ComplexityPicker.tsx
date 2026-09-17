@@ -1,6 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { MessagesSquare } from 'lucide-react';
+import { customQuoteCopy } from '@/lib/custom-quote-copy';
+import { normalizeMarketingLocale } from '@/lib/marketing';
 import { ComplexityTier } from '@/lib/types';
 
 export default function ComplexityPicker({ value, prices, onChange }: {
@@ -9,12 +12,13 @@ export default function ComplexityPicker({ value, prices, onChange }: {
   onChange: (value: ComplexityTier | 'review') => void;
 }) {
   const t = useTranslations('quote.complexityGuide');
+  const contact = customQuoteCopy[normalizeMarketingLocale(useLocale())];
   return (
     <fieldset className="rounded-2xl border border-[#EAE8E3] bg-white p-5 sm:p-6">
       <legend className="sr-only">{t('title')}</legend>
       <h3 className="text-lg font-bold tracking-tight text-[#102A20]">{t('title')}</h3>
       <p className="mt-2 text-sm leading-6 text-[#5E625F]">{t('intro')}</p>
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {(['simple', 'standard', 'complex'] as const).map((tier) => (
           <label key={tier} className={`relative cursor-pointer rounded-xl border-2 p-4 transition-colors has-[:focus-visible]:shadow-[inset_0_0_0_2px_#115C3B] ${value === tier ? 'border-[#18794E] bg-[#E9F9EE]' : 'border-[#EAE8E3] bg-white hover:border-[#B4DFC4]'}`}>
             <input type="radio" name="complexity" value={tier} checked={value === tier} onChange={() => onChange(tier)} className="sr-only focus:outline-none" />
@@ -39,12 +43,14 @@ export default function ComplexityPicker({ value, prices, onChange }: {
             <span className="mt-3 block text-xs font-semibold text-[#115C3B]">{t('from', { price: prices[tier] })}</span>
           </label>
         ))}
+      <label className={`relative flex cursor-pointer flex-col rounded-xl border-2 p-4 has-[:focus-visible]:shadow-[inset_0_0_0_2px_#115C3B] ${value === 'review' ? 'border-[#18794E] bg-[#E9F9EE]' : 'border-[#EAE8E3] bg-white hover:border-[#B4DFC4]'}`}>
+        <input type="radio" name="complexity" value="review" checked={value === 'review'} onChange={() => onChange('review')} className="sr-only focus:outline-none" />
+        <span className="mb-3 flex h-24 items-center justify-center rounded-lg bg-[#F9F8F6]"><MessagesSquare className="h-10 w-10 text-[#18794E]" /></span>
+        <span className="block text-sm font-bold text-[#102A20]">{contact.title}</span>
+        <span className="mt-1 block text-xs leading-5 text-[#555]">{contact.description}</span>
+      </label>
       </div>
       <p className="mt-2 text-xs text-[#737373]">{t('examples')}</p>
-      <label className={`mt-4 flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 has-[:focus-visible]:shadow-[inset_0_0_0_2px_#115C3B] ${value === 'review' ? 'border-[#18794E] bg-[#E9F9EE]' : 'border-[#EAE8E3] bg-white hover:border-[#B4DFC4]'}`}>
-        <input type="radio" name="complexity" value="review" checked={value === 'review'} onChange={() => onChange('review')} className="mt-1 accent-[#18794E] focus:outline-none" />
-        <span><span className="block text-sm font-bold text-[#102A20]">{t('reviewTitle')}</span><span className="mt-1 block text-xs leading-5 text-[#555]">{t('reviewDescription')}</span></span>
-      </label>
     </fieldset>
   );
 }

@@ -29,6 +29,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* Enterprise utility classes */
 .bg-primary {
   background-color: #FFFFFF;

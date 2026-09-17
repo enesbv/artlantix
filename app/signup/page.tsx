@@ -13,7 +13,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = getSafePostAuthRedirect(searchParams.get('next'));
-  const [accountType, setAccountType] = useState<'individual' | 'business'>('individual');
+  const [accountType, setAccountType] = useState<'individual' | 'business'>(searchParams.get('type') === 'business' ? 'business' : 'individual');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [companyName, setCompanyName] = useState('');

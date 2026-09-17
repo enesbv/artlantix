@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import ComplexityPicker from '@/components/ComplexityPicker';
+import { customQuoteCopy } from '@/lib/custom-quote-copy';
 import AgencyServicesPicker from '@/components/AgencyServicesPicker';
 import { AGENCY_SERVICES, AgencyService, getAgencyServices, getAgencyServicesTotal } from '@/lib/agency-services';
 import Footer from '@/components/Footer';
@@ -50,6 +51,8 @@ function QuoteSummary({
   agencyNote = '',
   onContinue,
   continueLabel,
+  customQuote = false,
+  contact,
 }: {
   projectName: string;
   pricing: PricingCalculation;
@@ -73,6 +76,8 @@ function QuoteSummary({
   agencyNote?: string;
   onContinue?: () => void;
   continueLabel?: string;
+  customQuote?: boolean;
+  contact: { title: string; pending: string; note: string };
 }) {
   return (
     <aside className={`rounded-2xl border border-[#DAD8D2] bg-white p-6 shadow-sm ${className}`} aria-label={labels.summary}>
@@ -81,17 +86,17 @@ function QuoteSummary({
           <span className="font-sans text-xs font-bold uppercase tracking-wider text-[#737373]">{labels.summary}</span>
           <h3 className="mt-1 truncate text-lg font-bold text-[#141414]">{projectName}</h3>
         </div>
-        <span className="rounded-full bg-[#E9F9EE] px-2.5 py-1 text-xs font-bold text-[#115C3B]">USD</span>
+        {!customQuote && <span className="rounded-full bg-[#E9F9EE] px-2.5 py-1 text-xs font-bold text-[#115C3B]">USD</span>}
       </div>
 
-      <div className="mt-5 space-y-2.5 border-y border-[#EAE8E3] py-4">
+      {!customQuote && <div className="mt-5 space-y-2.5 border-y border-[#EAE8E3] py-4">
         {pricing.breakdown.map((item, index) => (
           <div key={`${item.label}-${index}`} className="flex justify-between gap-4 text-sm text-[#656565]">
             <span>{breakdownLabel(item.label)}</span>
             <span className="shrink-0 font-sans font-bold text-[#141414]">${item.amount}</span>
           </div>
         ))}
-      </div>
+      </div>}
 
       {agencyServices.length > 0 && (
         <div className="mt-4 rounded-xl border border-[#B4DFC4] bg-[#E9F9EE] p-4">
@@ -103,18 +108,18 @@ function QuoteSummary({
 
       <div className="mt-5 flex items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-bold text-[#141414]">{labels.total}</p>
-          <p className="mt-1 text-xs text-[#737373]">{labels.note}</p>
+          <p className="text-sm font-bold text-[#141414]">{customQuote ? contact.title : labels.total}</p>
+          <p className="mt-1 text-xs leading-5 text-[#737373]">{customQuote ? contact.note : labels.note}</p>
         </div>
-        <span className="text-3xl font-extrabold tracking-tight text-[#141414]">${pricing.total}</span>
+        {!customQuote && <span className="text-3xl font-extrabold tracking-tight text-[#141414]">${pricing.total}</span>}
       </div>
 
       <div className="mt-5 grid gap-2 rounded-xl bg-[#F7F7F4] p-3 text-sm text-[#555]">
-        <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 text-[#18794E]" /><span>{labels.delivery}: <strong>{turnaround === 'express' ? labels.express : labels.standard}</strong></span></div>
+        <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 shrink-0 text-[#18794E]" /><span>{labels.delivery}: <strong>{customQuote ? contact.pending : turnaround === 'express' ? labels.express : labels.standard}</strong></span></div>
         <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#18794E]" /><span>{labels.privacy}</span></div>
       </div>
 
-      {pricing.needsManualReview && (
+      {pricing.needsManualReview && !customQuote && (
         <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm leading-relaxed text-amber-900">
           <div className="mb-1 flex items-center gap-1.5 font-bold"><AlertTriangle className="h-4 w-4" />{labels.reviewTitle}</div>
           {labels.reviewDescription}
@@ -398,7 +403,7 @@ export default function QuotePageContent() {
         serviceSlug && `[Service: ${serviceSlug}]`,
         companyName.trim() && `[Company / brand: ${companyName.trim()}]`,
         intendedUse && `[Intended use: ${intendedUse}]`,
-        artistReviewRequested && '[Artist assessment requested; complexity and price are provisional.]',
+        artistReviewRequested && '[Custom quote requested; no fixed price. Studio review required to confirm scope, price and delivery.]',
         ...selectedAgencyServices.map((service) => `[Agency service: ${service.id}; USD ${service.price}; separate delivery: ${service.minBusinessDays}-${service.maxBusinessDays} business days after studio approval; vector express does not apply.]`),
         notes.trim(),
       ].filter(Boolean).join('\n').slice(0, INPUT_LIMITS.notes);
@@ -727,7 +732,7 @@ export default function QuotePageContent() {
               </div>
             </div>
 
-            <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} agencyServices={AGENCY_SERVICES.filter((service) => agencyServices.includes(service.id)).map((service) => `${tQuote(`agency.${service.key}Title`)} · ${tQuote('agency.delivery', { min: service.minBusinessDays, max: service.maxBusinessDays })}`)} agencyTitle={tQuote('agency.title')} agencyNote={tQuote('agency.note')} onContinue={() => goToStep(3)} continueLabel={tQuote('ui.continueReview')} className="sticky top-24 lg:col-span-4" />
+            <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} customQuote={artistReviewRequested} contact={customQuoteCopy[locale]} agencyServices={AGENCY_SERVICES.filter((service) => agencyServices.includes(service.id)).map((service) => `${tQuote(`agency.${service.key}Title`)} · ${tQuote('agency.delivery', { min: service.minBusinessDays, max: service.maxBusinessDays })}`)} agencyTitle={tQuote('agency.title')} agencyNote={tQuote('agency.note')} onContinue={() => goToStep(3)} continueLabel={tQuote('ui.continueReview')} className="sticky top-24 lg:col-span-4" />
           </div>
         )}
 
@@ -814,14 +819,14 @@ export default function QuotePageContent() {
               </div>
             </form>
           </div>
-          <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} agencyServices={AGENCY_SERVICES.filter((service) => agencyServices.includes(service.id)).map((service) => `${tQuote(`agency.${service.key}Title`)} · ${tQuote('agency.delivery', { min: service.minBusinessDays, max: service.maxBusinessDays })}`)} agencyTitle={tQuote('agency.title')} agencyNote={tQuote('agency.note')} className="sticky top-24 lg:col-span-4" />
+          <QuoteSummary projectName={projectName} pricing={pricing} turnaround={turnaround} breakdownLabel={localizedBreakdownLabel} labels={summaryLabels} customQuote={artistReviewRequested} contact={customQuoteCopy[locale]} agencyServices={AGENCY_SERVICES.filter((service) => agencyServices.includes(service.id)).map((service) => `${tQuote(`agency.${service.key}Title`)} · ${tQuote('agency.delivery', { min: service.minBusinessDays, max: service.maxBusinessDays })}`)} agencyTitle={tQuote('agency.title')} agencyNote={tQuote('agency.note')} className="sticky top-24 lg:col-span-4" />
           </div>
         )}
 
         {currentStep === 2 && (
           <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#DAD8D2] bg-white/95 p-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur lg:hidden">
             <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-              <div><p className="text-xs text-[#737373]">{summaryLabels.total}</p><p className="text-xl font-extrabold text-[#141414]">${pricing.total}</p></div>
+              <div><p className="text-xs text-[#737373]">{artistReviewRequested ? customQuoteCopy[locale].title : summaryLabels.total}</p><p className={`font-extrabold text-[#141414] ${artistReviewRequested ? 'text-sm' : 'text-xl'}`}>{artistReviewRequested ? customQuoteCopy[locale].pending : `$${pricing.total}`}</p></div>
               <button type="button" onClick={() => goToStep(3)} className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-5 py-3 text-sm font-bold text-white">{tQuote('ui.continueReview')}<ArrowRight className="h-4 w-4" /></button>
             </div>
           </div>
