@@ -29,7 +29,7 @@ export default function Navbar() {
     { href: `${localizedPath(lang, '/')}#process`, label: t('process') },
     { href: `${localizedPath(lang, '/')}#pricing`, label: t('pricing') },
     { href: localizedPath(lang, '/guides'), label: t('guides') },
-    { href: `${localizedPath(lang, '/')}#faq`, label: t('faq') },
+    { href: localizedPath(lang, '/faq'), label: t('faq') },
   ];
 
   const signOut = async () => {

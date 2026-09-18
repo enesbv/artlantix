@@ -8,10 +8,9 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
 import ServiceVisual from '@/components/ServiceVisual';
-import FaqList from '@/components/FaqList';
 import BeforeAfterSlider from '@/components/BeforeAfterSlider';
 import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/services/content';
-import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, publicFaqs, services } from '@/lib/marketing';
+import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, services } from '@/lib/marketing';
 
 const processIcons = [Upload, ScanSearch, PenTool, FolderCheck];
 
@@ -133,19 +132,6 @@ export default function HomePageContent({ locale }: { locale: string }) {
         <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between gap-6"><h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.guidesTitle}</h2><Link href={localizedPath(lang, '/guides')} className="hidden items-center gap-2 text-sm font-bold text-[#18794E] sm:inline-flex">{copy.home.allGuides}<ArrowRight className="h-4 w-4" /></Link></div>
           <div className="mt-10 grid gap-4 md:grid-cols-3">{guides.map((guide) => <Link key={guide.slug} href={localizedPath(lang, `/guides/${guide.slug}`)} className="rounded-2xl border border-[#DAD8D2] bg-white p-6 transition hover:border-[#8FC9A6]"><h3 className="text-xl font-bold text-[#102A20]">{guide.title[lang]}</h3><p className="mt-3 text-sm leading-6 text-[#5E625F]">{guide.excerpt[lang]}</p></Link>)}</div>
-        </section>
-
-        <section id="faq" className="scroll-mt-24 border-t border-[#DAD8D2] bg-[#F4F8F4]">
-          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[.72fr_1.28fr] lg:items-start lg:gap-20 lg:px-8">
-            <div className="lg:sticky lg:top-28">
-              <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#18794E]"><span className="h-1.5 w-1.5 rounded-full bg-[#18794E]" aria-hidden="true" />{copy.home.faqEyebrow}</p>
-              <h2 className="mt-5 max-w-md text-3xl font-semibold leading-[1.12] tracking-[-0.04em] text-[#102A20] sm:text-4xl">{copy.home.faqTitle}</h2>
-              <div className="mt-7 h-px w-20 bg-[#8FC9A6]" aria-hidden="true" />
-            </div>
-            <div className="rounded-2xl border border-[#DAD8D2] bg-white px-5 shadow-[0_16px_50px_-36px_rgba(16,42,32,0.35)] sm:px-8">
-              <FaqList items={publicFaqs[lang]} />
-            </div>
-          </div>
         </section>
 
         <section className="bg-[#18794E] text-white"><div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-16 sm:px-6 md:flex-row md:items-center lg:px-8"><div><h2 className="max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">{copy.home.finalTitle}</h2><p className="mt-3 max-w-2xl text-white/75">{copy.home.finalBody}</p></div><Link href={`${quotePath}?review=1`} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-[#115C3B]">{copy.home.primary}<ArrowRight className="h-4 w-4" /></Link></div></section>
