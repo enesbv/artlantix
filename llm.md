@@ -152,7 +152,7 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 
 ## Keeping this context useful
 
-The homepage hero uses `HeroVectorArtwork`: an original code-native line-art crest with a pointer-following SVG mask and delayed trail exposing dark green contours and control nodes. Touch devices show the full drawing with a one-time stroke animation; reduced-motion users get a static full drawing. It is decorative, not an automatic vectorization tool, and has no external animation dependency.
+The homepage hero uses `HeroVectorArtwork` as a full-section wrapper: sparse edge-to-edge Bézier curves, control handles and nodes form a decorative SVG background. A pointer-following mask and delayed trail reveal green curves across the section, including behind content; a soft background gradient protects text readability. Touch devices show subtle complete curves with a one-time stroke animation; reduced-motion users get static curves. It is decorative, not an automatic vectorization tool, and has no external animation dependency.
 
 The homepage process section presents its four localized steps as numbered icon cards on a dark green background, with desktop connector arrows, a responsive one/two/four-column layout and a localized quote link.
 

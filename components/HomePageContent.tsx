@@ -29,9 +29,9 @@ export default function HomePageContent({ locale }: { locale: string }) {
     <div className="min-h-screen bg-[#F9F8F6] text-[#141414]">
       <Navbar />
       <main>
-        <section className="relative overflow-hidden border-b border-[#DAD8D2]">
-          <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8 lg:py-28">
-            <div>
+        <HeroVectorArtwork>
+          <div className="mx-auto flex min-h-[580px] max-w-7xl items-center px-4 py-20 sm:min-h-[680px] sm:px-6 sm:py-24 lg:px-8 lg:py-28">
+            <div className="max-w-xl">
               <h1 className="text-5xl font-black leading-[0.92] tracking-[-0.055em] text-[#102A20] sm:text-7xl lg:text-[5.4rem]">
                 {copy.home.titleLines.map((line, index) => <span key={line} className={`block ${index === 1 ? 'mt-[0.045em] text-[#18794E]' : ''}`}>{line}</span>)}
               </h1>
@@ -44,9 +44,8 @@ export default function HomePageContent({ locale }: { locale: string }) {
                 {['AI', 'EPS', 'SVG', 'PDF', 'PNG'].map((format) => <span key={format} className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#18794E]" />{format}</span>)}
               </div>
             </div>
-            <HeroVectorArtwork />
           </div>
-        </section>
+        </HeroVectorArtwork>
 
         <section id="work" className="scroll-mt-24 border-b border-[#DAD8D2] bg-[#FCFDFB]">
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
