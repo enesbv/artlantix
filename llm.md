@@ -152,6 +152,8 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 
 ## Keeping this context useful
 
+The homepage process section presents its four localized steps as numbered icon cards on a dark green background, with desktop connector arrows, a responsive one/two/four-column layout and a localized quote link.
+
 Update this document and the audit when fixing a listed limitation. Clearly distinguish local changes, committed code, pushed code, deployed code and applied database migrations. Use Git history for current revision status instead of maintaining a hardcoded commit hash here. Do not report tests, deployments, integrations or performance improvements that have not been verified.
 
 The homepage work showcase uses an editorial split heading and a localized comparison panel. `BeforeAfterSlider` presents a fixed studio demonstration, with artwork/node views, pointer and keyboard controls, and descriptive features instead of unverified performance percentages. Its raster and vector layers share responsive bounds; it does not accept or inspect customer files. The shared panel is also used on the work and order-detail pages.

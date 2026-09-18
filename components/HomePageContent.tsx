@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ContactPricingCard from '@/components/ContactPricingCard';
-import { ArrowRight, Check, CircleDollarSign, FileCheck2, LockKeyhole, ScanSearch, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, CircleDollarSign, FileCheck2, FolderCheck, LockKeyhole, PenTool, ScanSearch, Sparkles, Upload } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
@@ -14,6 +14,7 @@ import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/serv
 import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, publicFaqs, services, trustFacts } from '@/lib/marketing';
 
 const factIcons = [Sparkles, LockKeyhole, ScanSearch, FileCheck2];
+const processIcons = [Upload, ScanSearch, PenTool, FolderCheck];
 
 export default function HomePageContent({ locale }: { locale: string }) {
   const lang = normalizeMarketingLocale(locale);
@@ -93,10 +94,33 @@ export default function HomePageContent({ locale }: { locale: string }) {
           </div>
         </section>
 
-        <section id="process" className="bg-[#102A20] text-white">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <h2 className="max-w-2xl text-4xl font-black tracking-tight">{copy.home.processTitle}</h2>
-            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">{processSteps[lang].map((step) => <div key={step.title} className="border-t border-white/20 pt-5"><h3 className="text-lg font-bold">{step.title}</h3><p className="mt-2 text-sm leading-6 text-white/65">{step.text}</p></div>)}</div>
+        <section id="process" aria-labelledby="process-heading" className="relative isolate scroll-mt-24 overflow-hidden bg-[#102A20] text-white">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-40 -top-60 -z-10 h-[580px] w-[580px] rounded-full bg-[#18794E]/25 blur-[100px]" />
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+              <h2 id="process-heading" className="max-w-2xl text-3xl font-semibold leading-[1.15] tracking-[-0.04em] sm:text-4xl lg:text-[2.75rem]">{copy.home.processTitle}</h2>
+              <Link href={quotePath} className="inline-flex shrink-0 items-center gap-3 self-start rounded-full border border-[#B4DFC4]/30 px-5 py-3 text-sm font-semibold text-[#DFF7E7] transition-colors hover:border-[#B4DFC4]/60 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#B4DFC4] md:self-auto">
+                {copy.home.primary}<ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+            <ol className="mt-10 grid gap-3 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+              {processSteps[lang].map((step, index) => {
+                const Icon = processIcons[index];
+                return (
+                  <li key={step.title} className="relative flex flex-col rounded-2xl border border-[#B4DFC4]/15 bg-gradient-to-b from-white/[0.055] to-white/[0.015] p-6 sm:p-7">
+                    <div className="flex items-center justify-between">
+                      <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#B4DFC4]/20 bg-[#B4DFC4]/[0.07] text-[#A6E3BD]">
+                        <Icon className="h-6 w-6" strokeWidth={1.5} aria-hidden="true" />
+                      </span>
+                      <span className="text-sm font-medium tabular-nums text-[#9AB9A6]" aria-hidden="true">0{index + 1}</span>
+                    </div>
+                    <h3 className="mt-7 text-lg font-semibold tracking-tight text-[#F0FAF3]">{step.title}</h3>
+                    <p className="mt-3 text-sm leading-7 text-[#B8CBBF]">{step.text}</p>
+                    {index < processSteps[lang].length - 1 && <span aria-hidden="true" className="absolute -right-[21px] top-10 z-10 hidden h-6 w-6 items-center justify-center rounded-full border border-[#3D5C49] bg-[#163629] text-[#A6E3BD] lg:flex"><ArrowRight className="h-3 w-3" /></span>}
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         </section>
 
