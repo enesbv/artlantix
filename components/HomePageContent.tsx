@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import ContactPricingCard from '@/components/ContactPricingCard';
-import { ArrowRight, Check, CircleDollarSign, FolderCheck, PenTool, ScanSearch, Upload } from 'lucide-react';
+import { ArrowRight, Check, Flower2, FolderCheck, PenTool, ScanSearch, Shield, Triangle, Upload } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
@@ -13,10 +14,13 @@ import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/serv
 import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, services } from '@/lib/marketing';
 
 const processIcons = [Upload, ScanSearch, PenTool, FolderCheck];
+const pricingIcons = [Triangle, Shield, Flower2];
 
 export default function HomePageContent({ locale }: { locale: string }) {
   const lang = normalizeMarketingLocale(locale);
   const copy = marketingCopy[lang];
+  const tierCopy = useTranslations('quote.complexityGuide');
+  const pricingHint = { tr: 'Başlangıç fiyatları · USD', en: 'Starting prices · USD', de: 'Startpreise · USD' }[lang];
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS);
   useEffect(() => { getSiteSettings().then(setSettings).catch(() => undefined); }, []);
   const quotePath = localizedPath(lang, '/quote');
@@ -122,10 +126,35 @@ export default function HomePageContent({ locale }: { locale: string }) {
           </div>
         </section>
 
-        <section id="pricing" className="border-y border-[#DAD8D2] bg-white">
-          <div className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-1 lg:px-8">
-            <div><h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.pricingTitle}</h2><p className="mt-4 leading-7 text-[#5E625F]">{copy.home.pricingBody}</p><Link href={localizedPath(lang, '/pricing')} className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.fullPricing}<ArrowRight className="h-4 w-4" /></Link></div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[[copy.common.simple, settings.simple_tier_price], [copy.common.standard, settings.standard_tier_price], [copy.common.complex, settings.complex_tier_price]].map(([label, price], index) => <div key={label} className={`rounded-2xl border p-6 ${index === 1 ? 'border-[#18794E] bg-[#E9F9EE]' : 'border-[#DAD8D2] bg-[#F9F8F6]'}`}><CircleDollarSign className="h-5 w-5 text-[#18794E]" /><p className="mt-8 text-sm font-bold">{label}</p><p className="mt-2 text-3xl font-black">${price}</p><p className="mt-2 text-xs text-[#5E625F]">{copy.common.from}</p></div>)}<ContactPricingCard locale={lang} /></div>
+        <section id="pricing" className="scroll-mt-24 border-y border-[#DAD8D2] bg-[#FCFDFB]">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end lg:gap-16">
+              <div className="max-w-3xl">
+                <p className="mb-4 text-xs font-semibold text-[#18794E]">{pricingHint}</p>
+                <h2 className="text-3xl font-semibold leading-[1.15] tracking-[-0.04em] text-[#102A20] sm:text-4xl">{copy.home.pricingTitle}</h2>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-[#697467]">{copy.home.pricingBody}</p>
+              </div>
+              <Link href={localizedPath(lang, '/pricing')} className="inline-flex shrink-0 items-center gap-2 self-start rounded-full border border-[#D4DED5] bg-white px-5 py-3 text-sm font-semibold text-[#18794E] transition-colors hover:border-[#18794E] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#18794E] lg:self-auto">{copy.home.fullPricing}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            </div>
+            <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {(['simple', 'standard', 'complex'] as const).map((tier, index) => {
+                const Icon = pricingIcons[index];
+                const price = settings[`${tier}_tier_price`];
+                const label = copy.common[tier];
+                return (
+                  <div key={tier} className={`flex min-h-[310px] flex-col rounded-2xl border p-6 sm:p-7 ${index === 1 ? 'border-[#B4DFC4] bg-[#E9F9EE]' : 'border-[#DDE5DE] bg-white'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D0E6D8] bg-[#F3FBF6] text-[#18794E]"><Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" /></span>
+                      <h3 className="text-base font-semibold text-[#102A20]">{label}</h3>
+                    </div>
+                    <p className="mt-7 text-5xl font-semibold tracking-[-0.045em] text-[#102A20]"><span className="mr-1 align-top text-2xl leading-10 text-[#697467]">$</span>{price}</p>
+                    <p className="mb-7 mt-4 text-sm leading-6 text-[#5E6C62]">{tierCopy(`${tier}Description`)}</p>
+                    <Link href={quotePath} className="mt-auto inline-flex items-center justify-between gap-2 border-t border-[#D5E3D9] pt-4 text-sm font-semibold text-[#18794E] transition-colors hover:text-[#115C3B] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#18794E]">{copy.home.primary}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+                  </div>
+                );
+              })}
+              <ContactPricingCard locale={lang} />
+            </div>
           </div>
         </section>
 

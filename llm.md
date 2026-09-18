@@ -154,6 +154,8 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 
 The homepage process section presents its four localized steps as numbered icon cards on a dark green background, with desktop connector arrows, a responsive one/two/four-column layout and a localized quote link.
 
+Homepage pricing shows one localized starting-price/USD label above the cards, CMS-backed tier amounts, localized complexity descriptions and quote links. Prices remain provisional; the custom-scope card has no fixed price. FAQ content is available on dedicated localized FAQ pages rather than the current homepage.
+
 Update this document and the audit when fixing a listed limitation. Clearly distinguish local changes, committed code, pushed code, deployed code and applied database migrations. Use Git history for current revision status instead of maintaining a hardcoded commit hash here. Do not report tests, deployments, integrations or performance improvements that have not been verified.
 
 The homepage work showcase uses an editorial split heading and a localized comparison panel. `BeforeAfterSlider` presents a fixed studio demonstration, with artwork/node views, pointer and keyboard controls, and descriptive features instead of unverified performance percentages. Its raster and vector layers share responsive bounds; it does not accept or inspect customer files. The shared panel is also used on the work and order-detail pages.
