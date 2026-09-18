@@ -23,13 +23,13 @@ export default function Navbar() {
   }, [pathname]);
 
   const publicLinks = [
-    { href: localizedPath(lang, '/business'), label: t('business') },
-    { href: `${localizedPath(lang, '/')}#services`, label: t('capabilities') },
     { href: `${localizedPath(lang, '/')}#work`, label: t('showcase') },
+    { href: `${localizedPath(lang, '/')}#services`, label: t('capabilities') },
     { href: `${localizedPath(lang, '/')}#process`, label: t('process') },
     { href: `${localizedPath(lang, '/')}#pricing`, label: t('pricing') },
     { href: localizedPath(lang, '/guides'), label: t('guides') },
     { href: localizedPath(lang, '/faq'), label: t('faq') },
+    { href: localizedPath(lang, '/business'), label: t('business') },
   ];
 
   const signOut = async () => {
