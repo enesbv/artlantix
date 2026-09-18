@@ -47,7 +47,7 @@ export default function AdminSidebar({
     <aside className="relative z-40 flex w-full lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 flex-col border-r border-[#EAE8E3] bg-[#FAFAF8] text-[#141414]">
       {/* Brand Header */}
       <div className="flex h-16 items-center justify-between border-b border-[#EAE8E3] px-5 bg-white">
-        <Link href="/admin/orders" className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="Artlantix ana sayfa">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#102A20] text-white shadow-xs">
             <Sparkles className="h-4 w-4 text-[#18794E]" />
           </div>
