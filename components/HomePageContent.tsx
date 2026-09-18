@@ -45,12 +45,34 @@ export default function HomePageContent({ locale }: { locale: string }) {
           </div>
         </section>
 
-        <section className="border-b border-[#DAD8D2] bg-white">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <h2 className="max-w-2xl text-3xl font-black tracking-tight text-[#102A20]">{copy.home.proofTitle}</h2>
-            <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-[#DAD8D2] bg-[#DAD8D2] md:grid-cols-2 lg:grid-cols-4">
-              {trustFacts[lang].map((fact, index) => { const Icon = factIcons[index]; return <div key={fact.title} className="bg-white p-6"><Icon className="h-5 w-5 text-[#18794E]" /><h3 className="mt-5 font-bold">{fact.title}</h3><p className="mt-2 text-sm leading-6 text-[#5E625F]">{fact.text}</p></div>; })}
+        <section id="work" className="border-b border-[#DAD8D2] bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              <h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.workTitle}</h2>
+              <p className="mt-4 text-[#5E625F]">{copy.home.workBody}</p>
             </div>
+
+            <div className="mt-10 mb-12">
+              <BeforeAfterSlider
+                title={lang === 'tr' ? 'Apex Falcon Crest — Raster vs. Vektör Karşılaştırması' : 'Apex Falcon Crest — Raster vs. Vector Comparison'}
+                category={lang === 'tr' ? 'Stüdyo Kalite Kontrolü' : 'Studio Quality Inspection'}
+              />
+            </div>
+
+            <div className="mt-10 grid gap-6 lg:grid-cols-3">
+              {caseStudies.map((study) => (
+                <Link key={study.slug} href={localizedPath(lang, `/work/${study.slug}`)} className="group overflow-hidden rounded-2xl border border-[#DAD8D2] bg-[#F9F8F6]">
+                  <MarketingVisual kind={study.visual} compact />
+                  <div className="p-6">
+                    <span className="rounded-full bg-[#E9F9EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">{copy.common.demo}</span>
+                    <h3 className="mt-4 text-xl font-bold text-[#102A20]">{study.title[lang]}</h3>
+                    <p className="mt-2 text-sm leading-6 text-[#5E625F]">{study.summary[lang]}</p>
+                    <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.common.viewCase}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <Link href={localizedPath(lang, '/work')} className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.allWork}<ArrowRight className="h-4 w-4" /></Link>
           </div>
         </section>
 
@@ -78,23 +100,22 @@ export default function HomePageContent({ locale }: { locale: string }) {
           </div>
         </section>
 
-        <section id="work" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.workTitle}</h2>
-            <p className="mt-4 text-[#5E625F]">{copy.home.workBody}</p>
+        <section className="border-b border-[#DAD8D2] bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <h2 className="max-w-2xl text-3xl font-black tracking-tight text-[#102A20]">{copy.home.proofTitle}</h2>
+            <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-[#DAD8D2] bg-[#DAD8D2] md:grid-cols-2 lg:grid-cols-4">
+              {trustFacts[lang].map((fact, index) => {
+                const Icon = factIcons[index];
+                return (
+                  <div key={fact.title} className="bg-white p-6">
+                    <Icon className="h-5 w-5 text-[#18794E]" />
+                    <h3 className="mt-5 font-bold">{fact.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-[#5E625F]">{fact.text}</p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-
-          <div className="mt-10 mb-12">
-            <BeforeAfterSlider
-              title={lang === 'tr' ? 'Apex Falcon Crest — Raster vs. Vektör Mikro İnceleme' : 'Apex Falcon Crest — Raster vs. Vector Micro Inspection'}
-              category={lang === 'tr' ? 'Stüdyo Kalite Kontrolü & Hassas Büyüteç (2x / 4x / 8x)' : 'Studio Quality Inspection & Loupe (2x / 4x / 8x)'}
-            />
-          </div>
-
-          <div className="mt-10 grid gap-6 lg:grid-cols-3">
-            {caseStudies.map((study) => <Link key={study.slug} href={localizedPath(lang, `/work/${study.slug}`)} className="group overflow-hidden rounded-2xl border border-[#DAD8D2] bg-white"><MarketingVisual kind={study.visual} compact /><div className="p-6"><span className="rounded-full bg-[#E9F9EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">{copy.common.demo}</span><h3 className="mt-4 text-xl font-bold text-[#102A20]">{study.title[lang]}</h3><p className="mt-2 text-sm leading-6 text-[#5E625F]">{study.summary[lang]}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.common.viewCase}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></span></div></Link>)}
-          </div>
-          <Link href={localizedPath(lang, '/work')} className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.allWork}<ArrowRight className="h-4 w-4" /></Link>
         </section>
 
         <section id="pricing" className="border-y border-[#DAD8D2] bg-white">

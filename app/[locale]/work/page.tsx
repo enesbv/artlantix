@@ -10,7 +10,7 @@ import { caseStudies, localizedPath, marketingCopy, normalizeMarketingLocale } f
 
 export const metadata: Metadata = {
   title: 'Studio Demonstrations · Artlantix',
-  description: 'See how Artlantix approaches common vector reconstruction problems with interactive 2x, 4x, and 8x micro loupe inspection.',
+  description: 'See how Artlantix approaches common vector reconstruction problems with interactive split-slider inspection.',
 };
 
 export default async function WorkPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -36,7 +36,7 @@ export default async function WorkPage({ params }: { params: Promise<{ locale: s
           </div>
         </section>
 
-        {/* Interactive Micro Loupe & Comparison Inspection Showcase */}
+        {/* Interactive Comparison Inspection Showcase */}
         <section className="border-b border-[#DAD8D2] bg-[#F9F8F6]">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <div className="mb-6 flex flex-col gap-1">
@@ -44,16 +44,16 @@ export default async function WorkPage({ params }: { params: Promise<{ locale: s
                 {lang === 'tr' ? 'İnteraktif İnceleme Konsolu' : 'Interactive Inspection Console'}
               </span>
               <h2 className="text-2xl font-bold tracking-tight text-[#102A20]">
-                {lang === 'tr' ? '2x, 4x, 8x Hassas Büyüteç & Vektör Düğüm Analizi' : '2x, 4x, 8x Precision Loupe & Vector Node Analysis'}
+                {lang === 'tr' ? 'Etkileşimli Karşılaştırma & Vektör Düğüm Analizi' : 'Interactive Comparison & Vector Node Analysis'}
               </h2>
               <p className="text-sm text-[#5E625F]">
                 {lang === 'tr'
-                  ? 'Görselin üzerinde imlecinizi gezdirerek piksel gürültüsü ve kusursuz matematiksel bezier eğrilerini mikroskobik ölçekte karşılaştırın.'
-                  : 'Hover your cursor over the canvas to microscopically inspect pixel artifacts against clean mathematical bezier paths.'}
+                  ? 'Kaydırıcıyı sağa-sola hareket ettirerek piksel gürültüsü ve kusursuz matematiksel bezier eğrilerini karşılaştırın.'
+                  : 'Slide back and forth to inspect degraded pixel artifacts against clean mathematical bezier paths.'}
               </p>
             </div>
             <BeforeAfterSlider
-              title="Apex Falcon Crest — Raster vs. Vektör Mikro İnceleme"
+              title={lang === 'tr' ? 'Apex Falcon Crest — Raster vs. Vektör Karşılaştırması' : 'Apex Falcon Crest — Raster vs. Vector Comparison'}
               category={lang === 'tr' ? 'Stüdyo Kalite Kontrolü' : 'Studio Quality Inspection'}
             />
           </div>

@@ -304,7 +304,7 @@ export default function OrderDetailPage() {
           <div>
             <h2 className="text-sm font-bold text-[#141414]">Artwork Inspection &amp; Comparison</h2>
             <p className="text-xs text-[#737373]">
-              Side-by-side comparison &amp; 2x/4x/8x precision loupe inspection of original upload vs reconstructed vector draft
+              Side-by-side and interactive split-slider comparison of original upload vs reconstructed vector draft
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -318,7 +318,7 @@ export default function OrderDetailPage() {
                     : 'text-[#5E625F] hover:text-[#102A20]'
                 }`}
               >
-                🔍 Hassas Büyüteç &amp; Slider (2x/4x/8x)
+                ↔️ Karşılaştırma Kaydırıcısı (Slider)
               </button>
               <button
                 type="button"
@@ -339,7 +339,7 @@ export default function OrderDetailPage() {
           <div className="mt-6">
             <BeforeAfterSlider
               title={`${order.project_name} — Vektör Kalite Kontrolü`}
-              category="Stüdyo Kalite Kontrolü & Hassas Büyüteç"
+              category="Stüdyo Kalite Kontrolü"
             />
           </div>
         ) : (

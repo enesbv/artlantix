@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { ScanEye } from 'lucide-react';
 
 interface BeforeAfterSliderProps {
   title?: string;
@@ -193,21 +192,13 @@ export default function BeforeAfterSlider({
   const [isDragging, setIsDragging] = useState(false);
   const [activeViewMode, setActiveViewMode] = useState<'artwork' | 'wireframe'>('artwork');
   const [containerWidth, setContainerWidth] = useState<number>(800);
-  const [containerHeight, setContainerHeight] = useState<number>(480);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Precision Studio Loupe State (Active by default for immediate inspection)
-  const [isLoupeActive, setIsLoupeActive] = useState(true);
-  const [loupeZoom, setLoupeZoom] = useState<2 | 4 | 8>(4);
-  const [loupeCoords, setLoupeCoords] = useState<{ x: number; y: number }>({ x: 400, y: 240 });
-  const [isHoveringCanvas, setIsHoveringCanvas] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
     const updateDimensions = () => {
       if (containerRef.current) {
         setContainerWidth(containerRef.current.clientWidth);
-        setContainerHeight(containerRef.current.clientHeight);
       }
     };
     updateDimensions();
@@ -258,17 +249,7 @@ export default function BeforeAfterSlider({
     };
   }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove]);
 
-  const updateLoupePosition = (clientX: number, clientY: number) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    setLoupeCoords({
-      x: Math.max(0, Math.min(rect.width, clientX - rect.left)),
-      y: Math.max(0, Math.min(rect.height, clientY - rect.top)),
-    });
-  };
-
   const isWireframe = activeViewMode === 'wireframe';
-  const isLoupeOnRaster = loupeCoords.x < (sliderPosition / 100) * containerWidth;
 
   return (
     <div className="w-full rounded-2xl border border-[#EAE8E3] bg-white p-4 sm:p-7 shadow-xs">
@@ -283,44 +264,8 @@ export default function BeforeAfterSlider({
           </span>
         </div>
 
-        {/* Action Controls: View Mode & Precision Loupe */}
+        {/* Action Controls: View Mode */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Studio Loupe & 2x/4x/8x Zoom Segmented Control */}
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#B4DFC4] bg-[#E9F9EE] p-1 shadow-xs">
-            <button
-              type="button"
-              onClick={() => setIsLoupeActive(!isLoupeActive)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-all duration-200 ${
-                isLoupeActive
-                  ? 'bg-[#18794E] text-white shadow-xs'
-                  : 'text-[#18794E] hover:bg-white'
-              }`}
-            >
-              <ScanEye className="h-3.5 w-3.5" />
-              <span>{isLoupeActive ? 'Büyüteç Aktif' : 'Büyüteci Aç'}</span>
-            </button>
-
-            {isLoupeActive && (
-              <div className="flex items-center gap-1 border-l border-[#B4DFC4] pl-1.5 pr-1 animate-in fade-in duration-150">
-                <span className="text-[10px] font-bold text-[#18794E] hidden sm:inline">Yakınlaştırma:</span>
-                {([2, 4, 8] as const).map((z) => (
-                  <button
-                    key={z}
-                    type="button"
-                    onClick={() => setLoupeZoom(z)}
-                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold transition-all ${
-                      loupeZoom === z
-                        ? 'bg-[#102A20] text-white shadow-xs scale-105'
-                        : 'bg-white/80 text-[#18794E] hover:bg-white'
-                    }`}
-                  >
-                    {z}x
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Minimalist Floating Segmented Pill */}
           <div className="inline-flex self-start sm:self-auto rounded-full border border-[#EAE8E3] bg-[#F9F8F6] p-1 shadow-xs">
             <button
@@ -349,19 +294,6 @@ export default function BeforeAfterSlider({
         </div>
       </div>
 
-      {/* Active Loupe Guide Banner */}
-      {isLoupeActive && (
-        <div className="flex items-center justify-between border-b border-[#EAE8E3] bg-[#E9F9EE]/60 px-5 py-2 text-xs text-[#102A20]">
-          <span className="flex items-center gap-2 font-medium">
-            <span className="flex h-2 w-2 rounded-full bg-[#18794E] animate-ping" />
-            <span><strong>{loupeZoom}x Hassas Büyüteç Açık:</strong> İmlecinizi görselin üzerinde gezdirerek piksel gürültüsü ve vektör bezier eğrilerini mikroskobik inceleyin.</span>
-          </span>
-          <span className="hidden sm:inline font-bold text-[#18794E]">
-            Aktif: {loupeZoom}x Büyütme
-          </span>
-        </div>
-      )}
-
       {/* Cinematic Viewport Canvas */}
       <div
         ref={containerRef}
@@ -372,24 +304,8 @@ export default function BeforeAfterSlider({
         onTouchStart={(e) => {
           setIsDragging(true);
           handleMove(e.touches[0].clientX);
-          updateLoupePosition(e.touches[0].clientX, e.touches[0].clientY);
-          setIsHoveringCanvas(true);
         }}
-        onMouseMove={(e) => {
-          updateLoupePosition(e.clientX, e.clientY);
-          setIsHoveringCanvas(true);
-        }}
-        onMouseEnter={() => setIsHoveringCanvas(true)}
-        onMouseLeave={() => setIsHoveringCanvas(false)}
-        onTouchMove={(e) => {
-          if (e.touches[0]) {
-            updateLoupePosition(e.touches[0].clientX, e.touches[0].clientY);
-          }
-        }}
-        onTouchEnd={() => setIsHoveringCanvas(false)}
-        className={`relative h-[380px] sm:h-[480px] lg:h-[540px] w-full select-none overflow-hidden rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] ${
-          isLoupeActive ? 'cursor-crosshair' : 'cursor-ew-resize'
-        }`}
+        className="relative h-[380px] sm:h-[480px] lg:h-[540px] w-full select-none overflow-hidden rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] cursor-ew-resize"
       >
         {/* RIGHT SIDE: RECONSTRUCTED VECTOR ARTWORK */}
         <div className="absolute inset-0 flex items-center justify-center bg-[#F9F8F6]">
@@ -453,65 +369,6 @@ export default function BeforeAfterSlider({
             </div>
           </div>
         </div>
-
-        {/* PRECISION STUDIO LOUPE LENS (MICROSCOPIC INSPECTOR) */}
-        {isLoupeActive && isHoveringCanvas && (
-          <div
-            className="pointer-events-none absolute z-30 h-44 w-44 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-2 border-[#18794E] bg-[#F9F8F6] shadow-2xl ring-4 ring-black/15 transition-opacity duration-150"
-            style={{
-              left: `${loupeCoords.x}px`,
-              top: `${loupeCoords.y}px`,
-            }}
-          >
-            {/* Scaled viewport centered exactly on loupeCoords */}
-            <div
-              className="absolute"
-              style={{
-                width: `${containerWidth}px`,
-                height: `${containerHeight}px`,
-                left: `${88 - loupeCoords.x * loupeZoom}px`,
-                top: `${88 - loupeCoords.y * loupeZoom}px`,
-                transform: `scale(${loupeZoom})`,
-                transformOrigin: '0 0',
-              }}
-            >
-              {/* Scaled Vector Side */}
-              <div className="absolute inset-0 flex items-center justify-center bg-[#F9F8F6]">
-                <div className="relative flex h-full w-full items-center justify-center p-8 sm:p-12">
-                  <RenderVectorContent isWireframe={isWireframe} />
-                </div>
-              </div>
-
-              {/* Scaled Raster Side (clipped to sliderPosition) */}
-              <div
-                className="absolute inset-0 overflow-hidden bg-[#F0EDE6]"
-                style={{ width: `${sliderPosition}%` }}
-              >
-                <div
-                  className="absolute inset-0 flex items-center justify-center"
-                  style={{ width: `${containerWidth}px` }}
-                >
-                  <RenderRasterContent />
-                </div>
-              </div>
-            </div>
-
-            {/* Subtle glass reflection & crosshairs */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="h-4 w-px bg-[#18794E]/60" />
-              <div className="h-px w-4 bg-[#18794E]/60 -ml-2" />
-            </div>
-
-            {/* Dynamic Status Pill */}
-            <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/85 px-2.5 py-0.5 text-[9px] font-bold text-white shadow-xs backdrop-blur-xs">
-              {isLoupeOnRaster ? (
-                <span className="text-amber-300">● {loupeZoom}X · RASTER NOISE</span>
-              ) : (
-                <span className="text-[#34D399]">● {loupeZoom}X · ZERO-LOSS BEZIER</span>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Editorial Meta Bar */}
@@ -525,8 +382,8 @@ export default function BeforeAfterSlider({
           <p className="mt-0.5 text-xs font-bold text-emerald-700">94% Node Reduction</p>
         </div>
         <div>
-          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">03 / Precision Loupe</span>
-          <p className="mt-0.5 text-xs font-bold text-[#18794E]">2x · 4x · 8x Micro Inspection</p>
+          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">03 / Precision</span>
+          <p className="mt-0.5 text-xs font-bold text-[#18794E]">Pixel-Perfect Vectorization</p>
         </div>
         <div>
           <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">04 / Industrial Readiness</span>
