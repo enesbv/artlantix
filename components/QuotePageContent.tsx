@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import ComplexityPicker from '@/components/ComplexityPicker';
 import { customQuoteCopy } from '@/lib/custom-quote-copy';
 import AgencyServicesPicker from '@/components/AgencyServicesPicker';
+import DeliveryTimeline from '@/components/DeliveryTimeline';
 import { AGENCY_SERVICES, AgencyService, getAgencyServices, getAgencyServicesTotal } from '@/lib/agency-services';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
@@ -699,6 +700,8 @@ export default function QuotePageContent() {
                   })}
                 </div>
               </fieldset>
+
+              <DeliveryTimeline turnaround={turnaround} variant="quote" />
 
               <AgencyServicesPicker value={agencyServices} onChange={setAgencyServices} />
 

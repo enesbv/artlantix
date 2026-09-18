@@ -394,6 +394,25 @@ export async function addOrderMessage(
   return newMessage;
 }
 
+export async function fetchOrderMessages(orderId: string): Promise<OrderMessage[]> {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from('order_messages')
+      .select('*')
+      .eq('order_id', orderId)
+      .order('created_at', { ascending: true });
+    if (error || !data) return [];
+    return data as OrderMessage[];
+  }
+
+  const all = getStoredOrders();
+  const found = all.find((o) => o.id === orderId);
+  return found?.messages || [];
+}
+
+
 export async function addOperatorDeliverable(
   orderId: string,
   category: 'preview_watermarked' | 'final_master',

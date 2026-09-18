@@ -16,10 +16,16 @@ export default function AccessGate({ children, admin = false }: {
     let active = true;
     getCurrentUser().then((user) => {
       if (!active) return;
-      if (!user) router.replace('/login');
-      else if (admin && !user.is_admin) router.replace('/dashboard');
-      else setAllowedPath(pathname);
-    }).catch(() => { if (active) router.replace('/login'); });
+      if (!user) {
+        router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+      } else if (admin && !user.is_admin) {
+        router.replace(`/login?next=${encodeURIComponent(pathname)}&role=operator_required`);
+      } else {
+        setAllowedPath(pathname);
+      }
+    }).catch(() => {
+      if (active) router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    });
     return () => { active = false; };
   }, [admin, pathname, router]);
   if (allowedPath !== pathname) return <p role="status" className="p-8 text-sm">Checking account access…</p>;

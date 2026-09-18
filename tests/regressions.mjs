@@ -235,3 +235,110 @@ test('agency prices are independent from vector express and duplicate selections
     assert.equal(service.maxBusinessDays, 5);
   }
 });
+
+test('studio delivery calculator projects accurate working shifts skipping Sundays', () => {
+  const {
+    calculateDeliveryProjection,
+    getDeliveryPhases,
+    calculateRemainingHours,
+  } = load('lib/delivery-calculator.ts', { './types': {} });
+
+  // Friday Sep 11, 2026 at 18:00
+  // 1 hr on Friday (18:00-19:00) -> 15 hrs remaining
+  // Saturday 10:00-16:00 -> 6 hrs consumed -> 9 hrs remaining
+  // Sunday skipped -> jumps to Monday 09:00
+  // Monday 09:00 + 9 hrs -> Monday 18:00
+  const fridayEvening = new Date('2026-09-11T18:00:00.000');
+  const expressSchedule = calculateDeliveryProjection(fridayEvening, 'express');
+
+  assert.equal(expressSchedule.isExpress, true);
+  assert.equal(expressSchedule.totalWorkingHours, 16);
+  assert.equal(expressSchedule.targetDate.getDay(), 1); // Monday
+  assert.equal(expressSchedule.targetDate.getHours(), 18);
+
+  const standardSchedule = calculateDeliveryProjection(fridayEvening, 'standard');
+  assert.equal(standardSchedule.isExpress, false);
+  assert.equal(standardSchedule.totalWorkingHours, 48);
+
+  // Phases progression based on status
+  const inProgressPhases = getDeliveryPhases('in_progress', 'express');
+  assert.equal(inProgressPhases.length, 4);
+  assert.equal(inProgressPhases[0].isDone, true);
+  assert.equal(inProgressPhases[1].isCurrent, true);
+  assert.equal(inProgressPhases[2].isDone, false);
+
+  const completedPhases = getDeliveryPhases('completed', 'standard');
+  assert.ok(completedPhases.every((p) => p.isDone));
+
+  // Remaining hours calculation
+  const pastIso = new Date(Date.now() - 3600000).toISOString();
+  const pastResult = calculateRemainingHours(pastIso);
+  assert.equal(pastResult.isOverdue, true);
+
+  const futureIso = new Date(Date.now() + 7200000).toISOString();
+  const futureResult = calculateRemainingHours(futureIso);
+  assert.equal(futureResult.isOverdue, false);
+  assert.match(futureResult.label, /saat/);
+});
+
+test('order chat messages fallback retrieves messages correctly from demo storage', async () => {
+  const store = new Map();
+  const testOrder = {
+    id: 'ord_test_999',
+    user_id: 'usr_test_1',
+    messages: [
+      {
+        id: 'msg_1',
+        order_id: 'ord_test_999',
+        sender_id: 'usr_test_1',
+        sender_name: 'Alex Morgan',
+        sender_type: 'customer',
+        message: 'Hello Studio Lead, do you need higher DPI?',
+        created_at: '2026-09-18T01:00:00.000Z',
+      },
+      {
+        id: 'msg_2',
+        order_id: 'ord_test_999',
+        sender_id: 'usr_admin_001',
+        sender_name: 'Elena Vance',
+        sender_type: 'operator',
+        message: 'Current file is fine, vectorization underway.',
+        created_at: '2026-09-18T01:15:00.000Z',
+      },
+    ],
+  };
+  store.set('artlantix_orders_data', JSON.stringify([testOrder]));
+
+  const ordersService = load('lib/services/orders.ts', {
+    '../types': {},
+    '../mock-data': { INITIAL_ORDERS: [] },
+    '../supabase/client': { isSupabaseConfigured: () => false, createClient: () => null },
+    './auth': { getCurrentUser: async () => null },
+    '../order-status': { calculateExpectedDelivery: () => '2026-09-18T10:00:00.000Z' },
+    '../runtime-mode': { isDemoModeEnabled: () => true, BACKEND_NOT_CONFIGURED_ERROR: 'Not configured.' },
+    '../security': securityModule,
+    './storage': {
+      removeStorageObject: async () => undefined,
+      requestOrderUploadScan: async () => undefined,
+      STORAGE_BUCKETS: { CUSTOMER_ASSETS: 'customer-assets' },
+      uploadToStorageBucket: async () => undefined,
+      validateStorageUpload: () => undefined,
+    },
+    './notifications': { sendNotification: () => undefined },
+  }, {
+    window: {},
+    localStorage: {
+      getItem: (key) => store.get(key) ?? null,
+      setItem: (key, value) => store.set(key, value),
+    },
+  });
+
+  const messages = await ordersService.fetchOrderMessages('ord_test_999');
+  assert.equal(messages.length, 2);
+  assert.equal(messages[0].sender_name, 'Alex Morgan');
+  assert.equal(messages[1].sender_name, 'Elena Vance');
+
+  const emptyMessages = await ordersService.fetchOrderMessages('non_existent');
+  assert.equal(emptyMessages.length, 0);
+});
+

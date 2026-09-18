@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import {
   getSiteSettings,
   updateSiteSettings,
@@ -199,7 +197,6 @@ export default function AdminContentPage() {
 
   return (
     <div className="min-h-screen bg-[#F9F8F6] text-[#141414]">
-      <Navbar />
 
       {/* Admin Header & Sub-Navigation */}
       <div className="border-b border-[#EAE8E3] bg-white">
@@ -705,8 +702,6 @@ export default function AdminContentPage() {
           </div>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }

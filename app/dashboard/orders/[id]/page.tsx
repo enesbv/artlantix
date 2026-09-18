@@ -9,7 +9,6 @@ import {
   getOrderById,
   approveOrder,
   requestRevision,
-  addOrderMessage,
 } from '@/lib/services/orders';
 import { downloadAllMasterFiles, getSignedDownloadUrl, triggerFileDownload } from '@/lib/services/storage';
 import { isSupabaseConfigured } from '@/lib/supabase/client';
@@ -17,6 +16,9 @@ import { getCurrentUser } from '@/lib/services/auth';
 import { Order, RevisionAnnotation, UserProfile } from '@/lib/types';
 import DeliverableBadge, { DeliverableFormat } from '@/components/DeliverableBadge';
 import RevisionAnnotator from '@/components/RevisionAnnotator';
+import DeliveryTimeline from '@/components/DeliveryTimeline';
+import VectorInspector from '@/components/VectorInspector';
+import OrderChatHub from '@/components/OrderChatHub';
 import { getExpectedDelivery, getNextOrderAction, getStatusHistory, ORDER_STATUS_LABELS } from '@/lib/order-status';
 import { INPUT_LIMITS } from '@/lib/security';
 import {
@@ -25,8 +27,6 @@ import {
   AlertCircle,
   Clock,
   Download,
-  Send,
-  MessageSquare,
   Layers,
   RotateCcw,
   LoaderCircle,
@@ -42,16 +42,16 @@ export default function OrderDetailPage() {
   const [customerArtworkUrl, setCustomerArtworkUrl] = useState<string | null>(null);
   const [previewArtworkUrl, setPreviewArtworkUrl] = useState<string | null>(null);
 
+  // Vector Inspector States
+  const [inspectorMode, setInspectorMode] = useState<'full' | 'wireframe' | 'monochrome'>('full');
+  const [inspectorBackdrop, setInspectorBackdrop] = useState<'light' | 'dark' | 'grid'>('light');
+
   // Revision Modal State
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [revisionFeedback, setRevisionFeedback] = useState('');
   const [revisionAnnotations, setRevisionAnnotations] = useState<RevisionAnnotation[]>([]);
   const [isSubmittingRevision, setIsSubmittingRevision] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
-
-  // New Message State
-  const [chatMessage, setChatMessage] = useState('');
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   // Action status message
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -193,32 +193,6 @@ export default function OrderDetailPage() {
     }
   };
 
-  // Handle Sending a Message in the thread
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatMessage.trim() || !order) return;
-    setIsSendingMessage(true);
-    setActionError(null);
-    try {
-      const senderType = currentUser?.is_admin ? 'operator' : 'customer';
-      const senderName = currentUser?.full_name || (senderType === 'operator' ? 'Elena Vance' : 'Alex Morgan');
-      await addOrderMessage(
-        order.id,
-        currentUser?.id || 'usr_guest',
-        senderName,
-        senderType,
-        chatMessage
-      );
-      const reloaded = await getOrderById(order.id);
-      if (reloaded) setOrder(reloaded);
-      setChatMessage('');
-    } catch (error: unknown) {
-      setActionError(error instanceof Error ? error.message : 'Your message could not be sent. Please try again.');
-    } finally {
-      setIsSendingMessage(false);
-    }
-  };
-
   const customerUpload = order.files?.find((f) => f.file_category === 'customer_upload');
   const masterFiles = order.files?.filter((f) => f.file_category === 'final_master') || [];
 
@@ -313,6 +287,15 @@ export default function OrderDetailPage() {
         </div>
       </section>
 
+      {/* DELIVERY TIMELINE & REAL-TIME PROGRESS */}
+      <DeliveryTimeline
+        turnaround={order.turnaround}
+        status={order.status}
+        createdAt={order.created_at}
+        expectedDeliveryAt={expectedDelivery}
+        variant="order-detail"
+      />
+
       {/* 1. DUAL VIEW COMPARISON: ORIGINAL VS COMPLETED/PREVIEW */}
       <div id="artwork-review" className="scroll-mt-24 rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xs sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EAE8E3] pb-4">
@@ -375,30 +358,57 @@ export default function OrderDetailPage() {
               </span>
             </div>
 
-            <div className="relative flex h-72 w-full items-center justify-center p-6 bg-[#F9F8F6]">
-              {previewArtworkUrl ? (
-                <Image src={previewArtworkUrl} alt={`${order.project_name} preview`} fill sizes="(max-width: 768px) 100vw, 50vw" unoptimized className="object-contain p-6" />
-              ) : <svg viewBox="0 0 400 400" className="h-56 w-56 drop-shadow-xs">
-                <circle cx="200" cy="200" r="150" fill="#FFFFFF" stroke="#141414" strokeWidth="6" />
-                <circle cx="200" cy="200" r="130" fill="none" stroke="#18794E" strokeWidth="2.5" strokeDasharray="6 4" />
-                <path d="M 200 80 L 235 150 L 310 150 L 250 195 L 270 270 L 200 225 L 130 270 L 150 195 L 90 150 L 165 150 Z" fill="#141414" />
-                <circle cx="200" cy="200" r="22" fill="#18794E" />
-                <text x="200" y="325" fontFamily="sans-serif" fontWeight="800" fontSize="16" letterSpacing="4" fill="#141414" textAnchor="middle">
-                  {order.project_name.toUpperCase().slice(0, 16)}
-                </text>
-              </svg>}
+            <div
+              className={`relative flex h-72 w-full items-center justify-center p-6 transition-colors ${
+                inspectorBackdrop === 'dark'
+                  ? 'bg-[#141414]'
+                  : inspectorBackdrop === 'grid'
+                  ? 'bg-[#FAFAFA]'
+                  : 'bg-[#F9F8F6]'
+              }`}
+              style={
+                inspectorBackdrop === 'grid'
+                  ? {
+                      backgroundImage:
+                        'linear-gradient(45deg, #e0e0e0 25%, transparent 25%), linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e0e0e0 75%), linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)',
+                      backgroundSize: '12px 12px',
+                    }
+                  : undefined
+              }
+            >
+              <div
+                className={`relative flex h-full w-full items-center justify-center transition-all ${
+                  inspectorMode === 'monochrome'
+                    ? 'brightness-0 contrast-200'
+                    : inspectorMode === 'wireframe'
+                    ? 'opacity-85 contrast-125'
+                    : ''
+                }`}
+              >
+                {previewArtworkUrl ? (
+                  <Image src={previewArtworkUrl} alt={`${order.project_name} preview`} fill sizes="(max-width: 768px) 100vw, 50vw" unoptimized className="object-contain p-6" />
+                ) : <svg viewBox="0 0 400 400" className="h-56 w-56 drop-shadow-xs">
+                  <circle cx="200" cy="200" r="150" fill={inspectorMode === 'wireframe' ? 'none' : '#FFFFFF'} stroke="#141414" strokeWidth={inspectorMode === 'wireframe' ? '2' : '6'} />
+                  <circle cx="200" cy="200" r="130" fill="none" stroke="#18794E" strokeWidth="2.5" strokeDasharray="6 4" />
+                  <path d="M 200 80 L 235 150 L 310 150 L 250 195 L 270 270 L 200 225 L 130 270 L 150 195 L 90 150 L 165 150 Z" fill={inspectorMode === 'wireframe' ? 'none' : '#141414'} stroke={inspectorMode === 'wireframe' ? '#18794E' : undefined} strokeWidth={inspectorMode === 'wireframe' ? '2' : undefined} />
+                  <circle cx="200" cy="200" r="22" fill={inspectorMode === 'wireframe' ? 'none' : '#18794E'} stroke={inspectorMode === 'wireframe' ? '#18794E' : undefined} strokeWidth={inspectorMode === 'wireframe' ? '2' : undefined} />
+                  <text x="200" y="325" fontFamily="sans-serif" fontWeight="800" fontSize="16" letterSpacing="4" fill={inspectorBackdrop === 'dark' ? '#FFFFFF' : '#141414'} textAnchor="middle">
+                    {order.project_name.toUpperCase().slice(0, 16)}
+                  </text>
+                </svg>}
 
-              {order.revision_annotations?.map((annotation, index) => (
-                <span key={annotation.id} title={annotation.message} className="absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-[#18794E] text-xs font-bold text-white shadow-md" style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}>{index + 1}</span>
-              ))}
+                {order.revision_annotations?.map((annotation, index) => (
+                  <span key={annotation.id} title={annotation.message} className="absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-[#18794E] text-xs font-bold text-white shadow-md" style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}>{index + 1}</span>
+                ))}
 
-              {order.status !== 'completed' && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-                  <div className="rotate-[-25deg] text-3xl font-extrabold uppercase tracking-widest text-black/10">
-                    ARTLANTIX PREVIEW DRAFT
+                {order.status !== 'completed' && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+                    <div className="rotate-[-25deg] text-3xl font-extrabold uppercase tracking-widest text-black/10">
+                      ARTLANTIX PREVIEW DRAFT
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             <div className="border-t border-[#EAE8E3] bg-white p-3 font-sans text-[11px] flex justify-between">
@@ -406,6 +416,17 @@ export default function OrderDetailPage() {
               <span className="text-[#737373]">Tolerance: 0.01mm</span>
             </div>
           </div>
+        </div>
+
+        {/* VECTOR COLOR & LAYER INSPECTOR WIDGET */}
+        <div className="mt-6">
+          <VectorInspector
+            projectName={order.project_name}
+            activeMode={inspectorMode}
+            activeBackdrop={inspectorBackdrop}
+            onModeChange={setInspectorMode}
+            onBackdropChange={setInspectorBackdrop}
+          />
         </div>
 
         {/* ACTION BAR FOR PREVIEW APPROVAL OR REVISION */}
@@ -505,67 +526,17 @@ export default function OrderDetailPage() {
         </div>
       )}
 
-      {/* 3. ACTIVITY LOG & MESSAGING THREAD */}
-      <div id="order-messages" className="scroll-mt-24 rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xs sm:p-8">
-        <div className="flex items-center gap-2 border-b border-[#EAE8E3] pb-4">
-          <MessageSquare className="h-4 w-4 text-[#18794E]" />
-          <h2 className="text-sm font-bold text-[#141414]">
-            Production Activity &amp; Artist Communications
-          </h2>
-        </div>
-
-        <div className="mt-4 space-y-3 max-h-96 overflow-y-auto pr-2">
-          {(!order.messages || order.messages.length === 0) ? (
-            <div className="text-center py-6 font-sans text-xs text-[#737373]">
-              No messages logged yet for this order.
-            </div>
-          ) : (
-            order.messages.map((msg) => {
-              const isOperator = msg.sender_type === 'operator';
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col rounded-xl p-4 text-xs ${
-                    isOperator
-                      ? 'border border-[#EAE8E3] bg-[#F5F4F0] ml-0 sm:mr-12'
-                      : 'border border-[#B4DFC4] bg-[#E9F9EE] mr-0 sm:ml-12'
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-[#141414]">
-                      {msg.sender_name || (isOperator ? 'Elena Vance (Production Lead)' : 'Client')}
-                    </span>
-                    <span className="font-sans text-[10px] text-[#737373]">
-                      {new Date(msg.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="mt-2 leading-relaxed text-[#141414] whitespace-pre-wrap">
-                    {msg.message}
-                  </p>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        <form onSubmit={handleSendMessage} className="mt-4 flex flex-col gap-2 border-t border-[#EAE8E3] pt-4 sm:flex-row">
-          <input
-            type="text"
-            maxLength={INPUT_LIMITS.message}
-            value={chatMessage}
-            onChange={(e) => setChatMessage(e.target.value)}
-            placeholder="Type a message or instruction for the production artist..."
-            className="flex-1 rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2.5 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
-          />
-          <button
-            type="submit"
-            disabled={isSendingMessage || !chatMessage.trim()}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#141414] px-4 py-2.5 text-sm font-bold text-white hover:bg-black transition-colors disabled:opacity-50"
-          >
-            <Send className="h-3 w-3" />
-            <span>Send</span>
-          </button>
-        </form>
+      {/* 3. ORDER CHAT HUB & REALTIME ARTIST COMMUNICATIONS */}
+      <div id="order-messages" className="scroll-mt-24">
+        <OrderChatHub
+          orderId={order.id}
+          initialMessages={order.messages || []}
+          currentUserId={currentUser?.id || 'usr_guest'}
+          currentUserName={currentUser?.full_name || 'Müşteri'}
+          currentUserType={currentUser?.is_admin ? 'operator' : 'customer'}
+          projectTitle={order.project_name}
+          orderStatus={order.status}
+        />
       </div>
 
       {/* REVISION REQUEST MODAL */}

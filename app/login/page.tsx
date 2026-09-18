@@ -103,34 +103,54 @@ export default function LoginPage() {
           </div>
 
           {/* Quick 1-Click Zero-Config Demo Switchers for immediate evaluator testing */}
-          {!isSupabaseConfigured() && isDemoModeEnabled() && <div className="mt-6 rounded-lg border border-[#E6E4DF] bg-[#FAFAF8] p-3 text-center">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#888888]">
-              Instant Demo Access (Zero Config)
-            </span>
-            <div className="mt-2.5 grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('customer')}
-                className="flex flex-col items-center justify-center rounded border border-[#E6E4DF] bg-white p-2 text-center hover:border-[#111111] transition-colors"
-              >
-                <User className="h-4 w-4 text-[#111111]" />
-                <span className="mt-1 text-[11px] font-bold text-[#111111]">Demo Customer</span>
-                <span className="text-[9px] text-[#777777]">Client Portal</span>
-              </button>
+          {!isSupabaseConfigured() && isDemoModeEnabled() && (
+            <div className="mt-6 space-y-3">
+              {(searchParams.get('role') === 'operator_required' || nextPath.startsWith('/admin')) && (
+                <div className="rounded-lg border border-[#B4DFC4] bg-[#E9F9EE] p-3 text-left">
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck className="h-4 w-4 shrink-0 text-[#18794E] mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-[#102A20]">Operatör / Admin Yetkisi Gerekiyor</p>
+                      <p className="mt-0.5 text-[11px] text-[#18794E]">
+                        Üretim kuyruğunu (<code className="rounded bg-white/70 px-1 py-0.5">/admin/orders</code>) açmak için aşağıdaki <strong>Demo Operator</strong> butonuna tıklayarak doğrudan giriş yapabilirsiniz.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('operator')}
-                className="flex flex-col items-center justify-center rounded border border-[#E6E4DF] bg-white p-2 text-center hover:border-[#18794E] transition-colors"
-              >
-                <ShieldCheck className="h-4 w-4 text-[#18794E]" />
-                <span className="mt-1 text-[11px] font-bold text-[#111111]">Demo Operator</span>
-                <span className="text-[9px] text-[#777777]">Production Queue</span>
-              </button>
+              <div className="rounded-lg border border-[#E6E4DF] bg-[#FAFAF8] p-3 text-center">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#888888]">
+                  Instant Demo Access (Zero Config)
+                </span>
+                <div className="mt-2.5 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('customer')}
+                    className="flex flex-col items-center justify-center rounded border border-[#E6E4DF] bg-white p-2 text-center hover:border-[#111111] transition-colors"
+                  >
+                    <User className="h-4 w-4 text-[#111111]" />
+                    <span className="mt-1 text-[11px] font-bold text-[#111111]">Demo Customer</span>
+                    <span className="text-[9px] text-[#777777]">Client Portal</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('operator')}
+                    className={`flex flex-col items-center justify-center rounded p-2 text-center transition-all ${
+                      searchParams.get('role') === 'operator_required' || nextPath.startsWith('/admin')
+                        ? 'border-2 border-[#18794E] bg-[#E9F9EE] shadow-sm ring-2 ring-[#18794E]/20'
+                        : 'border border-[#E6E4DF] bg-white hover:border-[#18794E]'
+                    }`}
+                  >
+                    <ShieldCheck className="h-4 w-4 text-[#18794E]" />
+                    <span className="mt-1 text-[11px] font-bold text-[#111111]">Demo Operator</span>
+                    <span className="text-[9px] text-[#18794E] font-semibold">Production Queue</span>
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-
-          }
+          )}
           {error && (
             <div className="mt-4 rounded bg-red-50 p-3 text-xs text-red-700 font-medium">
               {error}
