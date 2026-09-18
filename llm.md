@@ -152,6 +152,8 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 
 ## Keeping this context useful
 
+The homepage hero uses `HeroVectorArtwork`: an original code-native line-art crest with a pointer-following SVG mask and delayed trail exposing dark green contours and control nodes. Touch devices show the full drawing with a one-time stroke animation; reduced-motion users get a static full drawing. It is decorative, not an automatic vectorization tool, and has no external animation dependency.
+
 The homepage process section presents its four localized steps as numbered icon cards on a dark green background, with desktop connector arrows, a responsive one/two/four-column layout and a localized quote link.
 
 Homepage pricing shows one localized starting-price/USD label above the cards, CMS-backed tier amounts, localized complexity descriptions and quote links. Prices remain provisional; the custom-scope card has no fixed price. FAQ content is available on dedicated localized FAQ pages rather than the current homepage.

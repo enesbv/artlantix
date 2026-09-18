@@ -8,6 +8,7 @@ import { ArrowRight, Check, FolderCheck, PenTool, ScanSearch, Upload } from 'luc
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
+import HeroVectorArtwork from '@/components/HeroVectorArtwork';
 import ServiceVisual from '@/components/ServiceVisual';
 import BeforeAfterSlider from '@/components/BeforeAfterSlider';
 import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/services/content';
@@ -43,7 +44,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
                 {['AI', 'EPS', 'SVG', 'PDF', 'PNG'].map((format) => <span key={format} className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#18794E]" />{format}</span>)}
               </div>
             </div>
-            <MarketingVisual />
+            <HeroVectorArtwork />
           </div>
         </section>
 

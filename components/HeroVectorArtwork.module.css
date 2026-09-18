@@ -1,0 +1,15 @@
+.artwork { position: relative; width: 100%; max-width: 580px; margin: auto; touch-action: pan-y; }
+.svg { display: block; width: 100%; height: auto; overflow: visible; }
+.spot { transform: translate(260px, 250px); transition: transform 130ms ease-out; }
+.trail { transform: translate(260px, 250px); transition: transform 650ms ease-out; }
+.line { stroke-dasharray: 1; stroke-dashoffset: 0; animation: draw 1.8s ease-out both; }
+@keyframes draw { from { stroke-dashoffset: 1; opacity: 0; } to { stroke-dashoffset: 0; opacity: 1; } }
+@media (hover: none), (pointer: coarse) {
+  .reveal { mask: none; }
+  .reveal .line { animation-duration: 2.4s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .line { animation: none; }
+  .spot, .trail { transition: none; }
+  .reveal { mask: none; }
+}
