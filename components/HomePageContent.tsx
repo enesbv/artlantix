@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ContactPricingCard from '@/components/ContactPricingCard';
-import { ArrowRight, Check, CircleDollarSign, FileCheck2, FolderCheck, LockKeyhole, PenTool, ScanSearch, Sparkles, Upload } from 'lucide-react';
+import { ArrowRight, Check, CircleDollarSign, FolderCheck, PenTool, ScanSearch, Upload } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
@@ -11,9 +11,8 @@ import ServiceVisual from '@/components/ServiceVisual';
 import FaqList from '@/components/FaqList';
 import BeforeAfterSlider from '@/components/BeforeAfterSlider';
 import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/services/content';
-import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, publicFaqs, services, trustFacts } from '@/lib/marketing';
+import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, publicFaqs, services } from '@/lib/marketing';
 
-const factIcons = [Sparkles, LockKeyhole, ScanSearch, FileCheck2];
 const processIcons = [Upload, ScanSearch, PenTool, FolderCheck];
 
 export default function HomePageContent({ locale }: { locale: string }) {
@@ -121,24 +120,6 @@ export default function HomePageContent({ locale }: { locale: string }) {
                 );
               })}
             </ol>
-          </div>
-        </section>
-
-        <section className="border-b border-[#DAD8D2] bg-white">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <h2 className="max-w-2xl text-3xl font-black tracking-tight text-[#102A20]">{copy.home.proofTitle}</h2>
-            <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-[#DAD8D2] bg-[#DAD8D2] md:grid-cols-2 lg:grid-cols-4">
-              {trustFacts[lang].map((fact, index) => {
-                const Icon = factIcons[index];
-                return (
-                  <div key={fact.title} className="bg-white p-6">
-                    <Icon className="h-5 w-5 text-[#18794E]" />
-                    <h3 className="mt-5 font-bold">{fact.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-[#5E625F]">{fact.text}</p>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </section>
 
