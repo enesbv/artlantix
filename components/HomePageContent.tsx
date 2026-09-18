@@ -72,7 +72,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
           </div>
         </section>
 
-        <section id="services" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <section id="services" className="scroll-mt-24 mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div><h2 className="max-w-2xl text-4xl font-black tracking-tight text-[#102A20]">{copy.home.servicesTitle}</h2><p className="mt-4 max-w-2xl text-[#5E625F]">{copy.home.servicesBody}</p></div>
             <Link href={localizedPath(lang, '/services')} className="inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.allServices}<ArrowRight className="h-4 w-4" /></Link>
