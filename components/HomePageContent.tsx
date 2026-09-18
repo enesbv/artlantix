@@ -10,7 +10,6 @@ import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
 import HeroVectorArtwork from '@/components/HeroVectorArtwork';
 import ServiceVisual from '@/components/ServiceVisual';
-import BeforeAfterSlider from '@/components/BeforeAfterSlider';
 import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/services/content';
 import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, services } from '@/lib/marketing';
 
@@ -51,10 +50,6 @@ export default function HomePageContent({ locale }: { locale: string }) {
         <section id="work" className="scroll-mt-24 border-b border-[#DAD8D2] bg-[#FCFDFB]">
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
             <h2 className="mx-auto max-w-4xl text-balance text-center text-3xl font-semibold leading-[1.15] tracking-[-0.045em] text-[#102A20] sm:text-4xl lg:text-[2.75rem]">{copy.home.workTitle}</h2>
-
-            <div className="mt-10 mb-12">
-              <BeforeAfterSlider />
-            </div>
 
             <div className="mt-10 grid gap-6 lg:grid-cols-3">
               {caseStudies.map((study) => (

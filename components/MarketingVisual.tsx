@@ -1,26 +1,16 @@
 'use client';
 
 import React from 'react';
-import { useLocale } from 'next-intl';
 
 type VisualKind = 'crest' | 'mascot' | 'lettering';
 
 export default function MarketingVisual({
   kind = 'crest',
   compact = false,
-  locale,
 }: {
   kind?: VisualKind;
   compact?: boolean;
-  locale?: string;
 }) {
-  const contextLocale = useLocale();
-  const activeLocale = locale || contextLocale;
-  const text = activeLocale === 'tr'
-    ? { source: 'Piksel referans' }
-    : activeLocale === 'de'
-      ? { source: 'Rastervorlage' }
-      : { source: 'Raster reference' };
   const artwork = {
     crest: (
       <>
@@ -44,7 +34,7 @@ export default function MarketingVisual({
   }[kind];
 
   return (
-    <div className={`relative overflow-hidden rounded-[2rem] border border-[#CFE8D8] bg-[#102A20] ${compact ? 'aspect-[4/3]' : 'min-h-[430px]'}`}>
+    <div className={`relative overflow-hidden rounded-2xl border border-[#CFE8D8] bg-[#102A20] ${compact ? 'aspect-[4/3]' : 'min-h-[430px]'}`}>
       <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(#B4DFC4_1px,transparent_1px),linear-gradient(90deg,#B4DFC4_1px,transparent_1px)] [background-size:24px_24px]" />
       <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-[#2CB67D]/30 blur-3xl" />
       <div className="absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-[#B4DFC4]/15 blur-3xl" />
@@ -58,9 +48,6 @@ export default function MarketingVisual({
           <circle cx="160" cy="297" r="5" />
         </g>
       </svg>
-      <div className="absolute bottom-5 left-5 right-5 flex items-center rounded-xl border border-white/10 bg-[#0A1D16]/80 px-4 py-3 text-xs text-white backdrop-blur">
-        <span>{text.source}</span>
-      </div>
     </div>
   );
 }
