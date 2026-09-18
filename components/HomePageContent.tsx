@@ -30,7 +30,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
       <Navbar />
       <main>
         <HeroVectorArtwork>
-          <div className="relative mx-auto flex min-h-[580px] max-w-7xl items-center px-4 py-20 sm:min-h-[680px] sm:px-6 sm:py-24 lg:px-8 lg:py-28">
+          <div className="mx-auto flex min-h-[580px] max-w-7xl items-center px-4 py-20 sm:min-h-[680px] sm:px-6 sm:py-24 lg:px-8 lg:py-28">
             <div className="max-w-xl">
               <h1 className="text-5xl font-black leading-[0.92] tracking-[-0.055em] text-[#102A20] sm:text-7xl lg:text-[5.4rem]">
                 {copy.home.titleLines.map((line, index) => <span key={line} className={`block ${index === 1 ? 'mt-[0.045em] text-[#18794E]' : ''}`}>{line}</span>)}
@@ -42,11 +42,6 @@ export default function HomePageContent({ locale }: { locale: string }) {
               </div>
               <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-[#5E625F]">
                 {['AI', 'EPS', 'SVG', 'PDF', 'PNG'].map((format) => <span key={format} className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#18794E]" />{format}</span>)}
-              </div>
-            </div>
-            <div className="pointer-events-none absolute right-0 top-1/2 hidden w-[42%] max-w-[520px] -translate-y-1/2 lg:block">
-              <div className="rounded-[2rem] opacity-90 shadow-[0_26px_70px_-38px_rgba(16,42,32,0.45)]">
-                <MarketingVisual kind="crest" compact />
               </div>
             </div>
           </div>
