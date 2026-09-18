@@ -115,7 +115,7 @@ function RenderVectorContent({ isWireframe }: { isWireframe: boolean }) {
 
 function RenderRasterContent() {
   return (
-    <div className="relative flex h-full w-full items-center justify-center px-8 py-16 sm:px-12 filter blur-[1.2px] contrast-85">
+    <div className="relative flex h-full w-full items-center justify-center px-6 py-10 sm:px-10 filter blur-[1.2px] contrast-85">
       <svg
         viewBox="0 0 500 500"
         className="h-full max-h-[440px] w-full max-w-[440px] opacity-85"
@@ -240,8 +240,8 @@ export default function BeforeAfterSlider({
   };
 
   return (
-    <div className="overflow-hidden rounded-[1.5rem] border border-[#DDE5DE] bg-white shadow-[0_16px_60px_-32px_rgba(16,42,32,0.22)] sm:rounded-[2rem]">
-      <div className="flex flex-col justify-between gap-5 px-5 py-5 sm:px-8 sm:py-6 md:flex-row md:items-center">
+    <div className="overflow-hidden rounded-2xl border border-[#DDE5DE] bg-white shadow-[0_24px_70px_-40px_rgba(16,42,32,0.25)] sm:rounded-3xl">
+      <div className="flex flex-col justify-between gap-4 border-b border-[#E7EDE7] px-5 py-4 sm:px-7 sm:py-5 md:flex-row md:items-center">
         <div className="min-w-0">
           <h3 className="text-base font-semibold tracking-tight text-[#102A20] sm:text-lg">{title || copy.title}</h3>
         </div>
@@ -260,7 +260,7 @@ export default function BeforeAfterSlider({
         </div>
       </div>
 
-      <div className="px-2 sm:px-3">
+      <div className="p-2 sm:p-3">
         <div
           ref={containerRef}
           role="slider"
@@ -291,11 +291,11 @@ export default function BeforeAfterSlider({
             event.preventDefault();
             setSliderPosition((value) => event.key === 'Home' ? 2 : event.key === 'End' ? 98 : Math.min(98, Math.max(2, value + (['ArrowRight', 'ArrowUp'].includes(event.key) ? 2 : -2))));
           }}
-          className="relative h-[360px] w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-[#F5F7F2] outline-none focus-visible:ring-2 focus-visible:ring-[#18794E] focus-visible:ring-offset-2 sm:h-[440px] lg:h-[460px]"
+          className="relative h-[340px] w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-xl bg-[#F5F7F2] outline-none focus-visible:ring-2 focus-visible:ring-[#18794E] focus-visible:ring-offset-2 sm:h-[420px] lg:h-[480px]"
         >
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
             <div className="absolute inset-0 opacity-[0.35]" style={{ backgroundImage: 'linear-gradient(#DCE4D9 1px, transparent 1px), linear-gradient(90deg, #DCE4D9 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-            <div className="relative flex h-full w-full items-center justify-center px-8 py-16 sm:px-12">
+            <div className="relative flex h-full w-full items-center justify-center px-6 py-10 sm:px-10">
               <RenderVectorContent isWireframe={isWireframe} />
             </div>
           </div>
@@ -324,10 +324,10 @@ export default function BeforeAfterSlider({
         </div>
       </div>
 
-      <div className="grid divide-y divide-[#E8EDE6] px-5 py-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-3 sm:py-6">
+      <div className="grid divide-y divide-[#E0E8E0] border-t border-[#E7EDE7] bg-[#F7FAF6] px-5 py-1 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-2 sm:py-5">
         {copy.features.map(([heading, description], index) => (
           <div key={heading} className="flex gap-3 py-4 sm:px-5 sm:py-0">
-            <span className="pt-0.5 text-xs font-medium text-[#93A18F]">0{index + 1}</span>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#D6E5D9] bg-white text-[10px] font-semibold tabular-nums text-[#18794E]">0{index + 1}</span>
             <div>
               <p className="text-sm font-semibold text-[#183D28]">{heading}</p>
               <p className="mt-1 text-xs leading-5 text-[#71806F]">{description}</p>

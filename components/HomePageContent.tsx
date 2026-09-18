@@ -49,7 +49,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
 
         <section id="work" className="scroll-mt-24 border-b border-[#DAD8D2] bg-[#FCFDFB]">
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <h2 className="max-w-3xl text-3xl font-semibold leading-[1.12] tracking-[-0.04em] text-[#102A20] sm:text-4xl lg:text-[2.75rem]">{copy.home.workTitle}</h2>
+            <h2 className="mx-auto max-w-4xl text-balance text-center text-3xl font-semibold leading-[1.15] tracking-[-0.045em] text-[#102A20] sm:text-4xl lg:text-[2.75rem]">{copy.home.workTitle}</h2>
 
             <div className="mt-10 mb-12">
               <BeforeAfterSlider />
