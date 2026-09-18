@@ -196,8 +196,8 @@ export default function BeforeAfterSlider({
   const [containerHeight, setContainerHeight] = useState<number>(480);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Precision Studio Loupe State
-  const [isLoupeActive, setIsLoupeActive] = useState(false);
+  // Precision Studio Loupe State (Active by default for immediate inspection)
+  const [isLoupeActive, setIsLoupeActive] = useState(true);
   const [loupeZoom, setLoupeZoom] = useState<2 | 4 | 8>(4);
   const [loupeCoords, setLoupeCoords] = useState<{ x: number; y: number }>({ x: 400, y: 240 });
   const [isHoveringCanvas, setIsHoveringCanvas] = useState(false);
@@ -285,32 +285,33 @@ export default function BeforeAfterSlider({
 
         {/* Action Controls: View Mode & Precision Loupe */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Studio Loupe Toggle */}
-          <div className="inline-flex items-center gap-1 rounded-full border border-[#EAE8E3] bg-[#F9F8F6] p-1 shadow-xs">
+          {/* Studio Loupe & 2x/4x/8x Zoom Segmented Control */}
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#B4DFC4] bg-[#E9F9EE] p-1 shadow-xs">
             <button
               type="button"
               onClick={() => setIsLoupeActive(!isLoupeActive)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 ${
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-all duration-200 ${
                 isLoupeActive
                   ? 'bg-[#18794E] text-white shadow-xs'
-                  : 'text-[#737373] hover:text-[#141414]'
+                  : 'text-[#18794E] hover:bg-white'
               }`}
             >
               <ScanEye className="h-3.5 w-3.5" />
-              <span>Loupe</span>
+              <span>{isLoupeActive ? 'Büyüteç Aktif' : 'Büyüteci Aç'}</span>
             </button>
 
             {isLoupeActive && (
-              <div className="flex items-center gap-0.5 border-l border-[#EAE8E3] pl-1 animate-in fade-in duration-150">
+              <div className="flex items-center gap-1 border-l border-[#B4DFC4] pl-1.5 pr-1 animate-in fade-in duration-150">
+                <span className="text-[10px] font-bold text-[#18794E] hidden sm:inline">Yakınlaştırma:</span>
                 {([2, 4, 8] as const).map((z) => (
                   <button
                     key={z}
                     type="button"
                     onClick={() => setLoupeZoom(z)}
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-colors ${
+                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold transition-all ${
                       loupeZoom === z
-                        ? 'bg-[#141414] text-white'
-                        : 'text-[#737373] hover:text-[#141414]'
+                        ? 'bg-[#102A20] text-white shadow-xs scale-105'
+                        : 'bg-white/80 text-[#18794E] hover:bg-white'
                     }`}
                   >
                     {z}x
@@ -347,6 +348,19 @@ export default function BeforeAfterSlider({
           </div>
         </div>
       </div>
+
+      {/* Active Loupe Guide Banner */}
+      {isLoupeActive && (
+        <div className="flex items-center justify-between border-b border-[#EAE8E3] bg-[#E9F9EE]/60 px-5 py-2 text-xs text-[#102A20]">
+          <span className="flex items-center gap-2 font-medium">
+            <span className="flex h-2 w-2 rounded-full bg-[#18794E] animate-ping" />
+            <span><strong>{loupeZoom}x Hassas Büyüteç Açık:</strong> İmlecinizi görselin üzerinde gezdirerek piksel gürültüsü ve vektör bezier eğrilerini mikroskobik inceleyin.</span>
+          </span>
+          <span className="hidden sm:inline font-bold text-[#18794E]">
+            Aktif: {loupeZoom}x Büyütme
+          </span>
+        </div>
+      )}
 
       {/* Cinematic Viewport Canvas */}
       <div

@@ -19,6 +19,7 @@ import RevisionAnnotator from '@/components/RevisionAnnotator';
 import DeliveryTimeline from '@/components/DeliveryTimeline';
 import VectorInspector from '@/components/VectorInspector';
 import OrderChatHub from '@/components/OrderChatHub';
+import BeforeAfterSlider from '@/components/BeforeAfterSlider';
 import { getExpectedDelivery, getNextOrderAction, getStatusHistory, ORDER_STATUS_LABELS } from '@/lib/order-status';
 import { INPUT_LIMITS } from '@/lib/security';
 import {
@@ -45,6 +46,7 @@ export default function OrderDetailPage() {
   // Vector Inspector States
   const [inspectorMode, setInspectorMode] = useState<'full' | 'wireframe' | 'monochrome'>('full');
   const [inspectorBackdrop, setInspectorBackdrop] = useState<'light' | 'dark' | 'grid'>('light');
+  const [comparisonView, setComparisonView] = useState<'slider' | 'side-by-side'>('slider');
 
   // Revision Modal State
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
@@ -298,20 +300,51 @@ export default function OrderDetailPage() {
 
       {/* 1. DUAL VIEW COMPARISON: ORIGINAL VS COMPLETED/PREVIEW */}
       <div id="artwork-review" className="scroll-mt-24 rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xs sm:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EAE8E3] pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAE8E3] pb-4">
           <div>
             <h2 className="text-sm font-bold text-[#141414]">Artwork Inspection &amp; Comparison</h2>
             <p className="text-xs text-[#737373]">
-              Side-by-side comparison of original customer upload vs reconstructed vector draft
+              Side-by-side comparison &amp; 2x/4x/8x precision loupe inspection of original upload vs reconstructed vector draft
             </p>
           </div>
-          <div className="font-sans text-xs text-[#737373]">
-            Curvature Check: <strong className="text-emerald-700">100% Tangent Bezier</strong>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex rounded-lg border border-[#DAD8D2] bg-[#F9F8F6] p-1 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setComparisonView('slider')}
+                className={`rounded-md px-3 py-1 text-xs font-bold transition-all ${
+                  comparisonView === 'slider'
+                    ? 'bg-[#18794E] text-white shadow-xs'
+                    : 'text-[#5E625F] hover:text-[#102A20]'
+                }`}
+              >
+                🔍 Hassas Büyüteç &amp; Slider (2x/4x/8x)
+              </button>
+              <button
+                type="button"
+                onClick={() => setComparisonView('side-by-side')}
+                className={`rounded-md px-3 py-1 text-xs font-bold transition-all ${
+                  comparisonView === 'side-by-side'
+                    ? 'bg-[#18794E] text-white shadow-xs'
+                    : 'text-[#5E625F] hover:text-[#102A20]'
+                }`}
+              >
+                Yan Yana Görünüm
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Side A: Original Upload */}
+        {comparisonView === 'slider' ? (
+          <div className="mt-6">
+            <BeforeAfterSlider
+              title={`${order.project_name} — Vektör Kalite Kontrolü`}
+              category="Stüdyo Kalite Kontrolü & Hassas Büyüteç"
+            />
+          </div>
+        ) : (
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Side A: Original Upload */}
           <div className="flex flex-col rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#EAE8E3] bg-[#F5F4F0] px-4 py-2 text-xs font-semibold text-[#141414]">
               <span>A. Customer Submission</span>
@@ -417,6 +450,7 @@ export default function OrderDetailPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* VECTOR COLOR & LAYER INSPECTOR WIDGET */}
         <div className="mt-6">

@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
 import ServiceVisual from '@/components/ServiceVisual';
 import FaqList from '@/components/FaqList';
+import BeforeAfterSlider from '@/components/BeforeAfterSlider';
 import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/services/content';
 import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, publicFaqs, services, trustFacts } from '@/lib/marketing';
 
@@ -78,7 +79,18 @@ export default function HomePageContent({ locale }: { locale: string }) {
         </section>
 
         <section id="work" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="max-w-3xl"><h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.workTitle}</h2><p className="mt-4 text-[#5E625F]">{copy.home.workBody}</p></div>
+          <div className="max-w-3xl">
+            <h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.workTitle}</h2>
+            <p className="mt-4 text-[#5E625F]">{copy.home.workBody}</p>
+          </div>
+
+          <div className="mt-10 mb-12">
+            <BeforeAfterSlider
+              title={lang === 'tr' ? 'Apex Falcon Crest — Raster vs. Vektör Mikro İnceleme' : 'Apex Falcon Crest — Raster vs. Vector Micro Inspection'}
+              category={lang === 'tr' ? 'Stüdyo Kalite Kontrolü & Hassas Büyüteç (2x / 4x / 8x)' : 'Studio Quality Inspection & Loupe (2x / 4x / 8x)'}
+            />
+          </div>
+
           <div className="mt-10 grid gap-6 lg:grid-cols-3">
             {caseStudies.map((study) => <Link key={study.slug} href={localizedPath(lang, `/work/${study.slug}`)} className="group overflow-hidden rounded-2xl border border-[#DAD8D2] bg-white"><MarketingVisual kind={study.visual} compact /><div className="p-6"><span className="rounded-full bg-[#E9F9EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">{copy.common.demo}</span><h3 className="mt-4 text-xl font-bold text-[#102A20]">{study.title[lang]}</h3><p className="mt-2 text-sm leading-6 text-[#5E625F]">{study.summary[lang]}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.common.viewCase}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></span></div></Link>)}
           </div>
