@@ -1,119 +1,56 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import Navbar from '@/components/Navbar';
+import { useLocale } from 'next-intl';
+import { usePathname, useRouter } from 'next/navigation';
+import { ChevronDown, LogOut } from 'lucide-react';
 import AccessGate from '@/components/AccessGate';
 import OrderNotifications from '@/components/OrderNotifications';
-import { getCurrentUser } from '@/lib/services/auth';
-import { UserProfile } from '@/lib/types';
-import { useTranslations } from 'next-intl';
-import {
-  LayoutDashboard,
-  Layers,
-  Archive,
-  Building2,
-  User,
-  ShieldCheck,
-  Plus,
-} from 'lucide-react';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { getCurrentUser, signOutUser } from '@/lib/services/auth';
+import { trackingCopy } from '@/lib/customer-tracking';
+import type { UserProfile } from '@/lib/types';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const locale = useLocale();
+  const lang = locale === 'tr' || locale === 'de' ? locale : 'en';
+  const copy = trackingCopy[lang];
   const pathname = usePathname();
-  const t = useTranslations('dashboard');
+  const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
-
+  const [signingOut, setSigningOut] = useState(false);
   useEffect(() => {
-    getCurrentUser().then((u) => {
-      setUser(u);
-    });
+    let active = true;
+    getCurrentUser().then((nextUser) => { if (active) setUser(nextUser); }).catch(() => undefined);
+    return () => { active = false; };
   }, [pathname]);
 
-  const navItems = [
-    { label: t('overview'), href: '/dashboard', icon: LayoutDashboard },
-    { label: t('orders'), href: '/dashboard/orders', icon: Layers },
-    { label: t('vault'), href: '/dashboard/artwork', icon: Archive },
-    { label: t('business'), href: '/dashboard/business', icon: Building2 },
-    { label: t('account'), href: '/dashboard/account', icon: User },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#F9F8F6] text-[#141414]">
-      <Navbar />
-
-      <div className="border-b border-[#EAE8E3] bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between py-6 gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight text-[#141414]">
-                  {t('title')}
-                </h1>
-                {user?.account_type === 'business' && (
-                  <span className="rounded-full bg-[#E9F9EE] px-2.5 py-0.5 font-sans text-[10px] font-bold text-[#18794E] border border-[#B4DFC4]">
-                    {t('partner')}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-[#737373] mt-1">
-                {t('loggedIn')} <strong className="text-[#141414]">{user?.full_name || t('client')}</strong> ({user?.email})
-              </p>
-            </div>
-
+    <AccessGate>
+      <div className="min-h-screen bg-[#F7F9F4] text-[#183D28]">
+        <header className="border-b border-[#E1E7DA] bg-white">
+          <div className="mx-auto flex min-h-20 max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+            <Link href="/dashboard" className="flex flex-col gap-1"><span className="text-lg font-bold tracking-tight text-[#102A20]">Artlantix</span><span className="text-[11px] text-[#8B9781]">{copy.tracking}</span></Link>
             <div className="flex items-center gap-3">
+              <LanguageSwitcher />
               <OrderNotifications />
-              {user?.is_admin && (
-                <Link
-                  href="/admin/orders"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2 text-xs font-bold text-[#141414] hover:border-[#141414] transition-colors"
-                >
-                  <ShieldCheck className="h-4 w-4 text-[#18794E]" />
-                  <span>{t('adminDesk')}</span>
-                </Link>
-              )}
-
-              <Link
-                href="/quote"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                <span>{t('newQuote')}</span>
-              </Link>
+              <details key={pathname} className="relative">
+                <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-[#E1E7DA] px-3 py-2.5 text-xs font-medium [&::-webkit-details-marker]:hidden">{copy.account}<ChevronDown className="h-3.5 w-3.5" /></summary>
+                <nav aria-label={copy.account} className="absolute right-0 top-12 z-40 w-56 rounded-xl border border-[#E1E7DA] bg-white p-2 shadow-lg">
+                  <Link href="/dashboard" className="block rounded-lg px-3 py-2.5 text-xs hover:bg-[#F5F7F2]">{copy.tracking}</Link>
+                  <Link href="/dashboard/account" className="block rounded-lg px-3 py-2.5 text-xs hover:bg-[#F5F7F2]">{copy.account}</Link>
+                  <Link href="/dashboard/artwork" className="block rounded-lg px-3 py-2.5 text-xs hover:bg-[#F5F7F2]">{copy.archive}</Link>
+                  {user?.account_type === 'business' && <Link href="/dashboard/business" className="block rounded-lg px-3 py-2.5 text-xs hover:bg-[#F5F7F2]">{copy.business}</Link>}
+                  {user?.is_admin && <Link href="/admin/orders" className="block rounded-lg px-3 py-2.5 text-xs hover:bg-[#F5F7F2]">Admin</Link>}
+                  <button type="button" disabled={signingOut} onClick={async () => { setSigningOut(true); try { await signOutUser(); router.push('/login'); } finally { setSigningOut(false); } }} className="flex w-full items-center gap-2 rounded-lg border-t border-[#E8EDE4] px-3 py-2.5 text-left text-xs hover:bg-[#F5F7F2] disabled:opacity-50"><LogOut className="h-3.5 w-3.5" />{copy.logout}</button>
+                </nav>
+              </details>
             </div>
           </div>
-
-          {/* Sub Navigation Tabs */}
-          <nav className="flex space-x-6 overflow-x-auto border-t border-[#EAE8E3]/60 pt-1 pb-2">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(`${item.href}/`));
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`inline-flex items-center gap-1.5 border-b-2 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
-                    isActive
-                      ? 'border-[#18794E] text-[#18794E] font-bold'
-                      : 'border-transparent text-[#737373] hover:border-[#CCCCCC] hover:text-[#141414]'
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+        </header>
+        <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">{children}</main>
       </div>
-
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <AccessGate>{children}</AccessGate>
-      </main>
-    </div>
+    </AccessGate>
   );
 }

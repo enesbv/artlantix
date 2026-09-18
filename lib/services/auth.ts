@@ -71,6 +71,23 @@ export function setCurrentUserMock(user: UserProfile | null): void {
   }
 }
 
+/** Isolated demo guest session. Production guest intake needs a verified server flow. */
+export async function createDemoGuestSession(email: string, fullName: string): Promise<UserProfile> {
+  if (isSupabaseConfigured() || !isDemoModeEnabled()) {
+    throw new Error('Misafir siparişleri henüz etkin değil. Lütfen giriş yapın veya stüdyoyla iletişime geçin.');
+  }
+  const user: UserProfile = {
+    id: `guest_${crypto.randomUUID()}`,
+    email: normalizeEmail(email),
+    full_name: normalizeRequiredText(fullName, 'Name', INPUT_LIMITS.name),
+    account_type: 'individual',
+    is_admin: false,
+    created_at: new Date().toISOString(),
+  };
+  setCurrentUserMock(user);
+  return user;
+}
+
 export async function updateCurrentUserProfile(
   updates: Pick<UserProfile, 'full_name' | 'company_name' | 'phone' | 'vat_tax_id'>
 ): Promise<{ user: UserProfile | null; error?: string }> {
@@ -175,7 +192,7 @@ export async function signInWithEmail(email: string, password?: string): Promise
   return { user: customCustomer };
 }
 
-export async function signUpWithEmail(email: string, fullName: string, password?: string, accountType: 'individual' | 'business' = 'individual', companyName?: string, nextPath = '/dashboard/orders'): Promise<{ user: UserProfile | null; error?: string; confirmationRequired?: boolean }> {
+export async function signUpWithEmail(email: string, fullName: string, password?: string, accountType: 'individual' | 'business' = 'individual', companyName?: string, nextPath = '/dashboard'): Promise<{ user: UserProfile | null; error?: string; confirmationRequired?: boolean }> {
   if (isSupabaseConfigured()) {
     if (!password) return { user: null, error: 'Please create an account or sign in before ordering.' };
     if (password.length < 12 || password.length > 128) return { user: null, error: 'Use a password between 12 and 128 characters.' };
@@ -233,7 +250,7 @@ export async function signUpWithEmail(email: string, fullName: string, password?
   return { user: newUser };
 }
 
-export async function signInWithGoogle(nextPath = '/dashboard/orders'): Promise<{ user: UserProfile | null; error?: string }> {
+export async function signInWithGoogle(nextPath = '/dashboard'): Promise<{ user: UserProfile | null; error?: string }> {
   if (isSupabaseConfigured()) {
     try {
       const supabase = createClient();

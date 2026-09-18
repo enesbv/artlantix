@@ -49,7 +49,7 @@ export default function LoginPage() {
     if (type === 'operator') {
       router.push('/admin/orders');
     } else {
-      router.push('/dashboard/orders');
+      router.push('/dashboard');
     }
   };
 

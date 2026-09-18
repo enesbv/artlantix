@@ -17,12 +17,19 @@ function getStoredOrders(): Order[] {
     localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(INITIAL_ORDERS));
     return INITIAL_ORDERS;
   }
-  try {
-    return JSON.parse(raw);
-  } catch {
-    localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(INITIAL_ORDERS));
-    return INITIAL_ORDERS;
+  let parsed: Order[];
+  try { parsed = JSON.parse(raw) as Order[]; } catch { return INITIAL_ORDERS; }
+  if (!Array.isArray(parsed)) return INITIAL_ORDERS;
+  const retiredSamples = new Set(['ord_atx_8492', 'ord_atx_9104', 'ord_atx_9351', 'ord_atx_9512']);
+  const remaining = parsed.filter((order) => !retiredSamples.has(order.id));
+  if (remaining.length !== parsed.length) {
+    try {
+      const backupKey = 'artlantix_orders_before_single_sample';
+      if (!localStorage.getItem(backupKey)) localStorage.setItem(backupKey, raw);
+      localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(remaining));
+    } catch { return parsed; } // Preserve all records if a recoverable cleanup cannot be saved.
   }
+  return remaining;
 }
 
 function saveOrders(orders: Order[]): void {
@@ -35,7 +42,7 @@ function saveOrders(orders: Order[]): void {
   }
 }
 
-export async function getOrders(userId?: string, isAdmin: boolean = false, includeDetails: boolean = false): Promise<Order[]> {
+export async function getOrders(userId?: string, isAdmin: boolean = false, includeDetails: boolean = false, failOnError: boolean = false): Promise<Order[]> {
   if (isSupabaseConfigured()) {
     try {
       const supabase = createClient();
@@ -47,10 +54,12 @@ export async function getOrders(userId?: string, isAdmin: boolean = false, inclu
         }
         const { data, error } = await query;
         if (!error && data) return data as unknown as Order[];
+        if (failOnError) throw new Error('Siparişler alınamadı. Bağlantınızı kontrol edip tekrar deneyin.');
       }
-    } catch {
-      // Fallback
+    } catch (error) {
+      if (failOnError) throw error;
     }
+    if (failOnError) throw new Error('Sipariş bağlantısı kullanılamıyor.');
     return [];
   }
 
@@ -261,26 +270,6 @@ export async function updateOrderStatus(
   if (assignedArtist) current.assigned_artist = assignedArtist;
   if (finalPrice !== undefined) {
     current.final_price = finalPrice;
-  }
-
-  // If approved and completed, unlock full suite of master vector deliverables if not already present
-  if (status === 'completed') {
-    const hasMaster = current.files?.some((f) => f.file_category === 'final_master');
-    if (!hasMaster) {
-      const masterFormats = ['ai', 'eps', 'svg', 'pdf', 'png'] as const;
-      const deliverables: OrderFile[] = masterFormats.map((fmt) => ({
-        id: `fil_${orderId}_${fmt}`,
-        order_id: orderId,
-        user_id: 'usr_admin_001',
-        file_category: 'final_master',
-        format: fmt,
-        storage_path: `/mock-assets/${current.order_number}-Master.${fmt}`,
-        filename: `${current.project_name.replace(/\s+/g, '-')}-Production-Ready.${fmt}`,
-        size_bytes: fmt === 'ai' ? 4200000 : fmt === 'eps' ? 2600000 : fmt === 'svg' ? 145000 : fmt === 'pdf' ? 1800000 : 850000,
-        created_at: now,
-      }));
-      current.files = [...(current.files || []), ...deliverables];
-    }
   }
 
   all[index] = current;

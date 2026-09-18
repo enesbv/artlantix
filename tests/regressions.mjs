@@ -24,6 +24,80 @@ function load(relative, mocks = {}, globals = {}) {
 
 const securityModule = load('lib/security.ts', {}, { URL });
 
+test('order receipt rejects demo, unverified users and foreign orders; recipient comes from auth', async () => {
+  const id = 'f825c126-d530-4e22-80b2-d4e04c8a8290';
+  let sends = 0;
+  let payload;
+  const route = (user, record, demo = false) => load('app/api/orders/receipt/route.ts', {
+    '@supabase/ssr': { createServerClient: () => ({
+      auth: { getUser: async () => ({ data: { user } }) },
+      from: () => ({ select() { return this; }, eq() { return this; }, single: async () => ({ data: record }) }),
+    }) },
+    'next/headers': { cookies: async () => ({ getAll: () => [], set() {} }) },
+    'next/server': { NextResponse: { json: (body, options) => ({ body, status: options.status }) } },
+  }, { URL, AbortSignal, process: { env: {
+    NEXT_PUBLIC_SUPABASE_URL: 'https://db.example', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'public',
+    RESEND_API_KEY: 'test', ORDER_EMAIL_FROM: 'orders@example.com', NEXT_PUBLIC_DEMO_MODE: demo ? 'true' : 'false',
+  } }, fetch: async (_url, options) => { sends++; payload = JSON.parse(options.body); return { ok: true }; } });
+  const request = (origin = 'https://artlantix.example') => ({
+    headers: new Headers({ origin }), nextUrl: new URL('https://artlantix.example/api/orders/receipt'),
+    text: async () => JSON.stringify({ orderId: id, email: 'attacker@example.com' }),
+  });
+  const user = { id: 'owner', email: 'owner@example.com', email_confirmed_at: new Date().toISOString() };
+  const order = { id, user_id: 'owner', order_number: 'ATX-test', created_at: new Date(Date.now() - 1000).toISOString() };
+  assert.equal((await route(user, order, true).POST(request())).status, 503);
+  assert.equal((await route(null, order).POST(request())).status, 401);
+  assert.equal((await route({ ...user, email_confirmed_at: null }, order).POST(request())).status, 401);
+  assert.equal((await route(user, null).POST(request())).status, 404);
+  assert.equal((await route(user, order).POST(request('https://evil.example'))).status, 403);
+  assert.equal(sends, 0);
+  assert.equal((await route(user, order).POST(request())).status, 200);
+  assert.deepEqual(payload.to, ['owner@example.com']);
+  assert.match(payload.text, /ATX-test/);
+  assert.equal(sends, 1);
+});
+
+test('demo guest sessions validate contact data and never fall back in production', async () => {
+  const demo = auth();
+  const user = await demo.service.createDemoGuestSession('guest@example.com', 'Guest');
+  assert.match(user.id, /^guest_/);
+  assert.equal(user.is_admin, false);
+  assert.equal((await demo.service.getCurrentUser()).id, user.id);
+  await assert.rejects(demo.service.createDemoGuestSession('not-email', 'Guest'));
+  await assert.rejects(auth(true).service.createDemoGuestSession('guest@example.com', 'Guest'));
+  await assert.rejects(auth(false, undefined, false).service.createDemoGuestSession('guest@example.com', 'Guest'));
+});
+
+test('customer tracking keeps approval and revisions in drawing until actual delivery', () => {
+  const { getTrackingStep } = load('lib/customer-tracking.ts');
+  for (const status of ['quote_requested', 'in_review']) assert.equal(getTrackingStep(status), 0);
+  for (const status of ['in_progress', 'preview_ready', 'revision_requested', 'approved']) assert.equal(getTrackingStep(status), 1);
+  assert.equal(getTrackingStep('completed'), 2);
+  assert.equal(getTrackingStep('cancelled'), -1);
+});
+
+test('operator alerts prioritize overdue work and exclude closed or non-actionable orders', () => {
+  const { getOperatorAlerts } = load('lib/admin-orders.ts', {
+    './order-status': { getExpectedDelivery: (order) => order.expected_delivery_at },
+  });
+  const now = Date.parse('2026-09-18T12:00:00Z');
+  const order = (id, status, due = '2026-09-20T12:00:00Z') => ({
+    id, status, expected_delivery_at: due, updated_at: '2026-09-18T10:00:00Z',
+  });
+  const alerts = getOperatorAlerts([
+    order('review', 'quote_requested'), order('revision', 'revision_requested'),
+    order('master', 'approved'), order('production', 'in_progress'),
+    order('preview', 'preview_ready'), order('late', 'in_progress', '2026-09-17T12:00:00Z'),
+    order('closed', 'completed', '2026-09-17T12:00:00Z'),
+    order('cancelled', 'cancelled', '2026-09-17T12:00:00Z'),
+  ], now);
+  assert.equal(alerts[0].order.id, 'late');
+  assert.equal(alerts[0].overdue, true);
+  assert.deepEqual(Array.from(alerts, (alert) => alert.order.id).sort(), ['late', 'master', 'review', 'revision']);
+  assert.match(alerts.find((alert) => alert.order.id === 'master').reason, /master/);
+  assert.equal(getOperatorAlerts([], now).length, 0);
+});
+
 function auth(remote = false, remoteClient, demo = !remote) {
   const store = new Map();
   const customer = { id: 'customer', is_admin: false };
@@ -38,7 +112,7 @@ function auth(remote = false, remoteClient, demo = !remote) {
       BACKEND_NOT_CONFIGURED_ERROR: 'The service is not configured yet.',
     },
     '../security': securityModule,
-  }, { window: {}, localStorage: {
+  }, { crypto: globalThis.crypto, window: {}, localStorage: {
     getItem: (key) => store.get(key) ?? null,
     setItem: (key, value) => store.set(key, value),
   } });
@@ -134,7 +208,7 @@ test('post-auth redirects stay on allowlisted same-origin portal routes', () => 
   assert.equal(getSafePostAuthRedirect('/admin/orders'), '/admin/orders');
   assert.equal(getSafePostAuthRedirect('/quote?step=3'), '/quote?step=3');
   for (const unsafe of ['//evil.example', '/\\evil.example', 'https://evil.example', '/login', '/%255cevil.example']) {
-    assert.equal(getSafePostAuthRedirect(unsafe), '/dashboard/orders');
+    assert.equal(getSafePostAuthRedirect(unsafe), '/dashboard');
   }
 });
 
@@ -281,7 +355,7 @@ test('studio delivery calculator projects accurate working shifts skipping Sunda
   assert.match(futureResult.label, /saat/);
 });
 
-test('order chat messages fallback retrieves messages correctly from demo storage', async () => {
+test('demo order messages persist and completing an order does not fabricate deliverables', async () => {
   const store = new Map();
   const testOrder = {
     id: 'ord_test_999',
@@ -340,5 +414,10 @@ test('order chat messages fallback retrieves messages correctly from demo storag
 
   const emptyMessages = await ordersService.fetchOrderMessages('non_existent');
   assert.equal(emptyMessages.length, 0);
+  const completed = await ordersService.updateOrderStatus('ord_test_999', 'completed', 0);
+  assert.equal(completed.status, 'completed');
+  assert.equal(completed.final_price, 0);
+  assert.equal(completed.files?.length || 0, 0);
+  assert.equal(JSON.parse(store.get('artlantix_orders_data'))[0].files?.length || 0, 0);
 });
 

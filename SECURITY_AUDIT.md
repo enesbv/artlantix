@@ -11,6 +11,8 @@ Kod kontrolleri temizdir: 13 test, ESLint, TypeScript ve production build geçmi
 
 ## Güvenlik modeli
 
+18 Eylül ek notu: Misafir siparişi yalnız izole localStorage demosunda hazırdır; production guest ownership/eposta doğrulama ve cihazlar arası takip henüz uygulanmadı. Sipariş numarası tek başına erişim anahtarı değildir. Yeni receipt endpoint'i doğrulanmış Supabase kullanıcısı ve sipariş sahipliği ister, alıcıyı authenticated email'den türetir, aynı-origin kontrolü yapar. Resend yapılandırması mevcut değildir; demo ortamında e-posta göndermez. Kalıcı outbox ve teslim webhook'u da yoktur.
+
 - Kimlik ve rol kaynağı Supabase Auth + `profiles` tablosudur. `is_admin` istemci metadata'sından alınmaz.
 - Veri yetkilendirme sınırı PostgreSQL RLS ve Storage policy'leridir; istemci `AccessGate` yalnız kullanıcı deneyimidir.
 - Müşteri, yalnız kendi siparişini, mesajını ve dosya metadata'sını okuyabilir/yazabilir.

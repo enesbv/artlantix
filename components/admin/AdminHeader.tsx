@@ -1,92 +1,59 @@
 'use client';
 
-import React from 'react';
-import { Search, Bell, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
-import { UserProfile } from '@/lib/types';
+import { useEffect, useRef, useState } from 'react';
+import { Search, Bell, ArrowUpRight } from 'lucide-react';
+import { getOperatorAlerts } from '@/lib/admin-orders';
+import type { Order, UserProfile } from '@/lib/types';
 
 interface AdminHeaderProps {
   currentUser?: UserProfile | null;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  pendingReviewCount?: number;
+  orders: Order[];
+  onOpenOrder: (order: Order) => void;
+  loading?: boolean;
+  error?: string | null;
 }
 
-export default function AdminHeader({
-  currentUser,
-  searchQuery,
-  onSearchChange,
-  pendingReviewCount = 0,
-}: AdminHeaderProps) {
-  const firstName = currentUser?.full_name?.split(' ')[0] || 'Elena';
-
+export default function AdminHeader({ currentUser, searchQuery, onSearchChange, orders, onOpenOrder, loading, error }: AdminHeaderProps) {
+  const [open, setOpen] = useState(false);
+  const [now, setNow] = useState(0);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const initial = window.setTimeout(() => setNow(Date.now()), 0);
+    const interval = window.setInterval(() => setNow(Date.now()), 60_000);
+    const close = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', close);
+    return () => { window.clearTimeout(initial); window.clearInterval(interval); document.removeEventListener('pointerdown', close); };
+  }, []);
+  const alerts = getOperatorAlerts(orders, now);
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#EAE8E3] bg-[#FAFAF8]/95 px-6 sm:px-8 backdrop-blur-md">
-      {/* Left: Warm Greeting */}
-      <div>
-        <h1 className="text-base font-extrabold tracking-tight text-[#141414] sm:text-lg">
-          İyi Çalışmalar {firstName}!
-        </h1>
-        <p className="text-[11px] font-medium text-[#737373]">
-          Artlantix Vektör Üretim &amp; QA Masasına Hoş Geldiniz
-        </p>
+    <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-[#E1E7DD] bg-[#FAFBF8]/95 px-4 py-4 backdrop-blur-md sm:px-8">
+      <div className="hidden xl:block"><p className="text-sm font-semibold text-[#102A20]">Üretim masası</p><p className="mt-1 text-xs text-[#7A8773]">{currentUser?.full_name || 'Operatör'}</p></div>
+      <div className="relative min-w-0 flex-1 xl:max-w-lg">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#87957E]" />
+        <input aria-label="Sipariş ara" value={searchQuery} onChange={(event) => onSearchChange(event.target.value)} placeholder="Sipariş, müşteri veya proje ara…" className="h-10 w-full rounded-xl border border-[#DEE5D8] bg-white pl-10 pr-3 text-xs outline-none focus:border-[#18794E] focus:ring-2 focus:ring-[#18794E]/10" />
       </div>
-
-      {/* Right: Search, Notifications, Client Switcher */}
-      <div className="flex items-center gap-3">
-        {/* Search Pill */}
-        <div className="relative w-48 sm:w-64 md:w-80">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#999999]" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Sipariş, müşteri veya proje ara..."
-            className="h-9 w-full rounded-full border border-[#EAE8E3] bg-white pl-9 pr-4 text-xs text-[#141414] placeholder:text-[#999999] shadow-2xs transition-all focus:border-[#18794E] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#18794E]/10"
-          />
-        </div>
-
-        {/* Notification Bell */}
-        <div className="relative">
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#EAE8E3] bg-white text-[#5E625F] hover:text-[#18794E] hover:border-[#18794E] transition-colors shadow-2xs"
-            title={`${pendingReviewCount} sipariş inceleme bekliyor`}
-          >
-            <Bell className="h-4 w-4" />
-            {pendingReviewCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white ring-2 ring-white">
-                {pendingReviewCount}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* Switch to Client View Pill */}
-        <Link
-          href="/dashboard/orders"
-          className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-[#EAE8E3] bg-white px-3.5 py-1.5 text-xs font-bold text-[#5E625F] hover:text-[#102A20] hover:border-[#102A20] transition-colors shadow-2xs"
-          title="Müşteri portalını görüntüle"
-        >
-          <ExternalLink className="h-3.5 w-3.5 text-[#18794E]" />
-          <span>Müşteri Portalı</span>
-        </Link>
-
-        {/* Operator Badge Avatar */}
-        <div className="flex items-center gap-2 rounded-full border border-[#EAE8E3] bg-white p-1 pl-1.5 shadow-2xs">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#102A20] text-white text-[11px] font-bold">
-            {firstName.charAt(0)}
+      <div className="relative" ref={rootRef} onKeyDown={(event) => {
+        if (event.key === 'Escape') { setOpen(false); buttonRef.current?.focus(); }
+      }}>
+        <button ref={buttonRef} type="button" onClick={() => { setNow(Date.now()); setOpen(!open); }} aria-expanded={open} aria-controls="operator-notifications" aria-label={`Bildirimler, ${alerts.length} işlem bekliyor`} className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#DEE5D8] bg-white text-[#18794E] hover:bg-[#E9F9EE]">
+          <Bell className="h-4 w-4" />
+          {alerts.length > 0 && <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-[#18794E] px-1 text-center text-[9px] leading-4 text-white">{alerts.length}</span>}
+        </button>
+        {open && <section id="operator-notifications" aria-label="İşlem bekleyen siparişler" className="absolute right-0 top-12 w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-[#DDE5D7] bg-white shadow-xl">
+          <div className="border-b border-[#E8EDE4] px-4 py-3"><h2 className="text-sm font-semibold text-[#102A20]">İşlem bekleyenler</h2><p className="mt-1 text-[11px] text-[#7B8873]">İnceleme, revizyon, teslim ve gecikme uyarıları.</p></div>
+          <div className="max-h-80 overflow-y-auto p-2">
+            {loading ? <p role="status" className="p-4 text-xs text-[#71806F]">Bildirimler yükleniyor…</p> : error ? <p role="alert" className="p-4 text-xs text-red-700">Bildirimler güncellenemedi. Sipariş listesini yenileyin.</p> : alerts.length === 0 ? <p className="p-6 text-center text-xs text-[#71806F]">İşlem bekleyen bildirim yok.</p> : alerts.map(({ order, reason, overdue }) => (
+              <button key={order.id} type="button" onClick={() => { setOpen(false); onOpenOrder(order); }} className="flex w-full items-center justify-between gap-3 rounded-xl p-3 text-left hover:bg-[#F5F7F2]">
+                <span className="min-w-0"><span className="block truncate text-xs font-semibold text-[#183D28]">{order.project_name}</span><span className={`mt-1 block text-[11px] ${overdue ? 'text-red-700' : 'text-[#77866E]'}`}>{reason}</span><span className="mt-1 block break-all text-[10px] text-[#98A28F]">{order.order_number}</span></span><ArrowUpRight className="h-4 w-4 shrink-0 text-[#18794E]" />
+              </button>
+            ))}
           </div>
-          <div className="hidden pr-2.5 text-left md:block">
-            <span className="block text-[11px] font-bold leading-tight text-[#141414]">
-              {currentUser?.full_name || 'Elena Vance'}
-            </span>
-            <span className="block text-[9px] font-semibold text-[#18794E]">
-              Stüdyo Yöneticisi
-            </span>
-          </div>
-        </div>
+        </section>}
       </div>
     </header>
   );

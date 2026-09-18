@@ -1,233 +1,102 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useLocale } from 'next-intl';
+import { ArrowRight, Check, SearchCheck, Plus, Clock3 } from 'lucide-react';
 import { getOrders } from '@/lib/services/orders';
 import { getCurrentUser } from '@/lib/services/auth';
-import { Order } from '@/lib/types';
-import { calculateExpectedDelivery } from '@/lib/order-status';
-import {
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  ArrowRight,
-  Archive,
-  Plus,
-  ShieldCheck,
-} from 'lucide-react';
+import { getTrackingStep, trackingCopy } from '@/lib/customer-tracking';
+import type { Order } from '@/lib/types';
+import TrackingStageArtwork from '@/components/TrackingStageArtwork';
 
-export default function DashboardOverviewPage() {
+
+
+export default function OrderTrackingPage() {
+  const locale = useLocale();
+  const lang = locale === 'tr' || locale === 'de' ? locale : 'en';
+  const copy = trackingCopy[lang];
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [limit, setLimit] = useState(6);
 
   useEffect(() => {
-    async function load() {
-      const u = await getCurrentUser();
-      const data = await getOrders(u?.id);
-      setOrders(data);
-    }
-    load();
-  }, []);
+    let active = true;
+    const load = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (!user) throw new Error('Authentication required');
+        const list = await getOrders(user.id, false, false, true);
+        if (active) { setOrders(list); setFailed(false); }
+      } catch {
+        if (active) setFailed(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    void load();
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(); }, 60_000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [attempt]);
 
-  const activeOrders = orders.filter((o) => o.status !== 'completed' && o.status !== 'cancelled');
-  const previewReadyOrders = orders.filter((o) => o.status === 'preview_ready');
-  const completedOrders = orders.filter((o) => o.status === 'completed');
-  const onTimeCount = completedOrders.filter((order) => {
-    const expected = order.expected_delivery_at || calculateExpectedDelivery(order.created_at, order.turnaround);
-    return new Date(order.updated_at).getTime() <= new Date(expected).getTime();
-  }).length;
-  const onTimeRate = completedOrders.length > 0
-    ? `${Math.round((onTimeCount / completedOrders.length) * 100)}%`
-    : '—';
+  const activeOrders = orders.filter((order) => !['completed', 'cancelled'].includes(order.status))
+    .sort((a, b) => Number(b.status === 'preview_ready') - Number(a.status === 'preview_ready'));
+  const pastOrders = orders.filter((order) => ['completed', 'cancelled'].includes(order.status));
+
+  const card = (order: Order) => {
+    const step = getTrackingStep(order.status);
+    const needsApproval = order.status === 'preview_ready';
+    const completed = order.status === 'completed';
+    const target = completed ? '#master-files' : needsApproval ? '#artwork-review' : '';
+    return (
+      <article key={order.id} className={`overflow-hidden rounded-2xl border bg-white sm:rounded-3xl ${needsApproval ? 'border-[#8FC9A6] shadow-[0_8px_32px_-20px_rgba(24,121,78,0.3)]' : 'border-[#E0E6DD]'}`}>
+        <div className="px-5 pt-5 sm:px-8 sm:pt-7">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0"><p className="break-all text-[11px] text-[#8A9583]">{order.order_number}</p><h3 className="mt-1.5 break-words text-lg font-semibold tracking-tight text-[#102A20] sm:text-xl">{order.project_name}</h3></div>
+            {needsApproval && <span className="rounded-full bg-[#E9F9EE] px-3 py-1.5 text-xs font-medium text-[#18794E]">{copy.action}</span>}
+            {step < 0 && <span className="rounded-full bg-[#F2F3F0] px-3 py-1.5 text-xs text-[#7B8276]">{copy.cancelled}</span>}
+          </div>
+
+          <div className="flex flex-col items-center py-6 text-center sm:py-8">
+            {step >= 0 && <TrackingStageArtwork step={step} />}
+            <h4 className="mt-3 text-xl font-semibold tracking-tight text-[#102A20]">{step >= 0 ? copy.steps[step] : copy.cancelled}</h4>
+            <p className="mt-3 max-w-md text-sm leading-6 text-[#6D7965]">{copy.details[order.status]}</p>
+          </div>
+          {step >= 0 && <ol aria-label={copy.tracking} className="mb-5 grid grid-cols-3 gap-2 border-t border-[#EDF0E8] pt-5">
+            {copy.steps.map((label, index) => {
+              const done = completed || index < step;
+              const current = index === step && !completed;
+              return <li key={label} aria-current={current ? 'step' : undefined} className="flex flex-col items-center gap-2 text-center">
+                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold ${done ? 'bg-[#18794E] text-white' : current ? 'bg-[#E9F9EE] text-[#18794E]' : 'bg-[#F3F5F0] text-[#A0AA98]'}`}>{done ? <Check className="h-3 w-3" /> : index + 1}</span>
+                <span className={`text-[10px] leading-4 sm:text-xs ${done || current ? 'font-medium text-[#36502E]' : 'text-[#939D89]'}`}>{index === 0 && done && lang === 'tr' ? 'Grafiker inceledi' : label}</span>
+              </li>;
+            })}
+          </ol>}
+        </div>
+        <div className="mt-6 flex flex-col justify-between gap-4 border-t border-[#EDF0E8] bg-[#FCFDFB] px-5 py-4 sm:flex-row sm:items-center sm:px-8">
+          <span className="flex items-center gap-1.5 text-[11px] text-[#89947E]"><Clock3 className="h-3.5 w-3.5" />{copy.updated}: {new Date(order.updated_at).toLocaleDateString(lang === 'tr' ? 'tr-TR' : lang === 'de' ? 'de-DE' : 'en-US')}</span>
+          <Link href={`/dashboard/orders/${order.id}${target}`} className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors ${needsApproval || completed ? 'bg-[#18794E] text-white hover:bg-[#115C3B]' : 'border border-[#DDE5D6] bg-white text-[#36502E] hover:bg-[#E9F9EE]'}`}>{needsApproval ? copy.review : completed ? copy.download : copy.view}<ArrowRight className="h-3.5 w-3.5" /></Link>
+        </div>
+      </article>
+    );
+  };
 
   return (
     <div className="space-y-8">
-      {/* Alert Banner for pending approval */}
-      {previewReadyOrders.length > 0 && (
-        <div className="rounded-xl border-2 border-[#18794E] bg-[#F2FCF5] p-5 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="rounded-full bg-[#18794E] p-1.5 text-white mt-0.5">
-                <AlertCircle className="h-4 w-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-[#111111]">
-                  Action Required: {previewReadyOrders.length} Artwork Preview Ready for Your Review
-                </h3>
-                <p className="text-xs text-[#555555] mt-0.5">
-                  Order <strong className="text-[#111111]">{previewReadyOrders[0].order_number} ({previewReadyOrders[0].project_name})</strong> has a watermarked vector draft waiting. Inspect paths, request revisions, or approve to unlock master files.
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href={`/dashboard/orders/${previewReadyOrders[0].id}`}
-              className="inline-flex items-center justify-center gap-1.5 rounded bg-[#18794E] px-4 py-2 text-xs font-bold text-white hover:bg-[#18794E] transition-colors whitespace-nowrap"
-            >
-              <span>Review Artwork Draft</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-[#E6E4DF] bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#666666]">
-            <span>Active Production</span>
-            <Clock className="h-4 w-4 text-[#18794E]" />
-          </div>
-          <div className="mt-2 text-2xl font-extrabold text-[#111111]">
-            {activeOrders.length}
-          </div>
-          <div className="mt-1 text-[11px] text-[#777777]">
-            Currently redrawing &amp; in review
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-[#E6E4DF] bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#666666]">
-            <span>Awaiting Approval</span>
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-          </div>
-          <div className="mt-2 text-2xl font-extrabold text-[#111111]">
-            {previewReadyOrders.length}
-          </div>
-          <div className="mt-1 text-[11px] text-[#777777]">
-            Drafts uploaded for client QA
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-[#E6E4DF] bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#666666]">
-            <span>Master Vectors Delivered</span>
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-          </div>
-          <div className="mt-2 text-2xl font-extrabold text-[#111111]">
-            {completedOrders.length}
-          </div>
-          <div className="mt-1 text-[11px] text-[#777777]">
-            Permanent vector archive access
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-[#E6E4DF] bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#666666]">
-            <span>Studio Turnaround SLA</span>
-            <ShieldCheck className="h-4 w-4 text-[#111111]" />
-          </div>
-          <div className="mt-2 text-2xl font-extrabold text-[#111111]">
-            {onTimeRate}
-          </div>
-          <div className="mt-1 text-[11px] text-emerald-700 font-medium">
-            On-time delivery rate
-          </div>
-        </div>
+      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+        <div><h1 className="text-3xl font-semibold tracking-[-0.04em] text-[#102A20] sm:text-4xl">{copy.title}</h1><p className="mt-3 text-sm leading-6 text-[#77846C]">{copy.description}</p></div>
+        <Link href="/quote" className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-[#CBDCC7] bg-white px-4 py-3 text-xs font-semibold text-[#18794E] hover:bg-[#E9F9EE]"><Plus className="h-4 w-4" />{copy.newOrder}</Link>
       </div>
-
-      {/* Quick Action Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[#E6E4DF] bg-white p-4 shadow-xs">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#666666]">
-            Quick Actions:
-          </span>
-          <Link
-            href="/quote"
-            className="inline-flex items-center gap-1 rounded bg-[#111111] px-3 py-1.5 text-xs font-bold text-white hover:bg-black transition-colors"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>Upload New Artwork</span>
-          </Link>
-          <Link
-            href="/dashboard/artwork"
-            className="inline-flex items-center gap-1 rounded border border-[#E6E4DF] bg-[#FAFAF8] px-3 py-1.5 text-xs font-medium text-[#111111] hover:bg-[#F4F3EF] transition-colors"
-          >
-            <Archive className="h-3.5 w-3.5" />
-            <span>Browse Master Archive</span>
-          </Link>
-        </div>
-
-        <div className="text-xs text-[#666666]">
-          Need help with tolerances? Contact Senior QA via order thread.
-        </div>
-      </div>
-
-      {/* Recent Projects Table */}
-      <div className="rounded-xl border border-[#E6E4DF] bg-white shadow-xs overflow-hidden">
-        <div className="flex items-center justify-between border-b border-[#E6E4DF] px-6 py-4">
-          <div>
-            <h2 className="text-sm font-bold text-[#111111]">Recent Studio Projects</h2>
-            <p className="text-xs text-[#666666]">Track rebuild status, preview progress, and download deliverables</p>
-          </div>
-          <Link
-            href="/dashboard/orders"
-            className="text-xs font-semibold text-[#18794E] hover:underline"
-          >
-            View all orders ({orders.length}) →
-          </Link>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-[#E6E4DF] bg-[#FAFAF8] text-[11px] font-bold uppercase tracking-wider text-[#666666]">
-              <tr>
-                <th className="px-6 py-3">Order Number</th>
-                <th className="px-6 py-3">Project</th>
-                <th className="px-6 py-3">Type &amp; Complexity</th>
-                <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3">Price</th>
-                <th className="px-6 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E6E4DF]/60">
-              {orders.slice(0, 5).map((order) => {
-                const statusBadge = {
-                  quote_requested: { label: 'Quote Requested', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
-                  in_review: { label: 'In Review', bg: 'bg-blue-50 text-blue-800 border-blue-200' },
-                  in_progress: { label: 'In Progress (Redrawing)', bg: 'bg-purple-50 text-purple-800 border-purple-200' },
-                  preview_ready: { label: 'Preview Ready', bg: 'bg-[#E9F9EE] text-[#18794E] border-[#B4DFC4] font-bold' },
-                  approved: { label: 'Approved · Packaging', bg: 'bg-blue-50 text-blue-800 border-blue-200 font-bold' },
-                  revision_requested: { label: 'Revision Requested', bg: 'bg-yellow-50 text-yellow-800 border-yellow-200' },
-                  completed: { label: 'Completed (Delivered)', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold' },
-                  cancelled: { label: 'Cancelled', bg: 'bg-gray-100 text-gray-700 border-gray-200' },
-                }[order.status] || { label: order.status, bg: 'bg-gray-100 text-gray-700 border-gray-200' };
-
-                return (
-                  <tr key={order.id} className="hover:bg-[#FAFAF8] transition-colors">
-                    <td className="px-6 py-4 font-sans font-bold text-[#111111]">
-                      {order.order_number}
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-[#111111]">
-                      {order.project_name}
-                    </td>
-                    <td className="px-6 py-4 text-[#555555]">
-                      <span className="capitalize">{order.artwork_type.replace('_', ' ')}</span>
-                      <span className="text-[#888888]"> · {order.complexity}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] border ${statusBadge.bg}`}>
-                        {statusBadge.label}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-[#111111]">
-                      ${order.final_price || order.estimated_price}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/dashboard/orders/${order.id}`}
-                        className="inline-flex items-center gap-1 font-semibold text-[#18794E] hover:underline"
-                      >
-                        <span>Open Details</span>
-                        <ArrowRight className="h-3 w-3" />
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {failed && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{copy.error} <button type="button" onClick={() => { setLoading(true); setAttempt((value) => value + 1); }} className="ml-2 underline">{copy.retry}</button></div>}
+      {loading ? <div role="status" aria-label={copy.loading} className="space-y-4">{[1,2].map((item) => <div key={item} className="h-72 animate-pulse rounded-3xl border border-[#E0E6DD] bg-white" />)}</div> :
+        orders.length === 0 && !failed ? <div className="rounded-3xl border border-dashed border-[#CCD9C3] bg-white px-6 py-16 text-center"><SearchCheck className="mx-auto h-10 w-10 text-[#18794E]" /><h2 className="mt-5 text-lg font-semibold text-[#102A20]">{copy.empty}</h2><p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#77846C]">{copy.emptyBody}</p><Link href="/quote" className="mt-6 inline-flex rounded-xl bg-[#18794E] px-5 py-3 text-sm font-medium text-white">{copy.newOrder}</Link></div> :
+        <div className="space-y-8">
+          {activeOrders.length > 0 && <section className="space-y-4" aria-label={copy.active}>{activeOrders.slice(0,limit).map(card)}</section>}
+          {pastOrders.length > 0 && limit > activeOrders.length && <section className="space-y-4"><h2 className="pt-2 text-sm font-medium text-[#7A866F]">{copy.past}</h2>{pastOrders.slice(0,Math.max(0,limit-activeOrders.length)).map(card)}</section>}
+          {orders.length > limit && <button type="button" onClick={() => setLimit((value) => value + 6)} className="w-full rounded-xl border border-[#DDE5D6] bg-white py-3 text-xs font-medium text-[#18794E]">{copy.more}</button>}
+        </div>}
     </div>
   );
 }

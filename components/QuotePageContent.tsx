@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import ComplexityPicker from '@/components/ComplexityPicker';
 import { customQuoteCopy } from '@/lib/custom-quote-copy';
@@ -12,7 +12,8 @@ import Footer from '@/components/Footer';
 import Image from 'next/image';
 import { calculatePricing, PricingInput } from '@/lib/pricing';
 import { createOrder, getOrderById } from '@/lib/services/orders';
-import { getCurrentUser } from '@/lib/services/auth';
+import { getCurrentUser, createDemoGuestSession } from '@/lib/services/auth';
+import Link from 'next/link';
 import { processClientFileUpload, UploadedFileData } from '@/lib/services/storage';
 import { getSiteSettings, SiteSettings, DEFAULT_SITE_SETTINGS } from '@/lib/services/content';
 import { clearQuoteDraft, loadQuoteDraft, saveQuoteDraft } from '@/lib/services/quote-draft';
@@ -147,7 +148,6 @@ function QuoteSummary({
 }
 
 export default function QuotePageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const tQuote = useTranslations('quote');
   const locale = normalizeMarketingLocale(useLocale());
@@ -159,6 +159,8 @@ export default function QuotePageContent() {
 
   // Wizard Step: 1 = Upload, 2 = Specification, 3 = Review & Order
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const [submittedOrder, setSubmittedOrder] = useState<{ id: string; order_number: string } | null>(null);
+  const [receiptStatus, setReceiptStatus] = useState<'queued' | 'unavailable' | 'failed'>('unavailable');
 
   // User State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -377,7 +379,7 @@ export default function QuotePageContent() {
   // Submit Order & Convert Quote
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitLock.current) return;
+    if (submitLock.current || submittedOrder) return;
     if (!uploadedFile || isUploading) {
       setFormError('Please upload your artwork before submitting.');
       setCurrentStep(1);
@@ -388,17 +390,8 @@ export default function QuotePageContent() {
     setIsSubmitting(true);
 
     try {
-      const activeUser = currentUser;
-      if (!activeUser) {
-        saveQuoteDraft({
-          projectName, artworkType, complexity, artistReviewRequested, hasText,
-          reconstructionOption, colorCount, turnaround, notes, companyName, intendedUse, agencyServices,
-          serviceSlug, customerName,
-          customerEmail, uploadedFile, sourceOrderId, savedAt: new Date().toISOString(),
-        });
-        router.push('/login?next=/quote');
-        return;
-      }
+      const activeUser = currentUser || await createDemoGuestSession(customerEmail, customerName);
+      setCurrentUser(activeUser);
 
       const intakeDetails = [
         serviceSlug && `[Service: ${serviceSlug}]`,
@@ -444,7 +437,15 @@ export default function QuotePageContent() {
       const created = await createOrder(orderData, filePayload);
 
       clearQuoteDraft();
-      router.push(`/dashboard/orders/${created.id}`);
+      setSubmittedOrder({ id: created.id, order_number: created.order_number });
+      try {
+        const response = await fetch('/api/orders/receipt', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: created.id }),
+        });
+        const result = await response.json();
+        setReceiptStatus(result.status === 'queued' ? 'queued' : result.status === 'unavailable' ? 'unavailable' : 'failed');
+      } catch { setReceiptStatus('failed'); }
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Order submission failed. Please try again.');
     } finally {
@@ -452,6 +453,32 @@ export default function QuotePageContent() {
       setIsSubmitting(false);
     }
   };
+
+  if (submittedOrder) {
+    const tr = locale === 'tr';
+    const de = locale === 'de';
+    return (
+      <div className="min-h-screen bg-[#F7F9F4]"><Navbar />
+        <main className="mx-auto max-w-xl px-4 py-16">
+          <div className="rounded-3xl border border-[#DDE5D6] bg-white p-7 text-center sm:p-10">
+            <CheckCircle2 className="mx-auto h-14 w-14 text-[#18794E]" />
+            <h1 className="mt-6 text-2xl font-semibold tracking-tight text-[#102A20]">{tr ? 'Sipariş talebini aldık' : de ? 'Dein Auftrag ist eingegangen' : 'Your order request is received'}</h1>
+            <p className="mt-3 text-sm text-[#77846C]">{tr ? 'Sipariş numaranı sakla. Çizimini buradan takip edebilirsin.' : de ? 'Bewahre deine Auftragsnummer auf.' : 'Keep your order number to track your artwork.'}</p>
+            <div className="mt-7 rounded-2xl border border-[#B4DFC4] bg-[#E9F9EE] p-5">
+              <p className="text-xs text-[#637A58]">{tr ? 'Sipariş numarası' : de ? 'Auftragsnummer' : 'Order number'}</p>
+              <p className="mt-2 break-all text-base font-semibold text-[#115C3B]">{submittedOrder.order_number}</p>
+            </div>
+            <p role="status" className="mt-5 text-xs leading-6 text-[#7A866F]">
+              {receiptStatus === 'queued' ? (tr ? 'Sipariş numaranı içeren e-posta gönderim için kabul edildi.' : de ? 'Die E-Mail wurde zum Versand angenommen.' : 'Your order-number email was accepted for sending.') :
+                receiptStatus === 'unavailable' ? (tr ? 'E-posta gönderimi henüz etkin değil. Sipariş numaranı kaydet.' : de ? 'E-Mail-Versand ist nicht aktiv. Speichere deine Nummer.' : 'Email sending is not enabled. Save your order number.') :
+                (tr ? 'Sipariş kaydedildi, ancak e-posta gönderilemedi. Numaranı kaydet; tekrar sipariş verme.' : de ? 'Auftrag gespeichert, E-Mail fehlgeschlagen. Bestelle nicht erneut.' : 'Your order is saved, but the email could not be sent. Do not submit another order.')}
+            </p>
+            <Link href="/dashboard" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#18794E] px-6 py-3 text-sm font-semibold text-white hover:bg-[#115C3B]">{tr ? 'Siparişimi takip et' : de ? 'Auftrag verfolgen' : 'Track my order'}<ArrowRight className="h-4 w-4" /></Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F9F8F6] text-[#141414]">

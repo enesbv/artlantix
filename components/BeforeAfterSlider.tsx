@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
+import { useLocale } from 'next-intl';
+import { ArrowLeftRight, Check, ChevronLeft, ChevronRight, Layers2, PenTool, ScanLine } from 'lucide-react';
 
 interface BeforeAfterSliderProps {
   title?: string;
@@ -113,7 +115,7 @@ function RenderVectorContent({ isWireframe }: { isWireframe: boolean }) {
 
 function RenderRasterContent() {
   return (
-    <div className="relative flex h-full w-full items-center justify-center p-8 sm:p-12 filter blur-[1.2px] contrast-85">
+    <div className="relative flex h-full w-full items-center justify-center px-8 py-16 sm:px-12 filter blur-[1.2px] contrast-85">
       <svg
         viewBox="0 0 500 500"
         className="h-full max-h-[440px] w-full max-w-[440px] opacity-85"
@@ -145,7 +147,7 @@ function RenderRasterContent() {
           <text
             x="250"
             y="379"
-            fontFamily="monospace"
+            fontFamily="sans-serif"
             fontWeight="700"
             fontSize="21"
             letterSpacing="4"
@@ -171,7 +173,7 @@ function RenderRasterContent() {
 
       {/* Raster pixel grid overlay */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-20"
+        className="absolute inset-0 pointer-events-none opacity-[0.06]"
         style={{
           backgroundImage:
             'radial-gradient(#141414 0.75px, transparent 0.75px), radial-gradient(#141414 0.75px, #F0EDE6 0.75px)',
@@ -183,212 +185,171 @@ function RenderRasterContent() {
   );
 }
 
+const inspectionCopy = {
+  tr: {
+    category: 'Çizimin anatomisi', title: 'Apex Falcon Crest', demo: 'Stüdyo demonstrasyonu',
+    artwork: 'Çizim', nodes: 'Vektör düğümleri', before: 'Önce', after: 'Sonra',
+    raster: 'Raster kaynak', vector: 'Yeniden çizilen vektör', drag: 'Kaydırın, farkı keşfedin',
+    comparison: 'Önce ve sonra karşılaştırması', position: 'Raster görünümü',
+    features: [
+      ['Temiz konturlar', 'Piksel izlerinden akıcı eğrilere.'],
+      ['Kontrollü geometri', 'Düğüm görünümünde yapıyı inceleyin.'],
+      ['Ölçeklenebilir çizim', 'Her boyutta aynı netlik.'],
+    ],
+  },
+  en: {
+    category: 'Anatomy of the artwork', title: 'Apex Falcon Crest', demo: 'Studio demonstration',
+    artwork: 'Artwork', nodes: 'Vector nodes', before: 'Before', after: 'After',
+    raster: 'Raster source', vector: 'Redrawn vector', drag: 'Slide to explore the difference',
+    comparison: 'Before and after comparison', position: 'Raster view',
+    features: [
+      ['Clean contours', 'From pixel artifacts to flowing curves.'],
+      ['Controlled geometry', 'Explore the structure in node view.'],
+      ['Scalable artwork', 'The same clarity at every size.'],
+    ],
+  },
+  de: {
+    category: 'Aufbau der Zeichnung', title: 'Apex Falcon Crest', demo: 'Studio-Demonstration',
+    artwork: 'Zeichnung', nodes: 'Vektorknoten', before: 'Vorher', after: 'Nachher',
+    raster: 'Rastervorlage', vector: 'Neu gezeichneter Vektor', drag: 'Verschieben und den Unterschied entdecken',
+    comparison: 'Vorher-Nachher-Vergleich', position: 'Rasteransicht',
+    features: [
+      ['Saubere Konturen', 'Von Pixelartefakten zu fließenden Kurven.'],
+      ['Kontrollierte Geometrie', 'Die Struktur in der Knotenansicht erkunden.'],
+      ['Skalierbare Zeichnung', 'Gleiche Klarheit in jeder Größe.'],
+    ],
+  },
+};
+
 export default function BeforeAfterSlider({
-  title = 'AI Concept & Degraded Raster vs. Master Hand-Crafted Vector',
-  category = 'Precision Studio Inspection',
+  title,
+  category,
   initialSliderPos = 50,
 }: BeforeAfterSliderProps) {
-  const [sliderPosition, setSliderPosition] = useState(initialSliderPos);
+  const locale = useLocale();
+  const copy = inspectionCopy[locale === 'tr' || locale === 'de' ? locale : 'en'];
+  const [sliderPosition, setSliderPosition] = useState(Math.min(98, Math.max(2, initialSliderPos)));
   const [isDragging, setIsDragging] = useState(false);
-  const [activeViewMode, setActiveViewMode] = useState<'artwork' | 'wireframe'>('artwork');
-  const [containerWidth, setContainerWidth] = useState<number>(800);
+  const [isWireframe, setIsWireframe] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.clientWidth);
-      }
-    };
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
-
-  const handleMove = useCallback((clientX: number) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const percent = Math.min(Math.max((x / rect.width) * 100, 2), 98);
-    setSliderPosition(percent);
-  }, []);
-
-  const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
-      if (!isDragging) return;
-      handleMove(e.touches[0].clientX);
-    },
-    [isDragging, handleMove]
-  );
-
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isDragging) return;
-      handleMove(e.clientX);
-    },
-    [isDragging, handleMove]
-  );
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      window.addEventListener('touchmove', handleTouchMove);
-      window.addEventListener('touchend', handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleMouseUp);
-    };
-  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove]);
-
-  const isWireframe = activeViewMode === 'wireframe';
+  const handleMove = (clientX: number) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect?.width) return;
+    setSliderPosition(Math.min(98, Math.max(2, ((clientX - rect.left) / rect.width) * 100)));
+  };
 
   return (
-    <div className="w-full rounded-2xl border border-[#EAE8E3] bg-white p-4 sm:p-7 shadow-xs">
-      {/* Top Gallery Caption Bar */}
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAE8E3]/70 pb-4">
-        <div className="flex items-center gap-3">
-          <span className="rounded-full border border-[#EAE8E3] bg-[#F5F4F0] px-3 py-1 font-sans text-[11px] font-semibold uppercase tracking-wider text-[#141414]">
-            {category}
-          </span>
-          <span className="text-xs font-semibold tracking-tight text-[#141414]">
-            {title}
-          </span>
-        </div>
-
-        {/* Action Controls: View Mode */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Minimalist Floating Segmented Pill */}
-          <div className="inline-flex self-start sm:self-auto rounded-full border border-[#EAE8E3] bg-[#F9F8F6] p-1 shadow-xs">
-            <button
-              type="button"
-              onClick={() => setActiveViewMode('artwork')}
-              className={`rounded-full px-3.5 py-1 text-xs font-semibold transition-all duration-200 ${
-                activeViewMode === 'artwork'
-                  ? 'bg-[#141414] text-white shadow-xs'
-                  : 'text-[#737373] hover:text-[#141414]'
-              }`}
-            >
-              Artwork View
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveViewMode('wireframe')}
-              className={`rounded-full px-3.5 py-1 text-xs font-semibold transition-all duration-200 ${
-                activeViewMode === 'wireframe'
-                  ? 'bg-[#141414] text-white shadow-xs'
-                  : 'text-[#737373] hover:text-[#141414]'
-              }`}
-            >
-              Vector Nodes
-            </button>
+    <div className="overflow-hidden rounded-[1.5rem] border border-[#DDE5DE] bg-white shadow-[0_16px_60px_-32px_rgba(16,42,32,0.22)] sm:rounded-[2rem]">
+      <div className="flex flex-col justify-between gap-5 px-5 py-5 sm:px-8 sm:py-6 md:flex-row md:items-center">
+        <div className="flex min-w-0 items-center gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#B4DFC4] bg-[#E9F9EE] text-[#18794E]">
+            <PenTool className="h-5 w-5" aria-hidden="true" />
           </div>
+          <div>
+            <p className="text-xs font-medium text-[#66756B]">{category || copy.category}</p>
+            <h3 className="mt-1 text-base font-semibold tracking-tight text-[#102A20] sm:text-lg">{title || copy.title}</h3>
+          </div>
+        </div>
+        <div className="flex shrink-0 gap-1 self-start rounded-xl bg-[#F0F3EF] p-1" role="group" aria-label={copy.comparison}>
+          {[{ value: false, label: copy.artwork, Icon: Layers2 }, { value: true, label: copy.nodes, Icon: ScanLine }].map(({ value, label, Icon }) => (
+            <button
+              key={label}
+              type="button"
+              aria-pressed={isWireframe === value}
+              onClick={() => setIsWireframe(value)}
+              className={`inline-flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#18794E] sm:px-4 ${isWireframe === value ? 'bg-[#102A20] text-white shadow-sm' : 'text-[#5E6C62] hover:bg-white hover:text-[#102A20]'}`}
+            >
+              <Icon className="h-3.5 w-3.5" aria-hidden="true" />{label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Cinematic Viewport Canvas */}
-      <div
-        ref={containerRef}
-        onMouseDown={(e) => {
-          setIsDragging(true);
-          handleMove(e.clientX);
-        }}
-        onTouchStart={(e) => {
-          setIsDragging(true);
-          handleMove(e.touches[0].clientX);
-        }}
-        className="relative h-[380px] sm:h-[480px] lg:h-[540px] w-full select-none overflow-hidden rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] cursor-ew-resize"
-      >
-        {/* RIGHT SIDE: RECONSTRUCTED VECTOR ARTWORK */}
-        <div className="absolute inset-0 flex items-center justify-center bg-[#F9F8F6]">
-          <div className="relative flex h-full w-full items-center justify-center p-8 sm:p-12">
-            <RenderVectorContent isWireframe={isWireframe} />
-          </div>
-
-          {/* Right Floating Badge */}
-          <div className="absolute bottom-4 right-4 rounded-full border border-[#EAE8E3] bg-white/95 px-3.5 py-1.5 text-xs font-semibold text-[#141414] shadow-xs backdrop-blur-sm">
-            <span className="text-[#18794E] mr-1.5">●</span>
-            <span>Master Vector {isWireframe ? '(Wireframe Nodes)' : '(Clean Bezier)'}</span>
-          </div>
-        </div>
-
-        {/* LEFT SIDE: ORIGINAL LOW-RES RASTER / AI ARTIFACT (CLIPPED) */}
+      <div className="px-2 sm:px-3">
         <div
-          className="absolute inset-0 overflow-hidden bg-[#F0EDE6]"
-          style={{ width: `${sliderPosition}%` }}
-        >
-          <div
-            className="absolute inset-0 flex items-center justify-center"
-            style={{ width: `${containerWidth}px` }}
-          >
-            <RenderRasterContent />
-
-            {/* Left Floating Badge */}
-            <div className="absolute bottom-4 left-4 rounded-full border border-[#D9D6CE] bg-[#141414]/85 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs backdrop-blur-sm">
-              Original Upload (AI / Blurry Raster)
-            </div>
-          </div>
-        </div>
-
-        {/* SLEEK TACTILE DRAGGING HANDLE */}
-        <div
+          ref={containerRef}
           role="slider"
           tabIndex={0}
-          aria-label="Before and after comparison"
+          aria-label={copy.comparison}
           aria-valuemin={2}
           aria-valuemax={98}
           aria-valuenow={Math.round(sliderPosition)}
-          onKeyDown={(event) => {
-            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-            event.preventDefault();
-            setSliderPosition((value) =>
-              event.key === 'Home'
-                ? 2
-                : event.key === 'End'
-                ? 98
-                : Math.min(98, Math.max(2, value + (event.key === 'ArrowRight' ? 2 : -2)))
-            );
+          aria-valuetext={`${copy.position}: ${Math.round(sliderPosition)}%`}
+          onPointerDown={(event) => {
+            if (!event.isPrimary || event.button !== 0) return;
+            event.currentTarget.focus({ preventScroll: true });
+            event.currentTarget.setPointerCapture(event.pointerId);
+            setIsDragging(true);
+            handleMove(event.clientX);
           }}
-          className="absolute top-0 bottom-0 z-20 flex w-px items-center justify-center bg-[#141414] cursor-ew-resize"
-          style={{ left: `${sliderPosition}%` }}
+          onPointerMove={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) handleMove(event.clientX);
+          }}
+          onPointerUp={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+            setIsDragging(false);
+          }}
+          onPointerCancel={() => setIsDragging(false)}
+          onLostPointerCapture={() => setIsDragging(false)}
+          onKeyDown={(event) => {
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            setSliderPosition((value) => event.key === 'Home' ? 2 : event.key === 'End' ? 98 : Math.min(98, Math.max(2, value + (['ArrowRight', 'ArrowUp'].includes(event.key) ? 2 : -2))));
+          }}
+          className="relative h-[360px] w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-[#F5F7F2] outline-none focus-visible:ring-2 focus-visible:ring-[#18794E] focus-visible:ring-offset-2 sm:h-[440px] lg:h-[460px]"
         >
-          {/* Circular Tactile Puck */}
-          <div className="flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border border-[#EAE8E3] bg-white shadow-md transition-transform duration-100 hover:scale-105 active:scale-95">
-            <div className="flex items-center gap-0.5 text-[#141414]">
-              <span className="text-[10px] font-bold">‹</span>
-              <span className="h-3 w-px bg-[#141414]" />
-              <span className="text-[10px] font-bold">›</span>
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="absolute inset-0 opacity-[0.35]" style={{ backgroundImage: 'linear-gradient(#DCE4D9 1px, transparent 1px), linear-gradient(90deg, #DCE4D9 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+            <div className="relative flex h-full w-full items-center justify-center px-8 py-16 sm:px-12">
+              <RenderVectorContent isWireframe={isWireframe} />
             </div>
+          </div>
+
+          <div className="pointer-events-none absolute inset-0 bg-[#EEECE6]" style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }} aria-hidden="true">
+            <div className="absolute inset-0">
+              <RenderRasterContent />
+            </div>
+          </div>
+
+          <div className="pointer-events-none absolute inset-x-4 top-5 flex items-start justify-between gap-4 sm:inset-x-6" aria-hidden="true">
+            <div>
+              <span className="inline-flex rounded-md border border-black/10 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-[#5D625B]">{copy.before}</span>
+              <p className="mt-2 text-xs text-[#70776D]">{copy.raster}</p>
+            </div>
+            <div className="text-right">
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-[#B4DFC4] bg-[#E9F9EE] px-2.5 py-1 text-[11px] font-semibold text-[#115C3B]"><Check className="h-3 w-3" />{copy.after}</span>
+              <p className="mt-2 text-xs text-[#546A59]">{copy.vector}</p>
+            </div>
+          </div>
+
+          <div className="pointer-events-none absolute inset-y-0 z-10 w-px bg-[#18794E]/65" style={{ left: `${sliderPosition}%` }} aria-hidden="true">
+            <div className={`absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[5px] border-white bg-[#18794E] text-white shadow-[0_3px_18px_rgba(16,42,32,0.22)] transition-transform ${isDragging ? 'scale-110' : ''}`}>
+              <ChevronLeft className="h-4 w-4 shrink-0" /><ChevronRight className="h-4 w-4 shrink-0" />
+            </div>
+          </div>
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-5 z-10 flex justify-center" aria-hidden="true">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/90 px-3.5 py-2 text-[11px] font-medium text-[#526357] shadow-sm">
+              <ArrowLeftRight className="h-3.5 w-3.5 text-[#18794E]" />{copy.drag}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Editorial Meta Bar */}
-      <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4 border-t border-[#EAE8E3]/70 pt-4 text-left">
-        <div>
-          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">01 / Craftsmanship</span>
-          <p className="mt-0.5 text-xs font-bold text-[#141414]">100% Hand-Drawn Beziers</p>
-        </div>
-        <div>
-          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">02 / Path Efficiency</span>
-          <p className="mt-0.5 text-xs font-bold text-emerald-700">94% Node Reduction</p>
-        </div>
-        <div>
-          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">03 / Precision</span>
-          <p className="mt-0.5 text-xs font-bold text-[#18794E]">Pixel-Perfect Vectorization</p>
-        </div>
-        <div>
-          <span className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">04 / Industrial Readiness</span>
-          <p className="mt-0.5 text-xs font-bold text-[#18794E]">Screen Print &amp; Laser Cut Ready</p>
-        </div>
+      <div className="grid divide-y divide-[#E8EDE6] px-5 py-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-3 sm:py-6">
+        {copy.features.map(([heading, description], index) => (
+          <div key={heading} className="flex gap-3 py-4 sm:px-5 sm:py-0">
+            <span className="pt-0.5 text-xs font-medium text-[#93A18F]">0{index + 1}</span>
+            <div>
+              <p className="text-sm font-semibold text-[#183D28]">{heading}</p>
+              <p className="mt-1 text-xs leading-5 text-[#71806F]">{description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-center gap-2 border-t border-[#E8EDE6] bg-[#FAFBF8] px-4 py-3 text-[11px] text-[#74816F]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#8EA785]" aria-hidden="true" />{copy.demo}
       </div>
     </div>
   );

@@ -46,7 +46,7 @@ export default function Navbar() {
     if (role === 'operator') {
       router.push('/admin/orders');
     } else {
-      router.push('/dashboard/orders');
+      router.push('/dashboard');
     }
   };
 
@@ -101,7 +101,7 @@ export default function Navbar() {
           {user ? (
             <>
               <Link
-                href={user.is_admin ? '/admin/orders' : '/dashboard/orders'}
+                href={user.is_admin ? '/admin/orders' : '/dashboard'}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#102A20]"
               >
                 {user.is_admin ? (
@@ -174,7 +174,7 @@ export default function Navbar() {
             ))}
             <div className="mt-1 border-t border-[#EAE8E3] pt-4">
               {user ? (
-                <Link href={user.is_admin ? '/admin/orders' : '/dashboard/orders'} onClick={() => setMobileOpen(false)}>
+                <Link href={user.is_admin ? '/admin/orders' : '/dashboard'} onClick={() => setMobileOpen(false)}>
                   {user.is_admin ? t('productionQueue') : t('myOrders')}
                 </Link>
               ) : (

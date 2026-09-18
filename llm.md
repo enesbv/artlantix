@@ -1,6 +1,6 @@
 # Artlantix — project context for AI assistants
 
-Last reviewed: 2026-09-16. Read this document before changing the project. It describes the current implementation, not a promise that external production services have been configured. Verify relevant source before relying on a statement; update this document when architecture or behavior changes.
+Last reviewed: 2026-09-18. Read this document before changing the project. It describes the current implementation, not a promise that external production services have been configured. Verify relevant source before relying on a statement; update this document when architecture or behavior changes.
 
 ## Purpose and product workflow
 
@@ -66,6 +66,16 @@ The public `/business` page in all three locales targets sign manufacturers, pri
 
 The public marketing information architecture includes `/services`, `/services/<slug>`, `/work`, `/work/<slug>`, `/pricing`, `/guides`, `/guides/<slug>` and `/faq` below every locale. English uses the unprefixed canonical path. Case studies in the code are explicitly labelled studio demonstrations; do not turn them into customer claims unless publication permission and verifiable project information exist.
 
+The only dedicated order-list page is `/admin/orders`, restricted to operators. `/dashboard/orders` is a compatibility redirect to it. Customer sign-in defaults to `/dashboard`; customer order details remain at `/dashboard/orders/<id>` for quotes, approval, revisions and downloads. The admin header/sidebar no longer offer a second customer-list view.
+
+The operator panel is a responsive order workspace with actionable review/production/revision/packaging cards, all-status filters, search and 20-row client pagination. It fetches order rows without embedding file/message arrays; chat loads messages on demand. Visible tabs refresh the list every 60 seconds and operators can refresh manually. The header notification dropdown derives actionable review, revision, approved-master and overdue alerts from the same order list and opens the update dialog. These are workflow alerts, not push notifications or an unread-message service. Loading failures are visible and retain the last fetched list. Static SLA percentages, decorative charts, fake active artists, shift claims and inert collapse/calendar controls have been removed. Operator updates require a chosen file to upload a deliverable even in demo mode; changing status alone does not create one. The existing upload/metadata/status sequence is still non-atomic.
+
+The customer `/dashboard` is a localized order tracker, not a metrics dashboard. Cards show three milestones (artist review, drawing, files ready), a short status-specific explanation and one relevant action. Preview approval/revision and approved packaging remain in the drawing milestone; only `completed` shows files ready. Cancelled orders do not show a progress path. Active orders prioritize previews awaiting approval; past orders appear separately and all orders are accessible through incremental display. Authenticated customer-only queries refresh once per minute, show loading/error/empty states and use no fabricated delivery percentages or SLA data. The customer shell uses a compact brand/header with notifications and an account menu for profile, files and business-only batch tools.
+
+The tracker now shows a large code-native illustration for the current milestone (review clipboard, drawing pen, ready folder), with the three small steps underneath. Only one initial demo order is seeded (`ord_atx_9480`). Reading old demo storage retires the four other known fixture IDs, saving the original records under `artlantix_orders_before_single_sample`; custom orders are preserved and live Supabase orders are never cleaned this way.
+
+Quote submission now displays a receipt screen with the saved order number rather than immediately opening details. In isolated demo mode, signed-out visitors can submit using name/email with a browser-local guest identity and no password; this is NOT production guest intake or cross-device guest tracking. Production still requires authenticated ownership. `/api/orders/receipt` prepares Resend confirmation emails for verified authenticated owners using database-confirmed numbers and the authenticated email, with same-origin checks and a provider idempotency key. It does not send demo emails. `RESEND_API_KEY` and verified `ORDER_EMAIL_FROM` are required; neither is currently configured. Provider acceptance is labelled as queued, not delivered. No transactional outbox or delivery webhook exists. Production guest orders require a separate secure email-verified ownership/tracking flow before launch; never expose orders by number/email alone.
+
 ## Demo versus real services
 
 `isSupabaseConfigured()` checks `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, excluding recognized placeholders. No secret/service-role key may be placed in a NEXT_PUBLIC variable or client code.
@@ -124,7 +134,7 @@ pnpm test
 git diff --check
 ```
 
-Latest verification: production build/TypeScript passed; all 15 tests passed, including the scanner authentication, clean/infected protocol and typography guard paths; ESLint had zero errors and zero warnings; `pnpm audit --prod` reported no known vulnerabilities. Live schema application succeeded, six public tables reported RLS enabled, demo mode is off locally and `/api/health` reports the backend configured. Lighthouse, a real ClamAV engine run and live multi-tenant RLS/Storage tests still need to be performed before launch.
+Latest verification (0.6.5): production build/TypeScript passed; all 22 tests passed, including receipt authorization, demo guest boundaries, customer tracking, scanner protocol and typography guards; ESLint had zero errors and zero warnings. The tracker was visually checked at desktop and 390 px mobile widths. The current local environment is demo-only with no Supabase or mail credentials; real receipt delivery was not tested. The earlier 2026-09-16 audit reported no known production dependency vulnerabilities and successful live schema application with six RLS-enabled public tables; neither audit nor live database checks were repeated for this release. Lighthouse, a real ClamAV engine run and live multi-tenant RLS/Storage tests still need to be performed before launch.
 
 Tests isolate auth/storage and exercise the real pricing source. They are not substitutes for database RLS, private-storage and malware-scanning integration tests. Add meaningful regressions for changed behavior, not tests that merely match source text.
 
@@ -143,5 +153,7 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 ## Keeping this context useful
 
 Update this document and the audit when fixing a listed limitation. Clearly distinguish local changes, committed code, pushed code, deployed code and applied database migrations. Use Git history for current revision status instead of maintaining a hardcoded commit hash here. Do not report tests, deployments, integrations or performance improvements that have not been verified.
+
+The homepage work showcase uses an editorial split heading and a localized comparison panel. `BeforeAfterSlider` presents a fixed studio demonstration, with artwork/node views, pointer and keyboard controls, and descriptive features instead of unverified performance percentages. Its raster and vector layers share responsive bounds; it does not accept or inspect customer files. The shared panel is also used on the work and order-detail pages.
 
 The temporary `/tr1` route renders the Turkish homepage before the latest visual refresh using `PreviousHomePageContent.tsx`, including the service illustrations and process icons. It bypasses locale redirection, is marked noindex and is omitted from the sitemap. `/tr` remains the current homepage.

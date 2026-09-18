@@ -25,7 +25,7 @@ export const MOCK_OPERATOR: UserProfile = {
   created_at: '2026-01-01T08:00:00Z',
 };
 
-export const INITIAL_ORDERS: Order[] = [
+const SAMPLE_ORDERS: Order[] = [
   {
     id: 'ord_atx_8492',
     order_number: 'ATX-8492',
@@ -315,6 +315,9 @@ export const INITIAL_ORDERS: Order[] = [
     messages: [],
   },
 ];
+
+// One active sample; the other historical fixtures are not seeded into the app.
+export const INITIAL_ORDERS: Order[] = SAMPLE_ORDERS.filter((order) => order.id === 'ord_atx_9480');
 
 export const BEFORE_AFTER_SHOWCASES: BeforeAfterShowcase[] = [
   {

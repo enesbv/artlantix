@@ -45,18 +45,18 @@ export default function HomePageContent({ locale }: { locale: string }) {
           </div>
         </section>
 
-        <section id="work" className="border-b border-[#DAD8D2] bg-white">
+        <section id="work" className="scroll-mt-24 border-b border-[#DAD8D2] bg-[#FCFDFB]">
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <div className="max-w-3xl">
-              <h2 className="text-4xl font-black tracking-tight text-[#102A20]">{copy.home.workTitle}</h2>
-              <p className="mt-4 text-[#5E625F]">{copy.home.workBody}</p>
+            <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-20">
+              <div>
+                <span className="mb-5 inline-flex items-center gap-2 text-xs font-semibold text-[#18794E]"><span className="h-1.5 w-1.5 rounded-full bg-[#18794E]" aria-hidden="true" />{copy.home.workEyebrow}</span>
+                <h2 className="max-w-2xl text-3xl font-semibold leading-[1.12] tracking-[-0.04em] text-[#102A20] sm:text-4xl lg:text-[2.75rem]">{copy.home.workTitle}</h2>
+              </div>
+              <p className="max-w-md text-sm leading-7 text-[#697467] lg:pb-1">{copy.home.workBody}</p>
             </div>
 
             <div className="mt-10 mb-12">
-              <BeforeAfterSlider
-                title={lang === 'tr' ? 'Apex Falcon Crest — Raster vs. Vektör Karşılaştırması' : 'Apex Falcon Crest — Raster vs. Vector Comparison'}
-                category={lang === 'tr' ? 'Stüdyo Kalite Kontrolü' : 'Studio Quality Inspection'}
-              />
+              <BeforeAfterSlider />
             </div>
 
             <div className="mt-10 grid gap-6 lg:grid-cols-3">

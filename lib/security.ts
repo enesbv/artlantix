@@ -47,7 +47,7 @@ function isAllowedDestination(pathname: string): boolean {
  */
 export function getSafePostAuthRedirect(
   requestedPath: string | null | undefined,
-  fallback = '/dashboard/orders'
+  fallback = '/dashboard'
 ): string {
   if (!requestedPath || /[\\\u0000-\u001F\u007F]/.test(requestedPath)) return fallback;
 

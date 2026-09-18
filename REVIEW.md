@@ -47,6 +47,8 @@ pnpm build  başarılı; TypeScript ve 24 route üretimi geçti
 
 ## Bilinçli ürün sınırları
 
+- 18 Eylül: Sipariş alındığında numarasını gösteren makbuz ekranı eklendi. İsme/e-postaya dayalı şifresiz misafir akışı yalnız yerel demoda çalışır; production için güvenli doğrulanmış guest ownership/takip uygulaması gerekir. Resend receipt endpoint'i authenticated owner için hazırlandı, fakat servis anahtarı/gönderen alan adı yapılandırılmadığından canlı e-posta gönderimi doğrulanmadı. Demo siparişleri yedekli olarak bir örneğe düşürüldü; özel/canlı siparişler silinmedi.
+
 - Uygulama çevrim içi ödeme almaz. Tahsilat, stüdyo teklif onayından sonra harici yürütülür. Gelecekte ödeme eklenirse server-side fiyat, kalıcı payment kaydı, idempotency ve doğrulanmış webhook zorunludur.
 - Toplu B2B akışı gerçek teklif oluşturur; otomatik indirim, kredi limiti, şirket onayı veya fatura üretmez.
 - “Tümünü indir” tarayıcıda gerçek master dosyalarının her biri için ayrı indirme başlatır; sunucuda ZIP üretmez.

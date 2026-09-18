@@ -132,7 +132,7 @@ export default function OrderDetailPage() {
         <h2 className="mt-3 text-base font-bold text-[#141414]">Order Not Found</h2>
         <p className="mt-1 text-xs text-[#737373]">The requested order ID does not exist or has been removed.</p>
         <Link
-          href="/dashboard/orders"
+          href={currentUser?.is_admin ? '/admin/orders' : '/dashboard'}
           className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#141414] px-4 py-2 text-xs font-bold text-white hover:bg-black"
         >
           Back to Orders
@@ -218,7 +218,7 @@ export default function OrderDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAE8E3] pb-6">
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/orders"
+            href={currentUser?.is_admin ? '/admin/orders' : '/dashboard'}
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#EAE8E3] bg-white text-[#737373] hover:bg-[#F5F4F0] hover:text-[#141414] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
