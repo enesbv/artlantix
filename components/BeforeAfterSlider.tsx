@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useLocale } from 'next-intl';
-import { ArrowLeftRight, Check, ChevronLeft, ChevronRight, Layers2, ScanLine } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Layers2, ScanLine } from 'lucide-react';
 
 interface BeforeAfterSliderProps {
   title?: string;
@@ -323,12 +323,19 @@ export default function BeforeAfterSlider({
             </div>
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 bottom-5 z-10 flex justify-center" aria-hidden="true">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/90 px-3.5 py-2 text-[11px] font-medium text-[#526357] shadow-sm">
-              <ArrowLeftRight className="h-3.5 w-3.5 text-[#18794E]" />{copy.drag}
-            </span>
-          </div>
         </div>
+      </div>
+
+      <div className="grid divide-y divide-[#E8EDE6] px-5 py-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-3 sm:py-6">
+        {copy.features.map(([heading, description], index) => (
+          <div key={heading} className="flex gap-3 py-4 sm:px-5 sm:py-0">
+            <span className="pt-0.5 text-xs font-medium text-[#93A18F]">0{index + 1}</span>
+            <div>
+              <p className="text-sm font-semibold text-[#183D28]">{heading}</p>
+              <p className="mt-1 text-xs leading-5 text-[#71806F]">{description}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
     </div>
