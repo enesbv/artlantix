@@ -27,7 +27,7 @@ Müşteri dosyasını yükler, hangi amaçla kullanacağını belirtir ve teklif
 
 ### Projenin mevcut durumu
 
-Artlantix 0.4; çok dilli tanıtım sayfaları, hizmet detayları, örnek çalışma sayfaları, fiyatlandırma, rehberler, SSS ve daha kapsamlı teklif formu içeren çalışan bir sürümdür.
+Artlantix 0.6; çok dilli tanıtım sayfaları, stüdyo büyüteci, dinamik teslimat çizelgesi, vektör/renk inceleyici, canlı sipariş sohbeti ve modern SaaS admin paneli içeren çalışan bir sürümdür.
 
 Örnek çalışmalar gerçek müşteri işi olarak değil, stüdyonun çalışma yöntemini anlatan demonstrasyonlar olarak gösterilir. Gerçek müşteri çalışmaları yalnızca yayın izni alındığında eklenir.
 
