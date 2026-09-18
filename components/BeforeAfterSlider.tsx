@@ -309,11 +309,9 @@ export default function BeforeAfterSlider({
           <div className="pointer-events-none absolute inset-x-4 top-5 flex items-start justify-between gap-4 sm:inset-x-6" aria-hidden="true">
             <div>
               <span className="inline-flex rounded-md border border-black/10 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-[#5D625B]">{copy.before}</span>
-              <p className="mt-2 text-xs text-[#70776D]">{copy.raster}</p>
             </div>
             <div className="text-right">
               <span className="inline-flex items-center gap-1.5 rounded-md border border-[#B4DFC4] bg-[#E9F9EE] px-2.5 py-1 text-[11px] font-semibold text-[#115C3B]"><Check className="h-3 w-3" />{copy.after}</span>
-              <p className="mt-2 text-xs text-[#546A59]">{copy.vector}</p>
             </div>
           </div>
 
