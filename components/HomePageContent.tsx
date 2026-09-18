@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import ContactPricingCard from '@/components/ContactPricingCard';
-import { ArrowRight, Check, Flower2, FolderCheck, PenTool, ScanSearch, Shield, Triangle, Upload } from 'lucide-react';
+import { ArrowRight, Check, FolderCheck, PenTool, ScanSearch, Upload } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
@@ -14,7 +14,6 @@ import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/serv
 import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, services } from '@/lib/marketing';
 
 const processIcons = [Upload, ScanSearch, PenTool, FolderCheck];
-const pricingIcons = [Triangle, Shield, Flower2];
 
 export default function HomePageContent({ locale }: { locale: string }) {
   const lang = normalizeMarketingLocale(locale);
@@ -138,13 +137,11 @@ export default function HomePageContent({ locale }: { locale: string }) {
             </div>
             <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {(['simple', 'standard', 'complex'] as const).map((tier, index) => {
-                const Icon = pricingIcons[index];
                 const price = settings[`${tier}_tier_price`];
                 const label = copy.common[tier];
                 return (
                   <div key={tier} className={`flex min-h-[310px] flex-col rounded-2xl border p-6 sm:p-7 ${index === 1 ? 'border-[#B4DFC4] bg-[#E9F9EE]' : 'border-[#DDE5DE] bg-white'}`}>
                     <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D0E6D8] bg-[#F3FBF6] text-[#18794E]"><Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" /></span>
                       <h3 className="text-base font-semibold text-[#102A20]">{label}</h3>
                     </div>
                     <p className="mt-7 text-5xl font-semibold tracking-[-0.045em] text-[#102A20]"><span className="mr-1 align-top text-2xl leading-10 text-[#697467]">$</span>{price}</p>
@@ -153,7 +150,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
                   </div>
                 );
               })}
-              <ContactPricingCard locale={lang} />
+              <ContactPricingCard locale={lang} showIcon={false} />
             </div>
           </div>
         </section>
