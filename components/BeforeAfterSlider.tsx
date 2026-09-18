@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useLocale } from 'next-intl';
-import { ArrowLeftRight, Check, ChevronLeft, ChevronRight, Layers2, PenTool, ScanLine } from 'lucide-react';
+import { ArrowLeftRight, Check, ChevronLeft, ChevronRight, Layers2, ScanLine } from 'lucide-react';
 
 interface BeforeAfterSliderProps {
   title?: string;
@@ -223,14 +223,14 @@ const inspectionCopy = {
 
 export default function BeforeAfterSlider({
   title,
-  category,
   initialSliderPos = 50,
 }: BeforeAfterSliderProps) {
   const locale = useLocale();
   const copy = inspectionCopy[locale === 'tr' || locale === 'de' ? locale : 'en'];
   const [sliderPosition, setSliderPosition] = useState(Math.min(98, Math.max(2, initialSliderPos)));
   const [isDragging, setIsDragging] = useState(false);
-  const [isWireframe, setIsWireframe] = useState(false);
+  // The structural vector view is the clearest first impression of the studio work.
+  const [isWireframe, setIsWireframe] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMove = (clientX: number) => {
@@ -242,17 +242,11 @@ export default function BeforeAfterSlider({
   return (
     <div className="overflow-hidden rounded-[1.5rem] border border-[#DDE5DE] bg-white shadow-[0_16px_60px_-32px_rgba(16,42,32,0.22)] sm:rounded-[2rem]">
       <div className="flex flex-col justify-between gap-5 px-5 py-5 sm:px-8 sm:py-6 md:flex-row md:items-center">
-        <div className="flex min-w-0 items-center gap-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#B4DFC4] bg-[#E9F9EE] text-[#18794E]">
-            <PenTool className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-[#66756B]">{category || copy.category}</p>
-            <h3 className="mt-1 text-base font-semibold tracking-tight text-[#102A20] sm:text-lg">{title || copy.title}</h3>
-          </div>
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold tracking-tight text-[#102A20] sm:text-lg">{title || copy.title}</h3>
         </div>
         <div className="flex shrink-0 gap-1 self-start rounded-xl bg-[#F0F3EF] p-1" role="group" aria-label={copy.comparison}>
-          {[{ value: false, label: copy.artwork, Icon: Layers2 }, { value: true, label: copy.nodes, Icon: ScanLine }].map(({ value, label, Icon }) => (
+          {[{ value: true, label: copy.nodes, Icon: ScanLine }, { value: false, label: copy.artwork, Icon: Layers2 }].map(({ value, label, Icon }) => (
             <button
               key={label}
               type="button"
@@ -337,20 +331,6 @@ export default function BeforeAfterSlider({
         </div>
       </div>
 
-      <div className="grid divide-y divide-[#E8EDE6] px-5 py-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-3 sm:py-6">
-        {copy.features.map(([heading, description], index) => (
-          <div key={heading} className="flex gap-3 py-4 sm:px-5 sm:py-0">
-            <span className="pt-0.5 text-xs font-medium text-[#93A18F]">0{index + 1}</span>
-            <div>
-              <p className="text-sm font-semibold text-[#183D28]">{heading}</p>
-              <p className="mt-1 text-xs leading-5 text-[#71806F]">{description}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center justify-center gap-2 border-t border-[#E8EDE6] bg-[#FAFBF8] px-4 py-3 text-[11px] text-[#74816F]">
-        <span className="h-1.5 w-1.5 rounded-full bg-[#8EA785]" aria-hidden="true" />{copy.demo}
-      </div>
     </div>
   );
 }
