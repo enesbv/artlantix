@@ -4,11 +4,9 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { ArrowRight, FileCheck, Layers, LogOut, Menu, X, ShieldCheck, User } from 'lucide-react';
+import { ArrowRight, FileCheck, Layers, LogOut, Menu, X } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import { getCurrentUser, signOutUser, switchDemoPersona } from '@/lib/services/auth';
-import { isSupabaseConfigured } from '@/lib/supabase/client';
-import { isDemoModeEnabled } from '@/lib/runtime-mode';
+import { getCurrentUser, signOutUser } from '@/lib/services/auth';
 import { UserProfile } from '@/lib/types';
 import { localizedPath, normalizeMarketingLocale } from '@/lib/marketing';
 
@@ -40,16 +38,6 @@ export default function Navbar() {
     router.push(localizedPath(lang, '/'));
   };
 
-  const handleSwitchPersona = (role: 'customer' | 'operator') => {
-    const updated = switchDemoPersona(role);
-    setUser(updated);
-    if (role === 'operator') {
-      router.push('/admin/orders');
-    } else {
-      router.push('/dashboard');
-    }
-  };
-
   return (
     <header className="sticky top-0 z-50 border-b border-[#DAD8D2] bg-[#F9F8F6]/95 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -64,38 +52,6 @@ export default function Navbar() {
           ))}
         </nav>
         <div className="hidden items-center gap-3 lg:flex">
-          {/* Demo Persona 1-Click Switcher */}
-          {!isSupabaseConfigured() && isDemoModeEnabled() && (
-            <div className="flex items-center rounded-lg border border-[#DAD8D2] bg-[#F4F3EF] p-0.5 text-[11px]">
-              <button
-                type="button"
-                onClick={() => handleSwitchPersona('customer')}
-                className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-bold transition-all ${
-                  user && !user.is_admin
-                    ? 'bg-white text-[#102A20] shadow-xs'
-                    : 'text-[#5E625F] hover:text-[#102A20]'
-                }`}
-                title="Müşteri Portalı (Alex Morgan)"
-              >
-                <User className="h-3 w-3" />
-                <span>Müşteri</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSwitchPersona('operator')}
-                className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-bold transition-all ${
-                  user?.is_admin
-                    ? 'bg-[#18794E] text-white shadow-xs'
-                    : 'text-[#5E625F] hover:text-[#18794E]'
-                }`}
-                title="Admin / Operatör Kuyruğu (Elena Vance)"
-              >
-                <ShieldCheck className="h-3 w-3" />
-                <span>Operatör (Admin)</span>
-              </button>
-            </div>
-          )}
-
           <LanguageSwitcher />
 
           {user ? (
@@ -142,27 +98,6 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="border-t border-[#DAD8D2] bg-white px-4 py-5 lg:hidden">
           <nav className="flex flex-col gap-4 text-sm font-bold text-[#102A20]">
-            {!isSupabaseConfigured() && isDemoModeEnabled() && (
-              <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-3">
-                <span className="text-xs text-[#5E625F]">Demo Rolü:</span>
-                <div className="flex items-center rounded-lg border border-[#DAD8D2] bg-[#F4F3EF] p-0.5 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => { handleSwitchPersona('customer'); setMobileOpen(false); }}
-                    className={`rounded-md px-2.5 py-1 ${user && !user.is_admin ? 'bg-white font-bold shadow-xs' : 'text-[#5E625F]'}`}
-                  >
-                    Müşteri
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { handleSwitchPersona('operator'); setMobileOpen(false); }}
-                    className={`rounded-md px-2.5 py-1 ${user?.is_admin ? 'bg-[#18794E] text-white font-bold shadow-xs' : 'text-[#5E625F]'}`}
-                  >
-                    Operatör
-                  </button>
-                </div>
-              </div>
-            )}
             <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-4">
               <span>{t('language')}</span>
               <LanguageSwitcher />

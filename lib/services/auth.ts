@@ -177,16 +177,29 @@ export async function signInWithEmail(email: string, password?: string): Promise
 
   if (!isDemoModeEnabled()) return { user: null, error: BACKEND_NOT_CONFIGURED_ERROR };
 
-  // Explicit development demo sign-in.
-  if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('operator')) {
-    setCurrentUserMock(MOCK_OPERATOR);
-    return { user: MOCK_OPERATOR };
+  // Explicit development demo sign-in. Role is selected only by the two
+  // documented demo addresses; production role authority remains Supabase.
+  let normalizedDemoEmail: string;
+  try {
+    normalizedDemoEmail = normalizeEmail(email);
+  } catch (error) {
+    return { user: null, error: error instanceof Error ? error.message : PUBLIC_AUTH_ERRORS.signIn };
+  }
+  if (normalizedDemoEmail === 'artlantix@admin.com') {
+    const adminUser = { ...MOCK_OPERATOR, email: normalizedDemoEmail };
+    setCurrentUserMock(adminUser);
+    return { user: adminUser };
+  }
+  if (normalizedDemoEmail === 'artlantix@customer.com') {
+    const customerUser = { ...MOCK_CUSTOMER, email: normalizedDemoEmail };
+    setCurrentUserMock(customerUser);
+    return { user: customerUser };
   }
 
   const customCustomer: UserProfile = {
     ...MOCK_CUSTOMER,
-    email,
-    full_name: email.split('@')[0],
+    email: normalizedDemoEmail,
+    full_name: normalizedDemoEmail.split('@')[0],
   };
   setCurrentUserMock(customCustomer);
   return { user: customCustomer };
