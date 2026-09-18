@@ -17,10 +17,10 @@ export default function MarketingVisual({
   const contextLocale = useLocale();
   const activeLocale = locale || contextLocale;
   const text = activeLocale === 'tr'
-    ? { source: 'Piksel referans', result: '→ temiz eğriler' }
+    ? { source: 'Piksel referans' }
     : activeLocale === 'de'
-      ? { source: 'Rastervorlage', result: '→ saubere Pfade' }
-      : { source: 'Raster reference', result: '→ clean paths' };
+      ? { source: 'Rastervorlage' }
+      : { source: 'Raster reference' };
   const artwork = {
     crest: (
       <>
@@ -58,9 +58,8 @@ export default function MarketingVisual({
           <circle cx="160" cy="297" r="5" />
         </g>
       </svg>
-      <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-xl border border-white/10 bg-[#0A1D16]/80 px-4 py-3 text-xs text-white backdrop-blur">
+      <div className="absolute bottom-5 left-5 right-5 flex items-center rounded-xl border border-white/10 bg-[#0A1D16]/80 px-4 py-3 text-xs text-white backdrop-blur">
         <span>{text.source}</span>
-        <span className="font-semibold text-[#78D5A6]">{text.result}</span>
       </div>
     </div>
   );
