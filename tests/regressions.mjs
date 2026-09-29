@@ -421,3 +421,48 @@ test('demo order messages persist and completing an order does not fabricate del
   assert.equal(JSON.parse(store.get('artlantix_orders_data'))[0].files?.length || 0, 0);
 });
 
+
+test('operator delivery saves file and status in one RPC and removes the upload when it fails', async () => {
+  const removed = [];
+  const rpcCalls = [];
+  let rpcError = { message: 'constraint violation' };
+  const order = { id: 'aaaaaaaa-0000-0000-0000-000000000001', user_id: 'cust-1', status: 'in_progress', files: [], messages: [] };
+  const supabase = {
+    rpc: async (name, args) => { rpcCalls.push({ name, args }); return { error: rpcError }; },
+    from: () => {
+      const query = { select: () => query, eq: () => query, order: () => query, single: async () => ({ data: order, error: null }), maybeSingle: async () => ({ data: order, error: null }) };
+      return query;
+    },
+  };
+  const ordersService = load('lib/services/orders.ts', {
+    '../types': {},
+    '../mock-data': { INITIAL_ORDERS: [] },
+    '../supabase/client': { isSupabaseConfigured: () => true, createClient: () => supabase },
+    './auth': { getCurrentUser: async () => null },
+    '../order-status': { calculateExpectedDelivery: () => '2026-09-18T10:00:00.000Z' },
+    '../runtime-mode': { isDemoModeEnabled: () => false, BACKEND_NOT_CONFIGURED_ERROR: 'Not configured.' },
+    '../security': securityModule,
+    './storage': {
+      removeStorageObject: async (bucket, path) => { removed.push({ bucket, path }); },
+      requestOrderUploadScan: async () => undefined,
+      STORAGE_BUCKETS: { CUSTOMER_ASSETS: 'customer-assets', PREVIEWS: 'previews', MASTER_DELIVERIES: 'master-deliveries' },
+      uploadToStorageBucket: async (_file, _bucket, storagePath) => ({ path: storagePath }),
+      validateStorageUpload: async () => undefined,
+    },
+    './notifications': { sendNotification: () => undefined },
+  }, { window: {}, crypto: { randomUUID: () => 'uuid-1' }, localStorage: { getItem: () => null, setItem: () => undefined } });
+
+  const deliverable = { category: 'final_master', format: 'ai', filename: 'master.ai', file: { size: 2048, name: 'master.ai' } };
+  await assert.rejects(ordersService.applyOperatorUpdate(order.id, { status: 'completed', finalPrice: 60, deliverable }), /could not be saved/);
+  assert.equal(rpcCalls.length, 1);
+  assert.equal(rpcCalls[0].name, 'record_operator_delivery');
+  assert.equal(rpcCalls[0].args.p_status, 'completed');
+  assert.equal(rpcCalls[0].args.p_file.storage_path, 'cust-1/aaaaaaaa-0000-0000-0000-000000000001/uuid-1.ai');
+  assert.deepEqual(removed, [{ bucket: 'master-deliveries', path: 'cust-1/aaaaaaaa-0000-0000-0000-000000000001/uuid-1.ai' }]);
+
+  rpcError = null;
+  await ordersService.applyOperatorUpdate(order.id, { status: 'completed', deliverable });
+  assert.equal(removed.length, 1, 'a successful delivery keeps the uploaded file');
+  await ordersService.applyOperatorUpdate(order.id, { status: 'in_review' });
+  assert.equal(rpcCalls.at(-1).args.p_file, null, 'status-only updates send no file');
+});

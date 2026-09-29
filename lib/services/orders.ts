@@ -3,7 +3,7 @@ import { INITIAL_ORDERS } from '../mock-data';
 import { isSupabaseConfigured, createClient } from '../supabase/client';
 import { getCurrentUser } from './auth';
 import { calculateExpectedDelivery } from '../order-status';
-import { removeStorageObject, requestOrderUploadScan, STORAGE_BUCKETS, uploadToStorageBucket, validateStorageUpload } from './storage';
+import { removeStorageObject, requestOrderUploadScan, STORAGE_BUCKETS, type StorageBucket, uploadToStorageBucket, validateStorageUpload } from './storage';
 import { INPUT_LIMITS, normalizeFilename, normalizeOptionalText, normalizeRequiredText } from '../security';
 import { BACKEND_NOT_CONFIGURED_ERROR, isDemoModeEnabled } from '../runtime-mode';
 
@@ -402,68 +402,77 @@ export async function fetchOrderMessages(orderId: string): Promise<OrderMessage[
 }
 
 
-export async function addOperatorDeliverable(
-  orderId: string,
-  category: 'preview_watermarked' | 'final_master',
-  format: 'ai' | 'eps' | 'svg' | 'pdf' | 'png',
-  filename: string,
-  file?: File
-): Promise<OrderFile> {
-  const now = new Date().toISOString();
-  const order = await getOrderById(orderId);
-  if (!order) throw new Error('Order not found.');
-  const cleanFilename = normalizeFilename(filename);
-  let storagePath = `/mock-assets/${cleanFilename}`;
+type OperatorDeliverable = {
+  category: 'preview_watermarked' | 'final_master';
+  format: 'ai' | 'eps' | 'svg' | 'pdf' | 'png';
+  filename: string;
+  file?: File;
+};
 
+// Saves an operator status/price change and an optional deliverable together. With Supabase the
+// file row and the order update commit in one transaction; a failed save removes the uploaded object.
+export async function applyOperatorUpdate(
+  orderId: string,
+  update: { status: OrderStatus; finalPrice?: number; assignedArtist?: string; deliverable?: OperatorDeliverable }
+): Promise<Order | null> {
   if (isSupabaseConfigured()) {
-    if (!file) throw new Error('Choose a real deliverable file before changing the delivery status.');
-    const bucket = category === 'final_master' ? STORAGE_BUCKETS.MASTER_DELIVERIES : STORAGE_BUCKETS.PREVIEWS;
-    await validateStorageUpload(file, bucket, format);
-    const stored = await uploadToStorageBucket(file, bucket, `${order.user_id}/${orderId}/${crypto.randomUUID()}.${format}`);
-    if (stored.error) throw new Error(`Deliverable upload failed: ${stored.error}`);
-    storagePath = stored.path;
+    const supabase = createClient();
+    if (!supabase) throw new Error('Database unavailable.');
+    const order = await getOrderById(orderId);
+    if (!order) throw new Error('Order not found.');
+
+    let uploaded: { bucket: StorageBucket; path: string } | null = null;
+    let filePayload: Record<string, unknown> | null = null;
+    if (update.deliverable) {
+      const { category, format, filename, file } = update.deliverable;
+      if (!file) throw new Error('Choose a real deliverable file before changing the delivery status.');
+      const bucket = category === 'final_master' ? STORAGE_BUCKETS.MASTER_DELIVERIES : STORAGE_BUCKETS.PREVIEWS;
+      await validateStorageUpload(file, bucket, format);
+      const stored = await uploadToStorageBucket(file, bucket, `${order.user_id}/${orderId}/${crypto.randomUUID()}.${format}`);
+      if (stored.error) throw new Error(`Deliverable upload failed: ${stored.error}`);
+      uploaded = { bucket, path: stored.path };
+      filePayload = { file_category: category, format, storage_path: stored.path, filename: normalizeFilename(filename), size_bytes: file.size };
+    }
+
+    const { error } = await supabase.rpc('record_operator_delivery', {
+      p_order_id: orderId,
+      p_status: update.status,
+      p_final_price: update.finalPrice ?? null,
+      p_assigned_artist: update.assignedArtist ?? null,
+      p_file: filePayload,
+    });
+    if (error) {
+      if (uploaded) await removeStorageObject(uploaded.bucket, uploaded.path).catch(() => undefined);
+      throw new Error('The order update could not be saved. Please try again.');
+    }
+    return getOrderById(orderId);
   }
 
+  if (update.deliverable) addDemoDeliverable(orderId, update.deliverable);
+  return updateOrderStatus(orderId, update.status, update.finalPrice, undefined, update.assignedArtist);
+}
+
+function addDemoDeliverable(orderId: string, { category, format, filename, file }: OperatorDeliverable): void {
+  if (!isDemoModeEnabled()) throw new Error(BACKEND_NOT_CONFIGURED_ERROR);
+  const now = new Date().toISOString();
+  const cleanFilename = normalizeFilename(filename);
+  const all = getStoredOrders();
+  const index = all.findIndex((o) => o.id === orderId);
+  if (index === -1) throw new Error('Order not found.');
   const newFile: OrderFile = {
     id: `fil_${Date.now()}_${format}`,
     order_id: orderId,
-    user_id: order.user_id,
+    user_id: all[index].user_id,
     file_category: category,
     format,
-    storage_path: storagePath,
+    storage_path: `/mock-assets/${cleanFilename}`,
     filename: cleanFilename,
     size_bytes: file?.size || 1850000,
     scan_status: 'clean',
     created_at: now,
   };
-
-  if (isSupabaseConfigured()) {
-    const supabase = createClient();
-    if (!supabase) throw new Error('Deliverable service is unavailable.');
-    const { data, error } = await supabase.from('order_files').insert([{
-      order_id: orderId,
-      user_id: order.user_id,
-      file_category: category,
-      format,
-      storage_path: storagePath,
-      filename: cleanFilename,
-      size_bytes: file?.size,
-      scan_status: 'clean',
-    }]).select('*').single();
-    if (error) throw new Error('The deliverable record could not be saved. Please try again.');
-    return data as OrderFile;
-  }
-
-  const all = getStoredOrders();
-  const index = all.findIndex((o) => o.id === orderId);
-  if (index !== -1) {
-    all[index].files = [...(all[index].files || []), newFile];
-    if (category === 'preview_watermarked') {
-      all[index].status = 'preview_ready';
-    }
-    all[index].updated_at = now;
-    saveOrders(all);
-  }
-
-  return newFile;
+  all[index].files = [...(all[index].files || []), newFile];
+  if (category === 'preview_watermarked') all[index].status = 'preview_ready';
+  all[index].updated_at = now;
+  saveOrders(all);
 }
