@@ -45,12 +45,12 @@ Müşteri dosyaları `pending` durumuyla mantıksal karantinaya alınır. Server
 
 ### H-03 — Operatör teslim adımı tam atomik değil
 
-**Durum:** AÇIK / OPERASYONEL RİSK
-**Konum:** `lib/services/orders.ts` → `addOperatorDeliverable()`, admin status update
+**Durum:** KODDA BÜYÜK ÖLÇÜDE DÜZELTİLDİ (29 Eylül) / CANLI MİGRATION BEKLİYOR
+**Konum:** `lib/services/orders.ts` → `applyOperatorUpdate()`, `record_operator_delivery` RPC
 
-Müşteri order/file metadata yazımı atomiktir; ancak operatör preview/master upload, metadata insert ve status değişimi ayrı adımlardır. Ağ hatası yetim teslim dosyası bırakabilir.
+Operatörün teslim dosyası kaydı ile durum/fiyat değişimi artık `record_operator_delivery` RPC'sinde tek transaction'da yazılır. RPC yalnız admin'e açıktır, master dosyayı yalnız `completed` geçişiyle kabul eder ve dosya yolunu müşterinin sipariş klasörüne bağlar. RPC başarısız olursa istemci yüklenen nesneyi siler; bunun için admin'e yalnız hiçbir `order_files` satırına bağlı olmayan preview/master nesnelerini silme izni verildi. pgTAP (`operator_delivery.test.sql`) ve Node regresyon testi bu akışı kapsar. Upload tamamlanıp telafi silmesi de ağ yüzünden başarısız olursa yetim nesne yine kalabilir.
 
-**Kapatma ölçütü:** Operatör metadata + status geçişini yetkili RPC'de birleştir; Storage upload için telafi temizliği, idempotency key ve periyodik orphan reconciliation ekle.
+**Kapatma ölçütü:** `20260929000000_operator_delivery_rpc.sql` migration'ını canlıya uygula; idempotency key ve periyodik orphan reconciliation ekle.
 
 ## Açık orta riskler
 

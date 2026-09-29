@@ -6,9 +6,8 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import OrderChatHub from '@/components/OrderChatHub';
 import {
   getOrders,
-  updateOrderStatus,
   addOrderMessage,
-  addOperatorDeliverable,
+  applyOperatorUpdate,
 } from '@/lib/services/orders';
 import { getCurrentUser } from '@/lib/services/auth';
 import { ADMIN_STATUS_LABELS } from '@/lib/admin-orders';
@@ -118,18 +117,17 @@ export default function AdminOrdersPage() {
 
     try {
       if (!Number.isFinite(adjustedPrice) || adjustedPrice < 0) throw new Error('Geçerli bir ücret girin.');
-      if (deliverableFile) {
-        const category = newStatus === 'completed' ? 'final_master' : 'preview_watermarked';
-        await addOperatorDeliverable(
-          selectedOrder.id,
-          category,
-          selectedDeliverableFormat,
-          deliverableFilename.trim() || deliverableFile?.name || `deliverable.${selectedDeliverableFormat}`,
-          deliverableFile || undefined
-        );
-      }
-
-      await updateOrderStatus(selectedOrder.id, newStatus, adjustedPrice, undefined, currentUser?.full_name);
+      await applyOperatorUpdate(selectedOrder.id, {
+        status: newStatus,
+        finalPrice: adjustedPrice,
+        assignedArtist: currentUser?.full_name,
+        deliverable: deliverableFile ? {
+          category: newStatus === 'completed' ? 'final_master' : 'preview_watermarked',
+          format: selectedDeliverableFormat,
+          filename: deliverableFilename.trim() || deliverableFile.name || `deliverable.${selectedDeliverableFormat}`,
+          file: deliverableFile,
+        } : undefined,
+      });
 
       if (operatorMessage.trim()) {
         await addOrderMessage(
