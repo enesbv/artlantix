@@ -62,7 +62,7 @@ export default function VectorInspector({
           </div>
           <div>
             <span className="text-[11px] font-semibold uppercase tracking-wider text-[#737373]">
-              Stüdyo Kalite &amp; Katman Denetleyicisi
+              Studio Quality &amp; Layer Inspector
             </span>
             <h4 className="text-sm font-bold text-[#141414]">
               {projectName}
@@ -73,7 +73,7 @@ export default function VectorInspector({
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-            <span>0.01mm Tolerans Doğrulandı</span>
+            <span>0.01 mm Tolerance Verified</span>
           </span>
         </div>
       </div>
@@ -84,7 +84,7 @@ export default function VectorInspector({
         <div>
           <span className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
             <Eye className="h-3.5 w-3.5 text-[#18794E]" />
-            <span>Görünüm &amp; Üretim Modu</span>
+            <span>View &amp; Production Mode</span>
           </span>
           <div className="mt-2 grid grid-cols-3 gap-1.5 rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] p-1">
             <button
@@ -96,7 +96,7 @@ export default function VectorInspector({
                   : 'text-[#737373] hover:text-[#141414]'
               }`}
             >
-              Tam Renkli
+              Full Color
             </button>
             <button
               type="button"
@@ -107,7 +107,7 @@ export default function VectorInspector({
                   : 'text-[#737373] hover:text-[#141414]'
               }`}
             >
-              Kontur / Nodes
+              Outline / Nodes
             </button>
             <button
               type="button"
@@ -118,7 +118,7 @@ export default function VectorInspector({
                   : 'text-[#737373] hover:text-[#141414]'
               }`}
             >
-              Silüet / Folyo
+              Silhouette / Vinyl
             </button>
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function VectorInspector({
         <div>
           <span className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
             <Maximize2 className="h-3.5 w-3.5 text-[#18794E]" />
-            <span>Arka Plan Zemini</span>
+            <span>Background</span>
           </span>
           <div className="mt-2 grid grid-cols-3 gap-1.5 rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] p-1">
             <button
@@ -140,7 +140,7 @@ export default function VectorInspector({
               }`}
             >
               <span className="h-2.5 w-2.5 rounded-full border border-[#CCC] bg-[#F9F8F6]" />
-              <span>Açık</span>
+              <span>Light</span>
             </button>
             <button
               type="button"
@@ -152,7 +152,7 @@ export default function VectorInspector({
               }`}
             >
               <span className="h-2.5 w-2.5 rounded-full bg-[#141414]" />
-              <span>Koyu</span>
+              <span>Dark</span>
             </button>
             <button
               type="button"
@@ -171,7 +171,7 @@ export default function VectorInspector({
                   backgroundSize: '4px 4px',
                 }}
               />
-              <span>Şeffaf Izgara</span>
+              <span>Transparent Grid</span>
             </button>
           </div>
         </div>
@@ -182,10 +182,10 @@ export default function VectorInspector({
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-[#141414] flex items-center gap-1.5">
             <Palette className="h-3.5 w-3.5 text-[#18794E]" />
-            <span>Çizimde Kullanılan Renk Paleti</span>
+            <span>Color Palette Used in the Artwork</span>
           </span>
           <span className="text-[10px] text-[#737373]">
-            Tıkla ve HEX kopyala
+            Click to copy HEX
           </span>
         </div>
 
@@ -209,7 +209,7 @@ export default function VectorInspector({
                     {isCopied ? (
                       <span className="inline-flex items-center gap-0.5 text-emerald-700 font-bold">
                         <Check className="h-3 w-3" />
-                        <span>Kopyalandı</span>
+                        <span>Copied</span>
                       </span>
                     ) : (
                       <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -239,7 +239,7 @@ export default function VectorInspector({
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-[#18794E] shrink-0" />
           <span className="text-[11px] leading-relaxed">
-            <strong>Baskı &amp; Kesim Doğrulaması:</strong> Tüm bezier yolları kapatılmış, gereksiz çakışan düğüm noktaları temizlenmiş ve serigrafi/lazer kesim için katmanlandırılmıştır.
+            <strong>Print &amp; Cut Check:</strong> All Bézier paths are closed, redundant overlapping nodes are removed, and layers are organized for screen printing and laser cutting.
           </span>
         </div>
       </div>

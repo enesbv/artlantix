@@ -56,7 +56,7 @@ export default function SignUpPage() {
               Create Your Artlantix Account
             </h1>
             <p className="mt-1 text-xs text-[#666666]">
-              Store vector masters forever, track rebuilds, and streamline production.
+              Track your orders, download vector masters, and keep your files in one place.
             </p>
           </div>
 
@@ -85,7 +85,7 @@ export default function SignUpPage() {
               }`}
             >
               <Building2 className="h-3.5 w-3.5 text-[#18794E]" />
-              <span>B2B Print &amp; Shop</span>
+              <span>Business / Print Shop</span>
             </button>
           </div>
 
@@ -157,7 +157,7 @@ export default function SignUpPage() {
               disabled={loading}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded bg-[#18794E] py-2.5 text-xs font-bold text-white hover:bg-[#18794E] transition-colors disabled:opacity-50"
             >
-              <span>{loading ? 'Creating Account...' : 'Create Account & Continue'}</span>
+              <span>{loading ? 'Creating account…' : 'Create Account & Continue'}</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </form>

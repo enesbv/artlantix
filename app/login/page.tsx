@@ -36,7 +36,7 @@ export default function LoginPage() {
         }
       }
     } catch {
-      setError('An error occurred during authentication.');
+      setError('Sign-in failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ export default function LoginPage() {
               Sign in to Artlantix
             </h1>
             <p className="mt-1 text-xs text-[#666666]">
-              Access your artwork archives, orders, and vector downloads.
+              Access your orders, artwork archive, and vector downloads.
             </p>
           </div>
 
@@ -141,7 +141,7 @@ export default function LoginPage() {
               className="mt-4 flex w-full items-center justify-center gap-2 rounded bg-[#111111] py-2.5 text-xs font-bold text-white hover:bg-black transition-colors disabled:opacity-50"
             >
               <Lock className="h-3.5 w-3.5" />
-              <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
+              <span>{loading ? 'Signing in…' : 'Sign In'}</span>
             </button>
 
             <div className="relative mt-4 flex items-center">

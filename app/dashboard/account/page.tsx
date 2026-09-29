@@ -56,13 +56,13 @@ export default function AccountPage() {
           Account &amp; Studio Profile
         </h1>
         <p className="text-xs text-[#666666]">
-          Manage your personal details, business invoicing information, and production settings.
+          Manage your personal details and business information.
         </p>
       </div>
 
       {saved && (
         <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-xs font-medium text-emerald-800">
-          ✓ Profile changes saved successfully.
+          ✓ Your profile changes were saved.
         </div>
       )}
       {error && (
@@ -80,7 +80,7 @@ export default function AccountPage() {
             value={user?.email || ''}
             className="mt-1 w-full rounded border border-[#E6E4DF] bg-[#FAFAF8] px-3.5 py-2 text-xs text-[#888888] cursor-not-allowed"
           />
-          <span className="text-[10px] text-[#999999]">Email address is managed by authentication.</span>
+          <span className="text-[10px] text-[#999999]">Your email is tied to your sign-in and can’t be changed here.</span>
         </div>
 
         <div>
@@ -114,7 +114,7 @@ export default function AccountPage() {
             maxLength={80}
             value={vatTaxId}
             onChange={(e) => setVatTaxId(e.target.value)}
-            placeholder="e.g. US-829104882 or EU-123456789"
+            placeholder="e.g. EIN 12-3456789 or DE123456789"
             className="mt-1 w-full rounded border border-[#E6E4DF] bg-white px-3.5 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-hidden"
           />
         </div>
@@ -142,7 +142,7 @@ export default function AccountPage() {
             disabled={saving}
             className="rounded bg-[#111111] px-5 py-2 text-xs font-bold text-white hover:bg-black transition-colors disabled:opacity-50"
           >
-            {saving ? 'Saving…' : 'Save Profile Settings'}
+            {saving ? 'Saving…' : 'Save Profile'}
           </button>
         </div>
       </form>

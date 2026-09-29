@@ -37,7 +37,7 @@ export default function AdminSidebar({
     },
     {
       id: 'content',
-      label: 'Görsel CMS & Vitrin',
+      label: 'İçerik ve Vitrin',
       href: '/admin/content',
       icon: FileText,
     },
@@ -123,7 +123,7 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={handleSignOut}
-            title="Çıkış Yap"
+            title="Çıkış yap"
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[#737373] hover:bg-white hover:text-red-600 transition-colors"
           >
             <LogOut className="h-3.5 w-3.5" />

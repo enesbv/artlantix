@@ -192,9 +192,9 @@ const inspectionCopy = {
     raster: 'Raster kaynak', vector: 'Yeniden çizilen vektör', drag: 'Kaydırın, farkı keşfedin',
     comparison: 'Önce ve sonra karşılaştırması', position: 'Raster görünümü',
     features: [
-      ['Temiz konturlar', 'Piksel izlerinden akıcı eğrilere.'],
+      ['Temiz konturlar', 'Piksel bozulmalarından akıcı eğrilere.'],
       ['Kontrollü geometri', 'Düğüm görünümünde yapıyı inceleyin.'],
-      ['Ölçeklenebilir çizim', 'Her boyutta aynı netlik.'],
+      ['Ölçeklenebilir çizim', 'Her boyutta aynı keskinlik.'],
     ],
   },
   en: {
@@ -209,14 +209,14 @@ const inspectionCopy = {
     ],
   },
   de: {
-    category: 'Aufbau der Zeichnung', title: 'Apex Falcon Crest', demo: 'Studio-Demonstration',
-    artwork: 'Zeichnung', nodes: 'Vektorknoten', before: 'Vorher', after: 'Nachher',
-    raster: 'Rastervorlage', vector: 'Neu gezeichneter Vektor', drag: 'Verschieben und den Unterschied entdecken',
+    category: 'Anatomie der Grafik', title: 'Apex Falcon Crest', demo: 'Studio-Demonstration',
+    artwork: 'Grafik', nodes: 'Vektorknoten', before: 'Vorher', after: 'Nachher',
+    raster: 'Rastervorlage', vector: 'Neu gezeichneter Vektor', drag: 'Regler ziehen und Unterschied entdecken',
     comparison: 'Vorher-Nachher-Vergleich', position: 'Rasteransicht',
     features: [
       ['Saubere Konturen', 'Von Pixelartefakten zu fließenden Kurven.'],
-      ['Kontrollierte Geometrie', 'Die Struktur in der Knotenansicht erkunden.'],
-      ['Skalierbare Zeichnung', 'Gleiche Klarheit in jeder Größe.'],
+      ['Kontrollierte Geometrie', 'Erkunden Sie die Struktur in der Knotenansicht.'],
+      ['Skalierbare Grafik', 'Gestochen scharf in jeder Größe.'],
     ],
   },
 };

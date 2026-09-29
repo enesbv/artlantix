@@ -274,7 +274,7 @@ const SAMPLE_ORDERS: Order[] = [
         sender_id: 'usr_admin_001',
         sender_name: 'Elena Vance (Production Lead)',
         sender_type: 'operator',
-        message: 'Production started. Vector artist assigned: Marco R. Compass symmetry and typographic balance currently being drafted.',
+        message: 'Production has started. Assigned vector artist: Marco R. We are now drafting the compass symmetry and lettering.',
         created_at: '2026-09-06T09:20:00Z',
       },
     ],

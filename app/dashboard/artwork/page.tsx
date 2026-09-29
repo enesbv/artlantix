@@ -52,11 +52,11 @@ export default function ArtworkVaultPage() {
           <div className="flex items-center gap-2.5">
             <Archive className="h-5 w-5 text-[#18794E]" />
             <h1 className="text-xl font-bold tracking-tight text-[#141414]">
-              Artwork Vault &amp; Digital Asset Archive
+              Artwork Vault
             </h1>
           </div>
           <p className="text-xs text-[#737373] mt-1">
-            Permanent studio archive. Approved vector master deliverables stored forever with instant re-download.
+            Master files from your completed orders, ready to download again whenever you need them.
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export default function ArtworkVaultPage() {
           className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-4 py-2 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
-          <span>Upload New Asset</span>
+          <span>New Artwork Request</span>
         </Link>
       </div>
 
@@ -75,7 +75,7 @@ export default function ArtworkVaultPage() {
           <Search className="absolute left-3.5 top-3 h-3.5 w-3.5 text-[#737373]" />
           <input
             type="text"
-            placeholder="Search vault by project name or order #..."
+            placeholder="Search by project name or order number…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] py-2 pl-9 pr-3 text-xs text-[#141414] placeholder-[#737373] focus:border-[#141414] focus:bg-white focus:outline-hidden"
@@ -92,15 +92,15 @@ export default function ArtworkVaultPage() {
       {filteredAssets.length === 0 ? (
         <div className="rounded-2xl border border-[#EAE8E3] bg-white p-12 text-center">
           <Archive className="mx-auto h-10 w-10 text-[#CCCCCC]" />
-          <h3 className="mt-3 text-sm font-bold text-[#141414]">No completed artwork in vault</h3>
+          <h3 className="mt-3 text-sm font-bold text-[#141414]">No completed artwork yet</h3>
           <p className="mt-1 text-xs text-[#737373]">
-            Once you approve vector drafts in your orders, their master packages will automatically appear here forever.
+            Once the studio delivers the master files for an approved order, they will appear here.
           </p>
           <Link
             href="/quote"
             className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#141414] px-4 py-2 text-xs font-bold text-white hover:bg-black"
           >
-            Start Your First Vector Project
+            Start Your First Project
           </Link>
         </div>
       ) : (
@@ -156,7 +156,7 @@ export default function ArtworkVaultPage() {
                   {/* Available Formats Badges */}
                   <div className="mt-4 border-t border-[#EAE8E3] pt-3">
                     <div className="font-sans text-[10px] uppercase tracking-wider text-[#737373]">
-                      Master Formats Available:
+                      Available Master Formats:
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1">
                       <DeliverableBadge format="ai" variant="pill" />
@@ -186,14 +186,14 @@ export default function ArtworkVaultPage() {
                         className="flex items-center justify-center gap-1 rounded-lg border border-[#EAE8E3] bg-white py-1.5 text-xs font-medium text-[#141414] hover:bg-[#F5F4F0]"
                       >
                         <Download className="h-3 w-3" />
-                        <span>Export SVG</span>
+                        <span>Download SVG</span>
                       </button>
 
                       <Link
                         href={`/quote?reorder=${order.id}`}
                         className="flex items-center justify-center gap-1 rounded-lg border border-[#18794E] bg-[#E9F9EE] py-1.5 text-xs font-semibold text-[#18794E] hover:bg-[#B4DFC4]"
                       >
-                        <span>Order Variation</span>
+                        <span>Order a Variation</span>
                       </Link>
                     </div>
                   </div>

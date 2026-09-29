@@ -68,7 +68,7 @@ export default function DeliveryTimeline({
           </div>
           <div>
             <span className="text-[11px] font-semibold uppercase tracking-wider text-[#737373]">
-              {variant === 'quote' ? 'Tahmini Teslimat Planı' : 'Sipariş Üretim Takvimi'}
+              {variant === 'quote' ? 'Estimated Delivery Plan' : 'Production Schedule'}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-[#141414]">
@@ -88,7 +88,7 @@ export default function DeliveryTimeline({
             }`}
           >
             {isExpress ? <Zap className="h-3 w-3 text-amber-700" /> : <Clock className="h-3 w-3 text-[#737373]" />}
-            <span>{isExpress ? 'Ekspres Öncelik (16 Saat)' : 'Standart Stüdyo (48 Saat)'}</span>
+            <span>{isExpress ? 'Express Priority (16 Hours)' : 'Standard Studio (48 Hours)'}</span>
           </span>
 
           {/* Remaining Time Badge in order-detail */}
@@ -156,7 +156,7 @@ export default function DeliveryTimeline({
                     </p>
 
                     <span className="mt-1 inline-block text-[10px] font-semibold text-[#18794E]">
-                      Süre: {phase.estimatedWindow}
+                      Duration: {phase.estimatedWindow}
                     </span>
                   </div>
                 </div>
@@ -171,11 +171,11 @@ export default function DeliveryTimeline({
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-[#18794E]" />
           <span>
-            Pazartesi – Cumartesi 09:00 – 19:00 stüdyo mesai saatlerine göre hesaplanmıştır.
+            Based on studio hours: Mon–Fri 9:00–19:00, Sat 10:00–16:00.
           </span>
         </div>
         <span className="hidden sm:inline font-semibold text-[#141414]">
-          100% İnsan Eliyle Vektörizasyon Garantisi
+          100% Hand-Drawn Vectorization Guarantee
         </span>
       </div>
     </div>

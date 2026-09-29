@@ -26,7 +26,7 @@ export const FORMAT_META: Record<string, FormatConfig> = {
   eps: {
     label: 'EPS',
     ext: '.eps',
-    desc: 'Unflattened CMYK Vector EPS',
+    desc: 'Layered CMYK Vector EPS',
     dotColor: 'bg-[#10B981]',
     bgColor: 'bg-white',
     borderColor: 'border-[#EAE8E3]',
@@ -35,7 +35,7 @@ export const FORMAT_META: Record<string, FormatConfig> = {
   svg: {
     label: 'SVG',
     ext: '.svg',
-    desc: 'Clean W3C Scalable Web/UI',
+    desc: 'Clean SVG for Web & UI',
     dotColor: 'bg-[#0284C7]',
     bgColor: 'bg-white',
     borderColor: 'border-[#EAE8E3]',

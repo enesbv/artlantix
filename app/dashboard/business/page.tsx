@@ -94,7 +94,7 @@ export default function BusinessHubPage() {
             <h1 className="text-xl font-bold tracking-tight text-[#111111]">Business batch quotes</h1>
           </div>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[#666666]">
-            Upload several customer artworks at once. Each file becomes a private, trackable quote request in your order portal.
+            Upload multiple client artwork files at once. Each file becomes a private, trackable quote request in your portal.
           </p>
         </div>
         <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">Secure batch intake</span>
@@ -105,7 +105,7 @@ export default function BusinessHubPage() {
           <ShieldCheck className="h-7 w-7 text-[#18794E]" />
           <h2 className="mt-3 text-base font-bold text-[#111111]">What happens next</h2>
           <p className="mt-2 text-sm leading-relaxed text-[#666666]">
-            The studio reviews every file, confirms scope and price, and then updates each order independently. No payment is collected during submission.
+            The studio reviews every file, confirms the scope and price, and updates each order separately. No payment is collected during submission.
           </p>
         </div>
         <div className="rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xs">
@@ -115,7 +115,7 @@ export default function BusinessHubPage() {
             <div className="flex justify-between gap-4"><dt className="text-[#777777]">Tax ID</dt><dd className="font-semibold text-[#111111]">{user?.vat_tax_id || 'Not provided'}</dd></div>
             <div className="flex justify-between gap-4"><dt className="text-[#777777]">Account</dt><dd className="font-semibold capitalize text-[#111111]">{user?.account_type || '—'}</dd></div>
           </dl>
-          <Link href="/dashboard/profile" className="mt-4 inline-flex text-xs font-bold text-[#18794E] hover:underline">Update business details</Link>
+          <Link href="/dashboard/account" className="mt-4 inline-flex text-xs font-bold text-[#18794E] hover:underline">Update business details</Link>
         </div>
       </div>
 

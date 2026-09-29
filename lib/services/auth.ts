@@ -74,7 +74,7 @@ export function setCurrentUserMock(user: UserProfile | null): void {
 /** Isolated demo guest session. Production guest intake needs a verified server flow. */
 export async function createDemoGuestSession(email: string, fullName: string): Promise<UserProfile> {
   if (isSupabaseConfigured() || !isDemoModeEnabled()) {
-    throw new Error('Misafir siparişleri henüz etkin değil. Lütfen giriş yapın veya stüdyoyla iletişime geçin.');
+    throw new Error('Guest orders are not available yet. Please sign in or contact the studio.');
   }
   const user: UserProfile = {
     id: `guest_${crypto.randomUUID()}`,
