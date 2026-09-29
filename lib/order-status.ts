@@ -34,11 +34,11 @@ export function getExpectedDelivery(order: Order): string {
 export function getNextOrderAction(order: Order): { title: string; detail: string; action?: 'review' | 'message' | 'download' } {
   switch (order.status) {
     case 'quote_requested':
-      return { title: 'The studio is checking your quote', detail: 'No action is required. We will confirm the complexity and final price.', action: 'message' };
+      return { title: 'The studio is reviewing your quote request', detail: 'No action is required. We will confirm the complexity and final price.', action: 'message' };
     case 'in_review':
       return { title: 'Your artwork is being assessed', detail: 'We are checking geometry, lettering and production tolerances.', action: 'message' };
     case 'in_progress':
-      return { title: 'Your artist is rebuilding the artwork', detail: 'We will notify you in the portal when a watermarked preview is ready.', action: 'message' };
+      return { title: 'An artist is redrawing your artwork', detail: 'We will notify you in the portal when a watermarked preview is ready.', action: 'message' };
     case 'preview_ready':
       return { title: 'Your approval is needed', detail: 'Review the preview, approve it or mark the areas that need changes.', action: 'review' };
     case 'revision_requested':
@@ -46,7 +46,7 @@ export function getNextOrderAction(order: Order): { title: string; detail: strin
     case 'approved':
       return { title: 'Approval received', detail: 'The studio is preparing and checking your production master files.', action: 'message' };
     case 'completed':
-      return { title: 'Your production files are ready', detail: 'Download individual formats or the complete master bundle.', action: 'download' };
+      return { title: 'Your production files are ready', detail: 'Download your production master files below.', action: 'download' };
     default:
       return { title: 'This order is closed', detail: 'Contact the studio if you need help with this project.', action: 'message' };
   }

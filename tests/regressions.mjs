@@ -352,7 +352,7 @@ test('studio delivery calculator projects accurate working shifts skipping Sunda
   const futureIso = new Date(Date.now() + 7200000).toISOString();
   const futureResult = calculateRemainingHours(futureIso);
   assert.equal(futureResult.isOverdue, false);
-  assert.match(futureResult.label, /saat/);
+  assert.match(futureResult.label, /^\d+ h \d+ min left$/);
 });
 
 test('demo order messages persist and completing an order does not fabricate deliverables', async () => {

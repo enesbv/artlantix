@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Idempotency-Key': `order-receipt/${order.id}` },
       body: JSON.stringify({
         from: sender, to: [user.email], subject: `Artlantix — ${order.order_number}`,
-        text: `Sipariş talebinizi aldık.\n\nSipariş numaranız: ${order.order_number}\n\nSiparişinizi takip edin: ${trackingUrl}\n\nStüdyomuz dosyanızı inceleyip kapsam ve fiyatı onayınıza sunacaktır. Bu aşamada ödeme alınmamıştır.`,
+        text: `We received your order request.\n\nYour order number: ${order.order_number}\n\nTrack your order: ${trackingUrl}\n\nOur studio will review your file and send you the scope and price for approval. No payment has been taken at this stage.`,
       }),
       signal: AbortSignal.timeout(10_000),
     });

@@ -54,7 +54,7 @@ export async function getOrders(userId?: string, isAdmin: boolean = false, inclu
         }
         const { data, error } = await query;
         if (!error && data) return data as unknown as Order[];
-        if (failOnError) throw new Error('Siparişler alınamadı. Bağlantınızı kontrol edip tekrar deneyin.');
+        if (failOnError) throw new Error('Orders could not be loaded. Check your connection and try again.');
       }
     } catch (error) {
       if (failOnError) throw error;
@@ -169,8 +169,8 @@ export async function createOrder(
         sender_name: 'Artlantix System',
         sender_type: 'operator',
         message: orderInput.needs_manual_review
-          ? 'Quote requested with Senior Artist review required. We are analyzing the geometry and will notify you with the final confirmed price.'
-          : 'Order received and logged into the Artlantix production queue. An artist will begin manual path reconstruction shortly.',
+          ? 'Quote requested; a senior artist review is required. We are assessing the geometry and will notify you when the final price is confirmed.'
+          : 'Order received and added to the Artlantix production queue. An artist will start redrawing your artwork shortly.',
         created_at: now,
       },
     ],

@@ -186,7 +186,7 @@ export default function AdminOrdersPage() {
       <AdminHeader currentUser={currentUser} searchQuery={searchQuery} onSearchChange={changeSearch} orders={orders} onOpenOrder={openOperatorModal} loading={isLoading} error={loadError} />
       <div className="mx-auto max-w-[1600px] space-y-6 px-4 pt-6 sm:px-8">
         <div className="flex items-start justify-between gap-4">
-          <div><h2 className="text-2xl font-semibold tracking-tight text-[#102A20]">Siparişler</h2><p className="mt-1 text-sm text-[#71806F]">İncele, üretimi takip et ve teslim et.</p></div>
+          <div><h2 className="text-2xl font-semibold tracking-tight text-[#102A20]">Siparişler</h2><p className="mt-1 text-sm text-[#71806F]">Siparişleri inceleyin, üretimi takip edin ve teslim edin.</p></div>
           <button type="button" disabled={refreshing || isSubmittingAction} onClick={() => void refreshOrders()} className="inline-flex items-center gap-2 rounded-xl border border-[#DDE5DA] bg-white px-3 py-2 text-xs font-semibold disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />Yenile</button>
         </div>
         {loadError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError} Yenile düğmesiyle tekrar deneyin.</p>}
@@ -276,7 +276,7 @@ export default function AdminOrdersPage() {
           <div role="dialog" aria-modal="true" aria-label="Siparişi güncelle" className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[#EAE8E3] bg-white shadow-2xl animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-[#EAE8E3] bg-[#FAFAF8] px-5 py-4">
               <div>
-                <h3 className="text-sm font-extrabold text-[#141414]">Üretim Aksiyonu &amp; Durum Güncelleme</h3>
+                <h3 className="text-sm font-extrabold text-[#141414]">Üretim İşlemi ve Durum Güncellemesi</h3>
                 <p className="text-[11px] text-[#737373]">{selectedOrder.project_name} ({selectedOrder.order_number})</p>
               </div>
               <button
@@ -345,7 +345,7 @@ export default function AdminOrdersPage() {
                       aria-label="Teslim dosyası adı"
                       value={deliverableFilename}
                       onChange={(e) => setDeliverableFilename(e.target.value)}
-                      placeholder="e.g. Apex-Crest-Master.svg"
+                      placeholder="ör. Apex-Crest-Master.svg"
                       className="w-full rounded-lg border border-[#EAE8E3] bg-white px-3 py-1.5 text-xs text-[#141414] focus:border-[#18794E] focus:outline-hidden"
                     />
                   </div>

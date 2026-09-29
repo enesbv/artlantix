@@ -44,17 +44,17 @@ export default async function WorkPage({ params }: { params: Promise<{ locale: s
                 {lang === 'tr' ? 'İnteraktif İnceleme Konsolu' : 'Interactive Inspection Console'}
               </span>
               <h2 className="text-2xl font-bold tracking-tight text-[#102A20]">
-                {lang === 'tr' ? 'Etkileşimli Karşılaştırma & Vektör Düğüm Analizi' : 'Interactive Comparison & Vector Node Analysis'}
+                {lang === 'tr' ? 'Etkileşimli Karşılaştırma ve Vektör Düğüm Analizi' : 'Interactive Comparison & Vector Node Analysis'}
               </h2>
               <p className="text-sm text-[#5E625F]">
                 {lang === 'tr'
-                  ? 'Kaydırıcıyı sağa-sola hareket ettirerek piksel gürültüsü ve kusursuz matematiksel bezier eğrilerini karşılaştırın.'
-                  : 'Slide back and forth to inspect degraded pixel artifacts against clean mathematical bezier paths.'}
+                  ? 'Kaydırıcıyı sağa sola hareket ettirerek piksel bozulmalarını temiz Bézier eğrileriyle karşılaştırın.'
+                  : 'Move the slider to compare degraded pixel artifacts with clean Bézier paths.'}
               </p>
             </div>
             <BeforeAfterSlider
-              title={lang === 'tr' ? 'Apex Falcon Crest — Raster vs. Vektör Karşılaştırması' : 'Apex Falcon Crest — Raster vs. Vector Comparison'}
-              category={lang === 'tr' ? 'Stüdyo Kalite Kontrolü' : 'Studio Quality Inspection'}
+              title={lang === 'tr' ? 'Apex Falcon Crest — Raster ve Vektör Karşılaştırması' : 'Apex Falcon Crest — Raster vs. Vector Comparison'}
+              category={lang === 'tr' ? 'Stüdyo Kalite Kontrolü' : 'Studio Quality Check'}
             />
           </div>
         </section>

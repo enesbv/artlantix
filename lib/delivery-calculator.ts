@@ -92,7 +92,7 @@ export function calculateDeliveryProjection(
   };
 }
 
-export function formatStudioDate(date: Date, locale: string = 'tr-TR'): string {
+export function formatStudioDate(date: Date, locale: string = 'en-US'): string {
   try {
     return new Intl.DateTimeFormat(locale, {
       weekday: 'short',
@@ -116,36 +116,36 @@ export function getDeliveryPhases(
     {
       id: 'intake',
       stepNumber: 1,
-      title: 'Kabul & Geometri İncelemesi',
-      shortDesc: 'Stüdyo görsel toleranslarını ve vektör detayını inceler.',
-      estimatedWindow: isExpress ? '1 saat' : '1–2 saat',
+      title: 'Intake & Geometry Review',
+      shortDesc: 'The studio reviews image tolerances and vector detail.',
+      estimatedWindow: isExpress ? '1 hour' : '1–2 hours',
       activeStatuses: ['quote_requested', 'in_review'],
       doneStatuses: ['in_progress', 'preview_ready', 'approved', 'revision_requested', 'completed'],
     },
     {
       id: 'redrawing',
       stepNumber: 2,
-      title: 'Manuel Çizim (Senior Vector Artist)',
-      shortDesc: 'Bezier eğrileri pürüzsüzleştirilir, düğüm noktaları optimize edilir.',
-      estimatedWindow: isExpress ? '8–10 saat' : '24–36 saat',
+      title: 'Manual Redraw (Senior Vector Artist)',
+      shortDesc: 'Bézier curves are smoothed and nodes are optimized.',
+      estimatedWindow: isExpress ? '8–10 hours' : '24–36 hours',
       activeStatuses: ['in_progress', 'revision_requested'],
       doneStatuses: ['preview_ready', 'approved', 'completed'],
     },
     {
       id: 'preview',
       stepNumber: 3,
-      title: 'Önizleme Onayı & Kalite Kontrol',
-      shortDesc: 'Su damgalı taslak müşteriye sunulur; revizyonlar uygulanır.',
-      estimatedWindow: isExpress ? '2–4 saat' : '6–12 saat',
+      title: 'Preview Approval & Quality Check',
+      shortDesc: 'You review a watermarked draft; revisions are applied.',
+      estimatedWindow: isExpress ? '2–4 hours' : '6–12 hours',
       activeStatuses: ['preview_ready'],
       doneStatuses: ['approved', 'completed'],
     },
     {
       id: 'delivery',
       stepNumber: 4,
-      title: 'Master Paket & Arşiv Teslimi',
-      shortDesc: 'AI, EPS, SVG, PDF ve yüksek çözünürlüklü PNG kilitleri açılır.',
-      estimatedWindow: 'Anında',
+      title: 'Master Files & Archive Delivery',
+      shortDesc: 'AI, EPS, SVG, PDF and high-res PNG files are unlocked.',
+      estimatedWindow: 'Immediate',
       activeStatuses: ['approved'],
       doneStatuses: ['completed'],
     },
@@ -182,7 +182,7 @@ export function calculateRemainingHours(targetDateIso: string): {
       hoursLeft: 0,
       minutesLeft: 0,
       isOverdue: true,
-      label: 'Teslimat penceresi içinde (Son kontroller)',
+      label: 'Within delivery window (final checks)',
     };
   }
 
@@ -194,11 +194,11 @@ export function calculateRemainingHours(targetDateIso: string): {
   if (hours > 24) {
     const days = Math.floor(hours / 24);
     const remHours = hours % 24;
-    label = `${days} gün ${remHours} saat kaldı`;
+    label = `${days} d ${remHours} h left`;
   } else if (hours > 0) {
-    label = `${hours} saat ${minutes} dk kaldı`;
+    label = `${hours} h ${minutes} min left`;
   } else {
-    label = `${minutes} dakika kaldı`;
+    label = `${minutes} min left`;
   }
 
   return {

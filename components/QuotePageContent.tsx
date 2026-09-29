@@ -152,9 +152,9 @@ export default function QuotePageContent() {
   const tQuote = useTranslations('quote');
   const locale = normalizeMarketingLocale(useLocale());
   const smartCopy = {
-    tr: { brief: 'Üretim bilgileri', briefDesc: 'Dosyayı nerede kullanacağınızı bilirsek doğru eğri, renk ve sadeleştirme kararlarını veririz.', intended: 'Kullanım amacı', choose: 'Seçin', web: 'Web / dijital', print: 'Baskı / ambalaj', apparel: 'Tekstil / baskı', embroidery: 'Nakış', signage: 'Tabela / folyo', cnc: 'CNC / lazer kesim', unsure: 'Emin değilim · uzman yönlendirsin', company: 'Şirket / marka (isteğe bağlı)' },
-    en: { brief: 'Production brief', briefDesc: 'Knowing the intended use helps us choose the right paths, colours and simplification.', intended: 'Intended use', choose: 'Choose', web: 'Web / digital', print: 'Print / packaging', apparel: 'Apparel / print', embroidery: 'Embroidery', signage: 'Signage / vinyl', cnc: 'CNC / laser cutting', unsure: 'Not sure · let the studio advise', company: 'Company / brand (optional)' },
-    de: { brief: 'Produktionsbriefing', briefDesc: 'Der Verwendungszweck hilft uns bei Pfaden, Farben und Vereinfachung.', intended: 'Verwendungszweck', choose: 'Auswählen', web: 'Web / digital', print: 'Druck / Verpackung', apparel: 'Textil / Druck', embroidery: 'Stickerei', signage: 'Schild / Folie', cnc: 'CNC / Laserschnitt', unsure: 'Nicht sicher · Studio beraten lassen', company: 'Unternehmen / Marke (optional)' },
+    tr: { brief: 'Üretim bilgileri', briefDesc: 'Dosyayı nerede kullanacağınızı bilirsek doğru eğri, renk ve sadeleştirme kararlarını veririz.', intended: 'Kullanım amacı', choose: 'Seçin', web: 'Web / dijital', print: 'Baskı / ambalaj', apparel: 'Tekstil / baskı', embroidery: 'Nakış', signage: 'Tabela / folyo', cnc: 'CNC / lazer kesim', unsure: 'Emin değilim · stüdyo önersin', company: 'Şirket / marka (isteğe bağlı)' },
+    en: { brief: 'Production brief', briefDesc: 'Knowing the intended use helps us choose the right paths, colors and level of simplification.', intended: 'Intended use', choose: 'Choose', web: 'Web / digital', print: 'Print / packaging', apparel: 'Apparel / print', embroidery: 'Embroidery', signage: 'Signage / vinyl', cnc: 'CNC / laser cutting', unsure: 'Not sure · let the studio advise', company: 'Company / brand (optional)' },
+    de: { brief: 'Produktionsbriefing', briefDesc: 'Der Verwendungszweck hilft uns bei der Wahl von Pfaden, Farben und Vereinfachung.', intended: 'Verwendungszweck', choose: 'Auswählen', web: 'Web / digital', print: 'Druck / Verpackung', apparel: 'Textil / Druck', embroidery: 'Stickerei', signage: 'Schild / Folie', cnc: 'CNC / Laserschnitt', unsure: 'Unsicher · Studio soll beraten', company: 'Unternehmen / Marke (optional)' },
   }[locale];
 
   // Wizard Step: 1 = Upload, 2 = Specification, 3 = Review & Order
@@ -462,18 +462,18 @@ export default function QuotePageContent() {
         <main className="mx-auto max-w-xl px-4 py-16">
           <div className="rounded-3xl border border-[#DDE5D6] bg-white p-7 text-center sm:p-10">
             <CheckCircle2 className="mx-auto h-14 w-14 text-[#18794E]" />
-            <h1 className="mt-6 text-2xl font-semibold tracking-tight text-[#102A20]">{tr ? 'Sipariş talebini aldık' : de ? 'Dein Auftrag ist eingegangen' : 'Your order request is received'}</h1>
-            <p className="mt-3 text-sm text-[#77846C]">{tr ? 'Sipariş numaranı sakla. Çizimini buradan takip edebilirsin.' : de ? 'Bewahre deine Auftragsnummer auf.' : 'Keep your order number to track your artwork.'}</p>
+            <h1 className="mt-6 text-2xl font-semibold tracking-tight text-[#102A20]">{tr ? 'Sipariş talebini aldık' : de ? 'Ihr Auftrag ist eingegangen' : 'We received your order request'}</h1>
+            <p className="mt-3 text-sm text-[#77846C]">{tr ? 'Sipariş numaranızı saklayın. Çiziminizi buradan takip edebilirsiniz.' : de ? 'Mit Ihrer Auftragsnummer verfolgen Sie Ihre Grafik.' : 'Keep your order number to track your artwork.'}</p>
             <div className="mt-7 rounded-2xl border border-[#B4DFC4] bg-[#E9F9EE] p-5">
               <p className="text-xs text-[#637A58]">{tr ? 'Sipariş numarası' : de ? 'Auftragsnummer' : 'Order number'}</p>
               <p className="mt-2 break-all text-base font-semibold text-[#115C3B]">{submittedOrder.order_number}</p>
             </div>
             <p role="status" className="mt-5 text-xs leading-6 text-[#7A866F]">
-              {receiptStatus === 'queued' ? (tr ? 'Sipariş numaranı içeren e-posta gönderim için kabul edildi.' : de ? 'Die E-Mail wurde zum Versand angenommen.' : 'Your order-number email was accepted for sending.') :
-                receiptStatus === 'unavailable' ? (tr ? 'E-posta gönderimi henüz etkin değil. Sipariş numaranı kaydet.' : de ? 'E-Mail-Versand ist nicht aktiv. Speichere deine Nummer.' : 'Email sending is not enabled. Save your order number.') :
-                (tr ? 'Sipariş kaydedildi, ancak e-posta gönderilemedi. Numaranı kaydet; tekrar sipariş verme.' : de ? 'Auftrag gespeichert, E-Mail fehlgeschlagen. Bestelle nicht erneut.' : 'Your order is saved, but the email could not be sent. Do not submit another order.')}
+              {receiptStatus === 'queued' ? (tr ? 'Sipariş numaranızı içeren e-posta gönderim sırasına alındı.' : de ? 'Die E-Mail mit Ihrer Nummer wird versendet.' : 'The email with your order number has been queued.') :
+                receiptStatus === 'unavailable' ? (tr ? 'E-posta gönderimi henüz etkin değil. Sipariş numaranızı not edin.' : de ? 'E-Mail-Versand ist noch nicht aktiv. Notieren Sie Ihre Nummer.' : 'Email delivery is not enabled yet. Please note your order number.') :
+                (tr ? 'Sipariş kaydedildi, ancak e-posta gönderilemedi. Numaranızı not edin; siparişi tekrar göndermeyin.' : de ? 'Auftrag gespeichert, aber die E-Mail ist fehlgeschlagen. Bitte nicht erneut bestellen.' : 'Your order is saved, but the email could not be sent. Please note your order number and don’t resubmit.')}
             </p>
-            <Link href="/dashboard" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#18794E] px-6 py-3 text-sm font-semibold text-white hover:bg-[#115C3B]">{tr ? 'Siparişimi takip et' : de ? 'Auftrag verfolgen' : 'Track my order'}<ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/dashboard" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#18794E] px-6 py-3 text-sm font-semibold text-white hover:bg-[#115C3B]">{tr ? 'Siparişimi takip et' : de ? 'Meinen Auftrag verfolgen' : 'Track my order'}<ArrowRight className="h-4 w-4" /></Link>
           </div>
         </main>
       </div>
@@ -601,7 +601,7 @@ export default function QuotePageContent() {
                   <UploadCloud className="h-7 w-7" />
                 </div>
                 <div className="mt-4 text-sm font-semibold text-[#141414]">
-                  {isUploading ? 'Inspecting raster artwork...' : tQuote('dropzone')}
+                  {isUploading ? 'Checking your artwork…' : tQuote('dropzone')}
                 </div>
                 <p className="mt-1 text-xs text-[#737373]">{tQuote('dropzoneSub')}</p>
                 <input

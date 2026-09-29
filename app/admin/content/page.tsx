@@ -141,7 +141,7 @@ export default function AdminContentPage() {
   const handleCreateShowcase = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newRasterUrl) {
-      alert('Please enter a title and upload at least an original raster image.');
+      alert('Please enter a title and upload at least the original raster image.');
       return;
     }
     setIsCreatingShowcase(true);
@@ -152,7 +152,7 @@ export default function AdminContentPage() {
         category: newCategory,
         clientType: newClientType.trim(),
         badge: newBadge.trim(),
-        description: newDesc.trim() || 'Precision manual reconstruction from degraded concept into press-ready curves.',
+        description: newDesc.trim() || 'Precise manual reconstruction of degraded artwork into press-ready curves.',
         rasterUrl: newRasterUrl,
         vectorUrl: newVectorUrl || undefined,
         active: newActive,
@@ -165,7 +165,7 @@ export default function AdminContentPage() {
       setNewDesc('');
       setNewRasterUrl('');
       setNewVectorUrl('');
-      setShowcaseNotice('New Before/After showcase added to homepage catalog.');
+      setShowcaseNotice('New before/after showcase added to the homepage catalog.');
       setTimeout(() => setShowcaseNotice(null), 3500);
     } catch (error: unknown) {
       setOperationError(error instanceof Error ? error.message : 'Showcase could not be created.');
@@ -619,7 +619,7 @@ export default function AdminContentPage() {
                     />
                     <UploadCloud className="h-5 w-5 text-[#18794E]" />
                     <span className="mt-1 text-xs font-medium text-[#141414]">
-                      {newRasterUrl ? 'File selected (Click to change)' : 'Upload blurry or AI raster image'}
+                      {newRasterUrl ? 'File selected (click to change)' : 'Upload blurry or AI raster image'}
                     </span>
                   </div>
                   {newRasterUrl && (
@@ -647,7 +647,7 @@ export default function AdminContentPage() {
                     />
                     <UploadCloud className="h-5 w-5 text-[#141414]" />
                     <span className="mt-1 text-xs font-medium text-[#141414]">
-                      {newVectorUrl ? 'Vector preview selected' : 'Upload a PNG or WebP clean master preview'}
+                      {newVectorUrl ? 'Vector preview selected' : 'Upload a clean PNG or WebP master preview'}
                     </span>
                   </div>
                   {newVectorUrl && (
@@ -664,7 +664,7 @@ export default function AdminContentPage() {
                     maxLength={INPUT_LIMITS.portfolioDescription}
                     value={newDesc}
                     onChange={(e) => setNewDesc(e.target.value)}
-                    placeholder="e.g., Rebuilt 12,000 AI raster artifacts into 42 clean tangent bezier nodes for screen print separation."
+                    placeholder="e.g., Rebuilt a noisy AI raster as 42 clean, tangent Bézier nodes for screen-print separation."
                     className="mt-1.5 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-3 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
                   />
                 </div>

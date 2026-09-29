@@ -27,17 +27,17 @@ interface OrderChatHubProps {
 }
 
 const CUSTOMER_QUICK_CHIPS = [
-  'Düğüm noktalarını biraz daha sadeleştirebilir miyiz?',
-  'Yazı fontunu biraz kalınlaştırabilir misiniz?',
-  'Renk ayrımı serigrafi baskıya uygun mu?',
-  'Önizleme harika görünüyor, teşekkürler!',
+  'Could we simplify the nodes a little more?',
+  'Could you make the lettering slightly bolder?',
+  'Is the color separation ready for screen printing?',
+  'The preview looks great, thank you!',
 ];
 
 const OPERATOR_QUICK_CHIPS = [
-  'Görseliniz incelendi, manuel çizim aşamasına geçildi.',
-  'Su damgalı taslak önizlemeniz hazırlandı.',
-  'Revizyon notlarınız uygulandı, taslak güncellendi.',
-  'Master üretim dosyalarınız hazırlandı ve kilit açıldı.',
+  'We reviewed your artwork and started the manual redraw.',
+  'Your watermarked preview draft is ready.',
+  'We applied your revision notes and updated the draft.',
+  'Your production master files are ready to download.',
 ];
 
 export default function OrderChatHub({
@@ -148,7 +148,7 @@ export default function OrderChatHub({
       setInputMessage('');
       setTimeout(() => scrollToBottom(), 100);
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : 'Mesaj gönderilemedi.');
+      setErrorMessage(err instanceof Error ? err.message : 'The message could not be sent.');
     } finally {
       setIsSending(false);
     }
@@ -171,7 +171,7 @@ export default function OrderChatHub({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-xs font-bold text-[#141414]">
-                Stüdyo &amp; Sanatçı İletişim Hattı
+                Studio &amp; Artist Messages
               </h3>
               <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -179,14 +179,14 @@ export default function OrderChatHub({
               </span>
             </div>
             <p className="text-[10px] text-[#737373]">
-              {projectTitle} {orderStatus ? `· Durum: ${orderStatus}` : ''} · İki yönlü canlı mesajlaşma
+              {projectTitle} {orderStatus ? `· Status: ${orderStatus}` : ''} · Two-way messaging
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 text-[11px] text-[#737373]">
           <ShieldCheck className="h-3.5 w-3.5 text-[#18794E]" />
-          <span className="hidden sm:inline font-medium">Uçtan Uca Şifreli Sipariş Notları</span>
+          <span className="hidden sm:inline font-medium">Private Order Notes</span>
         </div>
       </div>
 
@@ -198,9 +198,9 @@ export default function OrderChatHub({
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center text-[#737373]">
             <Sparkles className="h-8 w-8 text-[#CCC] mb-2" />
-            <p className="text-xs font-semibold text-[#141414]">Henüz mesajlaşma başlatılmadı</p>
+            <p className="text-xs font-semibold text-[#141414]">No messages yet</p>
             <p className="text-[11px] text-[#737373] mt-0.5 max-w-sm">
-              Çizim toleransları, detay seviyesi veya teslimat süreciyle ilgili sanatçınıza buradan anında not iletebilirsiniz.
+              Send your artist a note here about tolerances, level of detail, or delivery.
             </p>
           </div>
         ) : (
@@ -218,13 +218,13 @@ export default function OrderChatHub({
                   {isOperator ? (
                     <span className="inline-flex items-center gap-1 font-bold text-[#18794E]">
                       <ShieldCheck className="h-3 w-3" />
-                      <span>{msg.sender_name || 'Senior Vector Artist'}</span>
-                      <span className="rounded-sm bg-[#E9F9EE] px-1 py-0.2 text-[9px] font-semibold text-[#18794E]">Stüdyo</span>
+                      <span>{msg.sender_name || 'Vector Artist'}</span>
+                      <span className="rounded-sm bg-[#E9F9EE] px-1 py-0.2 text-[9px] font-semibold text-[#18794E]">Studio</span>
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 font-semibold text-[#141414]">
                       <User className="h-3 w-3 text-[#737373]" />
-                      <span>{msg.sender_name || 'Müşteri'}</span>
+                      <span>{msg.sender_name || 'Customer'}</span>
                     </span>
                   )}
                   <span>·</span>
@@ -256,7 +256,7 @@ export default function OrderChatHub({
 
       {/* Quick Action Suggestion Chips */}
       <div className="border-t border-[#EAE8E3]/60 bg-[#F9F8F6] px-4 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-        <span className="text-[10px] font-bold text-[#737373] uppercase shrink-0">Hızlı Yanıt:</span>
+        <span className="text-[10px] font-bold text-[#737373] uppercase shrink-0">Quick Reply:</span>
         {quickChips.map((chip, i) => (
           <button
             key={i}
@@ -286,8 +286,8 @@ export default function OrderChatHub({
           onChange={(e) => setInputMessage(e.target.value)}
           placeholder={
             currentUserType === 'operator'
-              ? 'Müşteriye teknik detay, önizleme durumu veya not yazın...'
-              : 'Sanatçıya talimat veya çizim hakkında bir mesaj yazın...'
+              ? 'Müşteriye teknik ayrıntı, önizleme durumu veya not yazın…'
+              : 'Write a message or instructions for your artist…'
           }
           className="flex-1 rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-2.5 text-xs sm:text-sm text-[#141414] placeholder:text-[#999] focus:border-[#18794E] focus:bg-white focus:outline-hidden transition-all"
         />
@@ -302,7 +302,7 @@ export default function OrderChatHub({
           ) : (
             <>
               <Send className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Gönder</span>
+              <span className="hidden sm:inline">Send</span>
             </>
           )}
         </button>

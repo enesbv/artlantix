@@ -130,7 +130,7 @@ export default function OrderDetailPage() {
       <div className="rounded-2xl border border-[#EAE8E3] bg-white p-12 text-center">
         <AlertCircle className="mx-auto h-8 w-8 text-amber-600" />
         <h2 className="mt-3 text-base font-bold text-[#141414]">Order Not Found</h2>
-        <p className="mt-1 text-xs text-[#737373]">The requested order ID does not exist or has been removed.</p>
+        <p className="mt-1 text-xs text-[#737373]">This order does not exist or has been removed.</p>
         <Link
           href={currentUser?.is_admin ? '/admin/orders' : '/dashboard'}
           className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#141414] px-4 py-2 text-xs font-bold text-white hover:bg-black"
@@ -186,7 +186,7 @@ export default function OrderDetailPage() {
         setRevisionModalOpen(false);
         setRevisionFeedback('');
         setRevisionAnnotations([]);
-        setActionSuccess('Revision request sent to the production artist.');
+        setActionSuccess('Your revision request was sent to the artist.');
       }
     } catch (error: unknown) {
       setActionError(error instanceof Error ? error.message : 'The revision request could not be sent. Please try again.');
@@ -201,11 +201,11 @@ export default function OrderDetailPage() {
   const statusConfig = {
     quote_requested: { label: 'Quote Requested', color: 'text-amber-800 bg-amber-50 border-amber-200' },
     in_review: { label: 'Feasibility Review', color: 'text-blue-800 bg-blue-50 border-blue-200' },
-    in_progress: { label: 'Artist Actively Redrawing', color: 'text-purple-800 bg-purple-50 border-purple-200' },
+    in_progress: { label: 'Artist Is Redrawing', color: 'text-purple-800 bg-purple-50 border-purple-200' },
     preview_ready: { label: 'Watermarked Preview Ready for Review', color: 'text-[#18794E] bg-[#E9F9EE] border-[#B4DFC4] font-bold' },
     approved: { label: 'Approved · Masters Being Prepared', color: 'text-blue-800 bg-blue-50 border-blue-200 font-bold' },
     revision_requested: { label: 'Revision In Progress (Round 1 of 2)', color: 'text-yellow-800 bg-yellow-50 border-yellow-200' },
-    completed: { label: 'Approved & Master Vectors Unlocked', color: 'text-emerald-800 bg-emerald-50 border-emerald-200 font-bold' },
+    completed: { label: 'Completed · Master Files Ready', color: 'text-emerald-800 bg-emerald-50 border-emerald-200 font-bold' },
     cancelled: { label: 'Cancelled', color: 'text-gray-700 bg-gray-100 border-gray-200' },
   }[order.status] || { label: order.status, color: 'text-gray-700 bg-gray-100 border-gray-200' };
   const nextAction = getNextOrderAction(order);
@@ -304,7 +304,7 @@ export default function OrderDetailPage() {
           <div>
             <h2 className="text-sm font-bold text-[#141414]">Artwork Inspection &amp; Comparison</h2>
             <p className="text-xs text-[#737373]">
-              Side-by-side and interactive split-slider comparison of original upload vs reconstructed vector draft
+              Compare your original upload with the redrawn vector draft, side by side or with the slider
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -318,7 +318,7 @@ export default function OrderDetailPage() {
                     : 'text-[#5E625F] hover:text-[#102A20]'
                 }`}
               >
-                ↔️ Karşılaştırma Kaydırıcısı (Slider)
+                ↔️ Comparison Slider
               </button>
               <button
                 type="button"
@@ -329,7 +329,7 @@ export default function OrderDetailPage() {
                     : 'text-[#5E625F] hover:text-[#102A20]'
                 }`}
               >
-                Yan Yana Görünüm
+                Side by Side
               </button>
             </div>
           </div>
@@ -338,8 +338,8 @@ export default function OrderDetailPage() {
         {comparisonView === 'slider' ? (
           <div className="mt-6">
             <BeforeAfterSlider
-              title={`${order.project_name} — Vektör Kalite Kontrolü`}
-              category="Stüdyo Kalite Kontrolü"
+              title={`${order.project_name} — Vector Quality Check`}
+              category="Studio Quality Check"
             />
           </div>
         ) : (
@@ -347,7 +347,7 @@ export default function OrderDetailPage() {
             {/* Side A: Original Upload */}
           <div className="flex flex-col rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#EAE8E3] bg-[#F5F4F0] px-4 py-2 text-xs font-semibold text-[#141414]">
-              <span>A. Customer Submission</span>
+              <span>A. Your Upload</span>
               <span className="text-[10px] text-[#737373] font-sans">
                 {customerUpload?.format.toUpperCase() || 'RASTER'}
               </span>
@@ -385,7 +385,7 @@ export default function OrderDetailPage() {
           {/* Side B: Vector Reconstruction / Watermarked Preview */}
           <div className="flex flex-col rounded-xl border-2 border-[#141414] bg-white overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#141414] bg-[#141414] px-4 py-2 text-xs font-bold text-white">
-              <span>B. Artlantix Reconstructed Vector</span>
+              <span>B. Artlantix Redrawn Vector</span>
               <span className="text-[10px] text-[#18794E] uppercase font-sans">
                 {order.status === 'completed' ? 'Master Approved' : 'Watermarked Preview'}
               </span>
@@ -469,7 +469,7 @@ export default function OrderDetailPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h3 className="text-sm font-bold text-[#141414]">
-                  Do you approve this reconstructed vector draft?
+                  Do you approve this vector draft?
                 </h3>
                 <p className="text-xs text-[#737373] mt-1 max-w-xl">
                   Approval confirms the artwork and sends it to final packaging and quality control. Downloads appear only after the studio uploads and completes the master delivery.
@@ -507,14 +507,14 @@ export default function OrderDetailPage() {
               <span>Revision Request Received</span>
             </div>
             <p className="mt-1 text-[11px] text-yellow-800">
-              Your senior vector artist is applying your feedback. The portal will show an update once the revised draft is ready.
+              Your vector artist is applying your feedback. This page will update once the revised draft is ready.
             </p>
           </div>
         )}
         {order.status === 'approved' && (
           <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900">
             <div className="flex items-center gap-2 font-bold"><CheckCircle2 className="h-4 w-4" /><span>Artwork Approved</span></div>
-            <p className="mt-1 text-[11px]">The studio is packaging and quality-checking your master files. Downloads appear only after the operator completes delivery.</p>
+            <p className="mt-1 text-[11px]">The studio is packaging and quality-checking your master files. Downloads appear only after the studio completes delivery.</p>
           </div>
         )}
       </div>
@@ -527,11 +527,11 @@ export default function OrderDetailPage() {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                 <h2 className="text-base font-bold text-[#141414]">
-                  Production Master Deliverables (Unlocked)
+                  Production Master Files (Unlocked)
                 </h2>
               </div>
               <p className="text-xs text-[#737373] mt-0.5">
-                Archived permanently in your Artlantix Vault. Click any format badge to download immediately.
+                Also saved in your Artwork Vault. Click any format to download it.
               </p>
             </div>
 
@@ -594,21 +594,21 @@ export default function OrderDetailPage() {
 
             <form onSubmit={handleSubmitRevision} className="mt-4 space-y-4">
               <p className="text-xs text-[#737373] leading-relaxed">
-                Detail the precise adjustments required. Your senior artist will refine the vector contours (Round 1 of 2 included).
+                Describe the exact changes you need. Your artist will refine the vector contours (Round 1 of 2 included).
               </p>
 
               <RevisionAnnotator annotations={revisionAnnotations} onChange={setRevisionAnnotations} imageUrl={previewArtworkUrl || undefined} />
 
               <div>
                 <label className="block text-xs font-bold text-[#141414]">
-                  Revision Details &amp; Path Feedback
+                  Revision Details &amp; Feedback
                 </label>
                 <textarea
                   rows={4}
                   maxLength={INPUT_LIMITS.message}
                   value={revisionFeedback}
                   onChange={(e) => setRevisionFeedback(e.target.value)}
-                  placeholder="e.g., Please thicken the outer crest stroke by 0.5pt, slightly widen the serifs on the letter 'S', and remove the stray anchor node on the falcon eye..."
+                  placeholder="e.g., Please thicken the outer crest stroke by 0.5pt, slightly widen the serifs on the letter 'S', and remove the stray anchor point on the falcon’s eye…"
                   className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-3 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
                 />
               </div>

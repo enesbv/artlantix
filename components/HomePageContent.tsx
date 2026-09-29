@@ -19,7 +19,7 @@ export default function HomePageContent({ locale }: { locale: string }) {
   const lang = normalizeMarketingLocale(locale);
   const copy = marketingCopy[lang];
   const tierCopy = useTranslations('quote.complexityGuide');
-  const pricingHint = { tr: 'Başlangıç fiyatları · USD', en: 'Starting prices · USD', de: 'Startpreise · USD' }[lang];
+  const pricingHint = { tr: 'Başlangıç fiyatları · USD', en: 'Starting prices · USD', de: 'Einstiegspreise · USD' }[lang];
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS);
   useEffect(() => { getSiteSettings().then(setSettings).catch(() => undefined); }, []);
   const quotePath = localizedPath(lang, '/quote');
