@@ -1,4 +1,4 @@
--- Apply after schema.sql. This migration is not executed by the application.
+-- Applies after the 20260901000000 base schema. This migration is not executed by the application.
 BEGIN;
 
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS expected_delivery_at TIMESTAMPTZ;
