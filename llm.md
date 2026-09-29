@@ -154,9 +154,9 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 
 The homepage hero uses `HeroVectorArtwork`: an original code-native line-art crest with a pointer-following SVG mask and delayed trail exposing dark green contours and control nodes. Touch devices show the full drawing with a one-time stroke animation; reduced-motion users get a static full drawing. It is decorative, not an automatic vectorization tool, and has no external animation dependency.
 
-The homepage process section presents its four localized steps as numbered icon cards on a dark green background, with desktop connector arrows, a responsive one/two/four-column layout and a localized quote link.
+Below the hero, the homepage deliberately varies layouts instead of repeating card grids: a tabbed featured case study (problem/approach/outcome and deliverables), a sticky-heading service list with small illustrations, a dark process timeline with the four trust facts, a joined four-column pricing panel, and a combined FAQ accordion plus guides list.
 
-Homepage pricing shows one localized starting-price/USD label above the cards, CMS-backed tier amounts, localized complexity descriptions and quote links. Prices remain provisional; the custom-scope card has no fixed price. FAQ content is available on dedicated localized FAQ pages rather than the current homepage.
+Homepage pricing shows one localized starting-price/USD label above the panel, CMS-backed tier amounts, localized complexity descriptions and quote links. Prices remain provisional; the custom-scope column has no fixed price. The homepage shows the public FAQ list and links to the dedicated localized FAQ page.
 
 Update this document and the audit when fixing a listed limitation. Clearly distinguish local changes, committed code, pushed code, deployed code and applied database migrations. Use Git history for current revision status instead of maintaining a hardcoded commit hash here. Do not report tests, deployments, integrations or performance improvements that have not been verified.
 
