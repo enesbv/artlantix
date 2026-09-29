@@ -89,7 +89,7 @@ Supabase mode includes OAuth callback exchange, password-reset email requests, d
 ## Orders, pricing and files
 
 - The visual brand accent uses a Radix-inspired green scale: `#18794E` for primary actions and text, `#115C3B` for hover states, `#E9F9EE` for soft surfaces, and `#B4DFC4` for accent borders. Amber remains reserved for semantic pending/warning states rather than brand decoration.
-- The interface uses Geist Sans only. Do not load a monospace webfont, use the Tailwind `font-mono` utility, or reintroduce letter-spaced monospace eyebrow labels.
+- The interface uses Geist Sans for UI and body text and Instrument Serif (`font-display`, loaded in `app/layout.tsx`) for large homepage headlines. Do not load a monospace webfont, use the Tailwind `font-mono` utility, or reintroduce letter-spaced monospace eyebrow labels.
 - Order states: `quote_requested`, `in_review`, `in_progress`, `preview_ready`, `approved`, `revision_requested`, `completed`, `cancelled`. Customer approval enters `approved`; only an operator delivery moves the order to `completed`.
 - New order IDs use UUIDs; existing demo order IDs retain their original strings.
 - Base tiers: simple 25, standard 45, complex 75 USD. CMS can override base rates. Add-ons and express pricing are defined in `lib/pricing.ts`.
@@ -154,7 +154,7 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 
 The homepage hero uses `HeroVectorArtwork`: an original code-native line-art crest with a pointer-following SVG mask and delayed trail exposing dark green contours and control nodes. Touch devices show the full drawing with a one-time stroke animation; reduced-motion users get a static full drawing. It is decorative, not an automatic vectorization tool, and has no external animation dependency.
 
-Below the hero, the homepage deliberately varies layouts instead of repeating card grids: a tabbed featured case study (problem/approach/outcome and deliverables), a sticky-heading service list with small illustrations, a dark process timeline with the four trust facts, a joined four-column pricing panel, and a combined FAQ accordion plus guides list.
+The homepage uses an editorial ink/paper look: dark ink (#0B1611) hero with a large serif headline and the crest artwork in its `ink` tone, a lime (#C8F169) marquee of production uses, then numbered sections on warm paper (#F4F1EA/#EBE6DB): tabbed featured case study, indexed service list, dark process grid with trust facts, ruled pricing table, FAQ plus guides, and a large serif closing CTA. Layouts deliberately differ between sections instead of repeating card grids.
 
 Homepage pricing shows one localized starting-price/USD label above the panel, CMS-backed tier amounts, localized complexity descriptions and quote links. Prices remain provisional; the custom-scope column has no fixed price. The homepage shows the public FAQ list and links to the dedicated localized FAQ page.
 

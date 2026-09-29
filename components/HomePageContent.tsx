@@ -3,205 +3,264 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, Check, FileLock2, FolderCheck, PenTool, ScanSearch, ShieldCheck, Upload, UserCheck } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, FileLock2, FolderCheck, PenTool, ScanSearch, ShieldCheck, Upload, UserCheck } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MarketingVisual from '@/components/MarketingVisual';
 import HeroVectorArtwork from '@/components/HeroVectorArtwork';
-import ServiceVisual from '@/components/ServiceVisual';
-import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/services/content';
 import FaqList from '@/components/FaqList';
+import { DEFAULT_SITE_SETTINGS, getSiteSettings, SiteSettings } from '@/lib/services/content';
 import { customQuoteCopy } from '@/lib/custom-quote-copy';
 import { caseStudies, guides, localizedPath, marketingCopy, normalizeMarketingLocale, processSteps, publicFaqs, services, trustFacts } from '@/lib/marketing';
 
 const processIcons = [Upload, ScanSearch, PenTool, FolderCheck];
 const trustIcons = [PenTool, FileLock2, ShieldCheck, UserCheck];
-const caseLabels = {
-  tr: { challenge: 'Sorun', approach: 'Yaklaşım', outcome: 'Sonuç' },
-  en: { challenge: 'Problem', approach: 'Approach', outcome: 'Outcome' },
-  de: { challenge: 'Problem', approach: 'Vorgehen', outcome: 'Ergebnis' },
+
+const extraCopy = {
+  tr: {
+    uses: ['Baskı', 'Nakış', 'Tabela', 'CNC', 'Lazer kesim', 'DTF', 'Serigrafi', 'Folyo kesim', 'Web', 'Ambalaj'],
+    challenge: 'Sorun', approach: 'Yaklaşım', outcome: 'Sonuç',
+    heroMeta: ['Elle yeniden çizim', 'Otomatik izleme yok', 'Teklif onayından sonra ödeme'],
+    formats: 'Teslim',
+    finalLead: 'Dosyanı gönder,',
+    finalAccent: 'gerisi bizde.',
+  },
+  en: {
+    uses: ['Print', 'Embroidery', 'Signage', 'CNC', 'Laser cutting', 'DTF', 'Screen print', 'Vinyl cutting', 'Web', 'Packaging'],
+    challenge: 'Problem', approach: 'Approach', outcome: 'Outcome',
+    heroMeta: ['Redrawn by hand', 'No auto-trace', 'Pay after quote approval'],
+    formats: 'Delivered as',
+    finalLead: 'Send your file,',
+    finalAccent: 'we handle the rest.',
+  },
+  de: {
+    uses: ['Druck', 'Stickerei', 'Beschilderung', 'CNC', 'Laserschnitt', 'DTF', 'Siebdruck', 'Folienplot', 'Web', 'Verpackung'],
+    challenge: 'Problem', approach: 'Vorgehen', outcome: 'Ergebnis',
+    heroMeta: ['Von Hand neu gezeichnet', 'Kein Auto-Trace', 'Zahlung nach Freigabe'],
+    formats: 'Lieferung',
+    finalLead: 'Datei senden,',
+    finalAccent: 'den Rest machen wir.',
+  },
 } as const;
+
+function SectionHead({ index, label, dark = false, action }: { index: string; label: string; dark?: boolean; action?: React.ReactNode }) {
+  return (
+    <div className={`flex items-center justify-between gap-4 border-t pt-4 text-xs font-medium uppercase tracking-[0.18em] ${dark ? 'border-white/15 text-white/55' : 'border-[#0B1611]/15 text-[#6B6A63]'}`}>
+      <span className="flex items-center gap-3"><span className={dark ? 'text-[#C8F169]' : 'text-[#18794E]'}>{index}</span>{label}</span>
+      {action}
+    </div>
+  );
+}
 
 export default function HomePageContent({ locale }: { locale: string }) {
   const lang = normalizeMarketingLocale(locale);
   const copy = marketingCopy[lang];
+  const extra = extraCopy[lang];
+  const custom = customQuoteCopy[lang];
   const tierCopy = useTranslations('quote.complexityGuide');
   const pricingHint = { tr: 'Başlangıç fiyatları · USD', en: 'Starting prices · USD', de: 'Startpreise · USD' }[lang];
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS);
   useEffect(() => { getSiteSettings().then(setSettings).catch(() => undefined); }, []);
-  const quotePath = localizedPath(lang, '/quote');
   const [activeCase, setActiveCase] = useState(0);
   const study = caseStudies[activeCase];
-  const custom = customQuoteCopy[lang];
+  const quotePath = localizedPath(lang, '/quote');
+  const headline = 'font-display font-normal tracking-[-0.02em]';
+  const actionLink = (href: string, label: string, dark = false) => (
+    <Link href={href} className={`group inline-flex items-center gap-1.5 normal-case tracking-normal ${dark ? 'text-white hover:text-[#C8F169]' : 'text-[#0B1611] hover:text-[#18794E]'}`}>{label}<ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></Link>
+  );
 
   return (
-    <div className="min-h-screen bg-[#F9F8F6] text-[#141414]">
+    <div className="min-h-screen bg-[#F4F1EA] text-[#0B1611]">
       <Navbar />
       <main>
-        <section className="relative overflow-hidden border-b border-[#DAD8D2]">
-          <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8 lg:py-28">
-            <div>
-              <h1 className="text-5xl font-black leading-[0.92] tracking-[-0.055em] text-[#102A20] sm:text-7xl lg:text-[5.4rem]">
-                {copy.home.titleLines.map((line, index) => <span key={line} className={`block ${index === 1 ? 'mt-[0.045em] text-[#18794E]' : ''}`}>{line}</span>)}
+        <section className="relative isolate overflow-hidden bg-[#0B1611] text-[#F4F1EA]">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 opacity-[0.07] [background-image:linear-gradient(#C8F169_1px,transparent_1px),linear-gradient(90deg,#C8F169_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(ellipse_at_70%_40%,black,transparent_75%)]" />
+          <div aria-hidden="true" className="pointer-events-none absolute -right-32 top-0 -z-10 h-[640px] w-[640px] rounded-full bg-[#18794E]/35 blur-[140px]" />
+          <div className="mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 sm:pt-10 lg:px-8">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-white/10 pb-4 text-[11px] font-medium uppercase tracking-[0.18em] text-white/50">
+              <span className="text-[#C8F169]">{copy.home.eyebrow}</span>
+              {extra.heroMeta.map((item) => <span key={item} className="hidden sm:inline">{item}</span>)}
+            </div>
+            <div className="relative grid items-center lg:grid-cols-[1.25fr_0.75fr]">
+              <h1 className={`${headline} relative z-10 pt-10 text-[4.2rem] leading-[0.86] sm:text-[7.5rem] lg:pt-0 lg:text-[10.5rem]`}>
+                <span className="block">{copy.home.titleLines[0]}</span>
+                <span className="block italic text-[#C8F169]">{copy.home.titleLines[1].toLocaleLowerCase(lang)}.</span>
               </h1>
-              <p className="mt-7 max-w-xl text-lg leading-8 text-[#5E625F]">{copy.home.description}</p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href={quotePath} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#18794E] px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#115C3B]">{copy.home.primary}<ArrowRight className="h-4 w-4" /></Link>
-                <Link href="#work" className="inline-flex items-center justify-center rounded-xl border border-[#BFC5C0] bg-white px-6 py-3.5 text-sm font-bold text-[#102A20] transition hover:border-[#18794E]">{copy.home.secondary}</Link>
-              </div>
-              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-[#5E625F]">
-                {['AI', 'EPS', 'SVG', 'PDF', 'PNG'].map((format) => <span key={format} className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#18794E]" />{format}</span>)}
-              </div>
+              <div className="relative mx-auto -mt-4 w-full max-w-[320px] sm:max-w-[440px] lg:-ml-24 lg:mt-0 lg:max-w-none"><HeroVectorArtwork tone="ink" /></div>
             </div>
-            <HeroVectorArtwork />
-          </div>
-        </section>
-
-        <section id="work" className="scroll-mt-24 border-b border-[#DAD8D2] bg-[#FCFDFB]">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-              <h2 className="max-w-3xl text-balance text-3xl font-semibold leading-[1.15] tracking-[-0.04em] text-[#102A20] sm:text-4xl">{copy.home.workTitle}</h2>
-              <div role="tablist" aria-label={copy.home.workEyebrow} className="flex gap-1 overflow-x-auto rounded-xl border border-[#DAD8D2] bg-white p-1">
-                {caseStudies.map((item, index) => (
-                  <button key={item.slug} role="tab" type="button" aria-selected={index === activeCase} onClick={() => setActiveCase(index)} className={`shrink-0 rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${index === activeCase ? 'bg-[#102A20] text-white' : 'text-[#5E625F] hover:text-[#102A20]'}`}>
-                    {item.category[lang].split('·').pop()?.trim()}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div role="tabpanel" className="mt-8 grid overflow-hidden rounded-3xl border border-[#DAD8D2] bg-white lg:grid-cols-[1fr_1.1fr]">
-              <div className="p-3 [&>div]:h-full"><MarketingVisual key={study.slug} kind={study.visual} /></div>
-              <div className="flex flex-col p-6 sm:p-10">
-                <span className="self-start rounded-full bg-[#E9F9EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">{copy.common.demo}</span>
-                <h3 className="mt-4 text-2xl font-semibold tracking-tight text-[#102A20] sm:text-3xl">{study.title[lang]}</h3>
-                <dl className="mt-6 divide-y divide-[#EAE8E3] border-y border-[#EAE8E3]">
-                  {(['challenge', 'approach', 'outcome'] as const).map((key, index) => (
-                    <div key={key} className="grid gap-1 py-4 sm:grid-cols-[110px_1fr] sm:gap-6">
-                      <dt className="flex items-center gap-2 text-sm font-semibold text-[#18794E]"><span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E9F9EE] text-[10px] tabular-nums">{index + 1}</span>{caseLabels[lang][key]}</dt>
-                      <dd className="text-sm leading-6 text-[#5E625F]">{study[key][lang]}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {study.deliverables[lang].map((item) => <span key={item} className="rounded-full border border-[#DDE5DE] px-3 py-1 text-xs text-[#5E625F]">{item}</span>)}
-                </div>
-                <div className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-3 pt-8">
-                  <Link href={localizedPath(lang, `/work/${study.slug}`)} className="inline-flex items-center gap-2 rounded-xl bg-[#18794E] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#115C3B]">{copy.common.viewCase}<ArrowRight className="h-4 w-4" /></Link>
-                  <Link href={localizedPath(lang, '/work')} className="inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.allWork}<ArrowRight className="h-4 w-4" /></Link>
-                </div>
+            <div className="mt-6 grid gap-8 border-t border-white/10 pt-8 lg:mt-2 lg:grid-cols-[1fr_auto] lg:items-end">
+              <p className="max-w-xl text-lg leading-8 text-white/70">{copy.home.description}</p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link href={quotePath} className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#C8F169] px-7 text-sm font-semibold text-[#0B1611] transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#C8F169]">{copy.home.primary}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></Link>
+                <Link href="#work" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/20 px-7 text-sm font-semibold text-white transition hover:border-white/50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">{copy.home.secondary}</Link>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="services" className="scroll-mt-24 mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16 lg:px-8">
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <h2 className="text-balance text-3xl font-semibold leading-[1.15] tracking-[-0.04em] text-[#102A20] sm:text-4xl">{copy.home.servicesTitle}</h2>
-            <p className="mt-4 max-w-md text-sm leading-7 text-[#697467]">{copy.home.servicesBody}</p>
-            <Link href={localizedPath(lang, '/services')} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.allServices}<ArrowRight className="h-4 w-4" /></Link>
-          </div>
-          <ul className="divide-y divide-[#DAD8D2] border-y border-[#DAD8D2]">
-            {services.slice(0, 6).map((service) => (
-              <li key={service.slug}>
-                <Link href={localizedPath(lang, `/services/${service.slug}`)} className="group grid items-center gap-4 py-5 sm:grid-cols-[150px_1fr_auto] sm:gap-6">
-                  <div className="hidden sm:block [&>div]:mb-0 [&_svg]:h-[72px]"><ServiceVisual slug={service.slug} /></div>
-                  <div>
-                    <h3 className="text-lg font-semibold tracking-tight text-[#102A20] transition-colors group-hover:text-[#18794E]">{service.title[lang]}</h3>
-                    <p className="mt-1 text-sm leading-6 text-[#5E625F]">{service.short[lang]}</p>
-                    <p className="mt-2 text-xs text-[#697467]">{copy.common.from} <strong className="text-[#102A20]">${service.startingPrice}</strong> · {service.turnaround[lang]}</p>
-                  </div>
-                  <span aria-hidden="true" className="hidden h-10 w-10 items-center justify-center rounded-full border border-[#DAD8D2] text-[#18794E] transition group-hover:border-[#18794E] group-hover:bg-[#18794E] group-hover:text-white sm:flex"><ArrowRight className="h-4 w-4" /></span>
-                </Link>
-              </li>
+        <div className="overflow-hidden border-y border-[#0B1611] bg-[#C8F169] py-4 text-[#0B1611]" aria-label={extra.uses.join(', ')}>
+          <div aria-hidden="true" className="animate-marquee flex w-max">
+            {[0, 1].map((copyIndex) => (
+              <div key={copyIndex} className="flex shrink-0 items-center">
+                {extra.uses.map((use) => <span key={use} className={`${headline} flex items-center gap-8 pr-8 text-3xl italic sm:text-4xl`}>{use}<span className="h-2 w-2 rotate-45 bg-[#0B1611]" /></span>)}
+              </div>
             ))}
-          </ul>
+          </div>
+        </div>
+
+        <section id="work" className="scroll-mt-24 mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+          <SectionHead index="01" label={copy.home.workEyebrow} action={actionLink(localizedPath(lang, '/work'), copy.home.allWork)} />
+          <div className="mt-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+            <h2 className={`${headline} max-w-3xl text-5xl leading-[0.95] sm:text-6xl lg:text-7xl`}>{copy.home.workTitle}</h2>
+            <div role="tablist" aria-label={copy.home.workEyebrow} className="flex gap-6 overflow-x-auto border-b border-[#0B1611]/15">
+              {caseStudies.map((item, index) => (
+                <button key={item.slug} role="tab" type="button" aria-selected={index === activeCase} onClick={() => setActiveCase(index)} className={`-mb-px shrink-0 border-b-2 pb-3 text-sm font-semibold transition-colors ${index === activeCase ? 'border-[#0B1611] text-[#0B1611]' : 'border-transparent text-[#6B6A63] hover:text-[#0B1611]'}`}>
+                  <span className="mr-2 text-[#18794E]">0{index + 1}</span>{item.category[lang].split('·').pop()?.trim()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div role="tabpanel" className="mt-12 grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+            <div className="[&>div]:rounded-none [&>div]:border-0 [&>div]:min-h-[380px] lg:[&>div]:min-h-[560px]"><MarketingVisual key={study.slug} kind={study.visual} /></div>
+            <div className="flex flex-col">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#6B6A63]">{copy.common.demo}</p>
+              <h3 className={`${headline} mt-4 text-4xl leading-[1.02] sm:text-5xl`}>{study.title[lang]}</h3>
+              <dl className="mt-8 border-t border-[#0B1611]/15">
+                {(['challenge', 'approach', 'outcome'] as const).map((key) => (
+                  <div key={key} className="grid gap-2 border-b border-[#0B1611]/15 py-5 sm:grid-cols-[120px_1fr] sm:gap-6">
+                    <dt className={`${headline} text-2xl italic text-[#18794E]`}>{extra[key]}</dt>
+                    <dd className="text-[15px] leading-7 text-[#3F4540]">{study[key][lang]}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {study.deliverables[lang].map((item) => <span key={item} className="border border-[#0B1611]/20 px-3 py-1.5 text-xs text-[#3F4540]">{item}</span>)}
+              </div>
+              <Link href={localizedPath(lang, `/work/${study.slug}`)} className="group mt-8 inline-flex min-h-12 items-center gap-2 self-start rounded-full bg-[#0B1611] px-7 text-sm font-semibold text-[#F4F1EA] transition hover:bg-[#18794E]">{copy.common.viewCase}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></Link>
+            </div>
+          </div>
         </section>
 
-        <section id="process" aria-labelledby="process-heading" className="relative isolate scroll-mt-24 overflow-hidden bg-[#102A20] text-white">
-          <div aria-hidden="true" className="pointer-events-none absolute -right-40 -top-60 -z-10 h-[580px] w-[580px] rounded-full bg-[#18794E]/25 blur-[100px]" />
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-              <h2 id="process-heading" className="max-w-2xl text-3xl font-semibold leading-[1.15] tracking-[-0.04em] sm:text-4xl">{copy.home.processTitle}</h2>
-              <Link href={quotePath} className="inline-flex shrink-0 items-center gap-3 self-start rounded-full border border-[#B4DFC4]/30 px-5 py-3 text-sm font-semibold text-[#DFF7E7] transition-colors hover:border-[#B4DFC4]/60 hover:bg-white/5 md:self-auto">{copy.home.primary}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+        <section id="services" className="scroll-mt-24 bg-[#EBE6DB]">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+            <SectionHead index="02" label={copy.home.servicesEyebrow} action={actionLink(localizedPath(lang, '/services'), copy.home.allServices)} />
+            <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-end">
+              <h2 className={`${headline} text-5xl leading-[0.95] sm:text-6xl lg:text-7xl`}>{copy.home.servicesTitle}</h2>
+              <p className="max-w-md text-[15px] leading-7 text-[#3F4540] lg:justify-self-end">{copy.home.servicesBody}</p>
             </div>
-            <ol className="relative mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-              <span aria-hidden="true" className="absolute left-7 right-7 top-7 hidden h-px bg-gradient-to-r from-[#B4DFC4]/10 via-[#B4DFC4]/40 to-[#B4DFC4]/10 lg:block" />
+            <ol className="mt-14 border-t border-[#0B1611]">
+              {services.slice(0, 6).map((service, index) => (
+                <li key={service.slug}>
+                  <Link href={localizedPath(lang, `/services/${service.slug}`)} className="group relative grid grid-cols-[44px_1fr] items-center gap-x-4 border-b border-[#0B1611]/20 py-6 transition-colors hover:bg-[#0B1611] hover:text-[#F4F1EA] sm:grid-cols-[64px_1fr_48px] sm:gap-x-6 sm:px-4">
+                    <span className={`${headline} self-start text-3xl leading-none text-[#18794E] group-hover:text-[#C8F169] sm:self-center`}>0{index + 1}</span>
+                    <div className="grid gap-2 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-10">
+                      <h3 className={`${headline} text-3xl leading-tight sm:text-4xl`}>{service.title[lang]}</h3>
+                      <div>
+                        <p className="text-sm leading-6 text-[#3F4540] group-hover:text-white/70">{service.short[lang]}</p>
+                        <p className="mt-1 text-sm text-[#3F4540] group-hover:text-white/70"><span className="font-semibold text-[#0B1611] group-hover:text-[#C8F169]">{copy.common.from} ${service.startingPrice}</span> · {service.turnaround[lang]}</p>
+                      </div>
+                    </div>
+                    <span aria-hidden="true" className="hidden h-11 w-11 items-center justify-center rounded-full border border-current transition group-hover:border-[#C8F169] group-hover:bg-[#C8F169] group-hover:text-[#0B1611] sm:flex"><ArrowUpRight className="h-4 w-4" /></span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section id="process" aria-labelledby="process-heading" className="relative isolate scroll-mt-24 overflow-hidden bg-[#0B1611] text-[#F4F1EA]">
+          <div aria-hidden="true" className="pointer-events-none absolute -left-40 bottom-0 -z-10 h-[520px] w-[520px] rounded-full bg-[#18794E]/30 blur-[140px]" />
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+            <SectionHead index="03" label={copy.home.processEyebrow} dark action={actionLink(quotePath, copy.home.primary, true)} />
+            <h2 id="process-heading" className={`${headline} mt-10 max-w-4xl text-5xl leading-[0.95] sm:text-6xl lg:text-7xl`}>{copy.home.processTitle}</h2>
+            <ol className="mt-16 grid gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
               {processSteps[lang].map((step, index) => {
                 const Icon = processIcons[index];
                 return (
-                  <li key={step.title} className="relative">
-                    <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-[#B4DFC4]/25 bg-[#163629] text-[#A6E3BD]"><Icon className="h-6 w-6" strokeWidth={1.5} aria-hidden="true" /><span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#78D5A6] text-[11px] font-bold tabular-nums text-[#0B1F17]">{index + 1}</span></span>
-                    <h3 className="mt-6 text-lg font-semibold tracking-tight text-[#F0FAF3]">{step.title}</h3>
-                    <p className="mt-2 max-w-xs text-sm leading-7 text-[#B8CBBF]">{step.text}</p>
+                  <li key={step.title} className="group bg-[#0B1611] p-6 transition-colors hover:bg-[#12211A] sm:p-8">
+                    <div className="flex items-start justify-between">
+                      <span className={`${headline} text-7xl leading-none text-[#C8F169]`}>{index + 1}</span>
+                      <Icon className="h-6 w-6 text-white/40 transition-colors group-hover:text-[#C8F169]" strokeWidth={1.5} aria-hidden="true" />
+                    </div>
+                    <h3 className="mt-10 text-lg font-semibold">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-7 text-white/60">{step.text}</p>
                   </li>
                 );
               })}
             </ol>
-            <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-[#B4DFC4]/15 bg-[#B4DFC4]/15 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {trustFacts[lang].map((fact, index) => {
                 const Icon = trustIcons[index];
-                return <div key={fact.title} className="bg-[#12301F] p-6"><Icon className="h-5 w-5 text-[#78D5A6]" strokeWidth={1.75} aria-hidden="true" /><h3 className="mt-4 text-sm font-semibold text-[#F0FAF3]">{fact.title}</h3><p className="mt-2 text-sm leading-6 text-[#9AB9A6]">{fact.text}</p></div>;
+                return <div key={fact.title} className="border-l border-[#C8F169]/40 pl-5"><Icon className="h-5 w-5 text-[#C8F169]" strokeWidth={1.5} aria-hidden="true" /><h3 className="mt-4 text-sm font-semibold">{fact.title}</h3><p className="mt-2 text-sm leading-6 text-white/55">{fact.text}</p></div>;
               })}
             </div>
           </div>
         </section>
 
-        <section id="pricing" className="scroll-mt-24 border-b border-[#DAD8D2] bg-[#FCFDFB]">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end lg:gap-16">
-              <div className="max-w-3xl">
-                <p className="mb-4 text-xs font-semibold text-[#18794E]">{pricingHint}</p>
-                <h2 className="text-3xl font-semibold leading-[1.15] tracking-[-0.04em] text-[#102A20] sm:text-4xl">{copy.home.pricingTitle}</h2>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-[#697467]">{copy.home.pricingBody}</p>
-              </div>
-              <Link href={localizedPath(lang, '/pricing')} className="inline-flex shrink-0 items-center gap-2 self-start text-sm font-bold text-[#18794E] lg:self-auto">{copy.home.fullPricing}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
-            </div>
-            <div className="mt-10 grid overflow-hidden rounded-3xl border border-[#DAD8D2] bg-white sm:grid-cols-2 lg:grid-cols-4">
-              {(['simple', 'standard', 'complex'] as const).map((tier, index) => {
-                const featured = index === 1;
-                return (
-                  <div key={tier} className={`flex flex-col border-b border-[#EAE8E3] p-7 sm:border-r lg:border-b-0 ${featured ? 'bg-[#F3FBF6]' : ''}`}>
-                    <h3 className="text-sm font-semibold text-[#102A20]">{copy.common[tier]}</h3>
-                    <p className="mt-5 text-5xl font-semibold tracking-[-0.045em] text-[#102A20]"><span className="mr-1 align-top text-2xl leading-10 text-[#697467]">$</span>{settings[`${tier}_tier_price`]}</p>
-                    <p className="mb-8 mt-4 text-sm leading-6 text-[#5E6C62]">{tierCopy(`${tier}Description`)}</p>
-                    <Link href={quotePath} className={`mt-auto inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${featured ? 'bg-[#18794E] text-white hover:bg-[#115C3B]' : 'border border-[#D5E3D9] text-[#18794E] hover:border-[#18794E]'}`}>{copy.home.primary}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
-                  </div>
-                );
-              })}
-              <div className="flex flex-col bg-[#102A20] p-7 text-white">
-                <h3 className="text-sm font-semibold text-[#A6E3BD]">{custom.title}</h3>
-                <p className="mt-5 text-2xl font-semibold leading-tight tracking-tight">{custom.pending}</p>
-                <p className="mb-8 mt-4 text-sm leading-6 text-[#B8CBBF]">{custom.description}</p>
-                <Link href={`${quotePath}?review=1`} className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 px-4 py-3 text-sm font-semibold transition-colors hover:bg-white/10">{custom.action}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
-              </div>
+        <section id="pricing" className="scroll-mt-24 mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+          <SectionHead index="04" label={pricingHint} action={actionLink(localizedPath(lang, '/pricing'), copy.home.fullPricing)} />
+          <div className="mt-10 grid gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
+            <h2 className={`${headline} text-5xl leading-[0.95] sm:text-6xl lg:text-7xl`}>{copy.home.pricingTitle}</h2>
+            <p className="max-w-md text-[15px] leading-7 text-[#3F4540] lg:justify-self-end">{copy.home.pricingBody}</p>
+          </div>
+          <div className="mt-14 grid border-t border-[#0B1611] sm:grid-cols-2 lg:grid-cols-4">
+            {(['simple', 'standard', 'complex'] as const).map((tier, index) => {
+              const featured = index === 1;
+              return (
+                <div key={tier} className={`flex flex-col border-b border-[#0B1611]/20 px-1 py-8 sm:px-6 lg:border-b-0 lg:border-r ${featured ? 'bg-[#E4EEDC] px-6' : ''}`}>
+                  <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-[#6B6A63]">{copy.common[tier]}</h3>
+                  <p className={`${headline} mt-6 text-8xl leading-none`}><span className="mr-1 align-top text-4xl text-[#6B6A63]">$</span>{settings[`${tier}_tier_price`]}</p>
+                  <p className="mb-8 mt-6 text-sm leading-6 text-[#3F4540]">{tierCopy(`${tier}Description`)}</p>
+                  <Link href={quotePath} className={`group mt-auto inline-flex min-h-12 items-center justify-between gap-2 rounded-full px-6 text-sm font-semibold transition ${featured ? 'bg-[#0B1611] text-[#F4F1EA] hover:bg-[#18794E]' : 'border border-[#0B1611]/25 hover:border-[#0B1611]'}`}>{copy.home.primary}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></Link>
+                </div>
+              );
+            })}
+            <div className="flex flex-col bg-[#0B1611] p-6 text-[#F4F1EA] sm:py-8">
+              <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-[#C8F169]">{custom.title}</h3>
+              <p className={`${headline} mt-6 text-4xl italic leading-[1.05]`}>{custom.pending}</p>
+              <p className="mb-8 mt-6 text-sm leading-6 text-white/60">{custom.description}</p>
+              <Link href={`${quotePath}?review=1`} className="group mt-auto inline-flex min-h-12 items-center justify-between gap-2 rounded-full bg-[#C8F169] px-6 text-sm font-semibold text-[#0B1611] transition hover:bg-white">{custom.action}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></Link>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16 lg:px-8">
-          <div>
-            <h2 className="text-3xl font-semibold leading-[1.15] tracking-[-0.04em] text-[#102A20] sm:text-4xl">{copy.home.faqTitle}</h2>
-            <div className="mt-8"><FaqList items={publicFaqs[lang]} /></div>
-            <Link href={localizedPath(lang, '/faq')} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.faqEyebrow}<ArrowRight className="h-4 w-4" /></Link>
-          </div>
-          <div className="rounded-3xl bg-[#F1EFEA] p-6 sm:p-8 lg:self-start">
-            <h2 className="text-xl font-semibold tracking-tight text-[#102A20]">{copy.home.guidesTitle}</h2>
-            <ul className="mt-6 space-y-3">
-              {guides.map((guide) => (
-                <li key={guide.slug}>
-                  <Link href={localizedPath(lang, `/guides/${guide.slug}`)} className="group flex items-start justify-between gap-4 rounded-2xl bg-white p-5 transition hover:shadow-md">
-                    <span><span className="block font-semibold text-[#102A20]">{guide.title[lang]}</span><span className="mt-1 block text-sm leading-6 text-[#5E625F]">{guide.excerpt[lang]}</span></span>
-                    <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[#18794E] transition-transform group-hover:translate-x-1" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Link href={localizedPath(lang, '/guides')} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.home.allGuides}<ArrowRight className="h-4 w-4" /></Link>
+        <section className="border-t border-[#0B1611]/15 bg-[#EBE6DB]">
+          <div className="mx-auto grid max-w-7xl gap-16 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[1.2fr_0.8fr] lg:px-8">
+            <div>
+              <SectionHead index="05" label={copy.home.faqEyebrow} action={actionLink(localizedPath(lang, '/faq'), copy.home.faqEyebrow)} />
+              <h2 className={`${headline} mt-10 text-5xl leading-[0.95] sm:text-6xl`}>{copy.home.faqTitle}</h2>
+              <div className="mt-10"><FaqList items={publicFaqs[lang]} /></div>
+            </div>
+            <div>
+              <SectionHead index="06" label={copy.home.guidesEyebrow} action={actionLink(localizedPath(lang, '/guides'), copy.home.allGuides)} />
+              <ul className="mt-10 space-y-4">
+                {guides.map((guide) => (
+                  <li key={guide.slug}>
+                    <Link href={localizedPath(lang, `/guides/${guide.slug}`)} className="group block border border-[#0B1611]/15 bg-[#F4F1EA] p-6 transition hover:border-[#0B1611] hover:bg-white">
+                      <span className="flex items-start justify-between gap-4"><span className={`${headline} text-2xl leading-tight`}>{guide.title[lang]}</span><ArrowUpRight className="mt-1 h-5 w-5 shrink-0 text-[#18794E] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></span>
+                      <span className="mt-3 block text-sm leading-6 text-[#3F4540]">{guide.excerpt[lang]}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
 
-        <section className="bg-[#18794E] text-white"><div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-16 sm:px-6 md:flex-row md:items-center lg:px-8"><div><h2 className="max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">{copy.home.finalTitle}</h2><p className="mt-3 max-w-2xl text-white/75">{copy.home.finalBody}</p></div><Link href={`${quotePath}?review=1`} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-[#115C3B]">{copy.home.primary}<ArrowRight className="h-4 w-4" /></Link></div></section>
+        <section className="relative isolate overflow-hidden bg-[#0B1611] text-[#F4F1EA]">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 opacity-[0.06] [background-image:linear-gradient(#C8F169_1px,transparent_1px),linear-gradient(90deg,#C8F169_1px,transparent_1px)] [background-size:64px_64px]" />
+          <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+            <h2 className={`${headline} text-6xl leading-[0.9] sm:text-8xl lg:text-[8.5rem]`}>{extra.finalLead}<br /><span className="italic text-[#C8F169]">{extra.finalAccent}</span></h2>
+            <div className="mt-12 flex flex-col gap-8 border-t border-white/10 pt-8 lg:flex-row lg:items-center lg:justify-between">
+              <p className="max-w-xl text-lg leading-8 text-white/65">{copy.home.finalBody}</p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link href={`${quotePath}?review=1`} className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#C8F169] px-7 text-sm font-semibold text-[#0B1611] transition hover:bg-white">{copy.home.primary}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></Link>
+                <span className="inline-flex min-h-12 items-center justify-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-white/45">{extra.formats} · AI · EPS · SVG · PDF · PNG</span>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
       <Footer />
     </div>

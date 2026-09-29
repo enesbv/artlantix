@@ -24,7 +24,13 @@ function Drawing() {
   </g>;
 }
 
-export default function HeroVectorArtwork() {
+const tones = {
+  light: { wash: '#D9EFE0', washOpacity: '.65', grid: '#18794E', guide: '#18794E', faint: '#9CB8A6', line: '#115C3B', accent: '#18794E', fill: '#F9F8F6' },
+  ink: { wash: '#1D4A33', washOpacity: '.55', grid: '#C8F169', guide: '#C8F169', faint: '#35523F', line: '#E9F5EC', accent: '#C8F169', fill: '#0B1611' },
+} as const;
+
+export default function HeroVectorArtwork({ tone = 'light' }: { tone?: keyof typeof tones }) {
+  const c = tones[tone];
   const id = useId().replace(/:/g, '');
   const svgRef = useRef<SVGSVGElement>(null);
   const spotRef = useRef<SVGGElement>(null);
@@ -46,8 +52,8 @@ export default function HeroVectorArtwork() {
       <svg ref={svgRef} viewBox="0 0 520 520" className={styles.svg}>
         <defs>
           <radialGradient id={`${id}-light`}><stop offset="0" stopColor="white" /><stop offset=".55" stopColor="white" stopOpacity=".95" /><stop offset="1" stopColor="white" stopOpacity="0" /></radialGradient>
-          <radialGradient id={`${id}-wash`}><stop stopColor="#D9EFE0" stopOpacity=".65" /><stop offset="1" stopColor="#D9EFE0" stopOpacity="0" /></radialGradient>
-          <pattern id={`${id}-grid`} width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill="#18794E" opacity=".16" /></pattern>
+          <radialGradient id={`${id}-wash`}><stop stopColor={c.wash} stopOpacity={c.washOpacity} /><stop offset="1" stopColor={c.wash} stopOpacity="0" /></radialGradient>
+          <pattern id={`${id}-grid`} width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill={c.grid} opacity=".16" /></pattern>
           <mask id={`${id}-mask`} maskUnits="userSpaceOnUse" x="0" y="0" width="520" height="520">
             <g ref={trailRef} className={styles.trail}><circle r="165" fill={`url(#${id}-light)`} opacity=".5" /></g>
             <g ref={spotRef} className={styles.spot}><circle r="140" fill={`url(#${id}-light)`} /></g>
@@ -55,12 +61,12 @@ export default function HeroVectorArtwork() {
         </defs>
         <circle cx="260" cy="260" r="250" fill={`url(#${id}-wash)`} />
         <circle cx="260" cy="260" r="235" fill={`url(#${id}-grid)`} />
-        <g stroke="#18794E" strokeWidth="1" opacity=".12" fill="none"><circle cx="260" cy="250" r="208" /><path d="M260 12v490M26 250h468" strokeDasharray="3 7" /></g>
-        <g stroke="#9CB8A6" strokeWidth="1.25" opacity=".48"><Drawing /></g>
+        <g stroke={c.guide} strokeWidth="1" opacity=".12" fill="none"><circle cx="260" cy="250" r="208" /><path d="M260 12v490M26 250h468" strokeDasharray="3 7" /></g>
+        <g stroke={c.faint} strokeWidth="1.25" opacity=".48"><Drawing /></g>
         <g className={styles.reveal} mask={`url(#${id}-mask)`}>
-          <g stroke="#115C3B" strokeWidth="1.8"><Drawing /></g>
-          <g stroke="#18794E" strokeWidth=".8" fill="none" opacity=".65"><path d="M434 225v92M86 225v92M181 318l-37-49M339 318l37-49M260 462l-61-28m61 28 61-28" />{[[434,317],[86,317],[144,269],[376,269],[199,434],[321,434]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="3" fill="#F9F8F6" />)}</g>
-          <g fill="#F9F8F6" stroke="#18794E" strokeWidth="1.2">{nodes.map(([x,y]) => <rect key={`${x}-${y}`} x={x-3} y={y-3} width="6" height="6" rx=".7" />)}</g>
+          <g stroke={c.line} strokeWidth="1.8"><Drawing /></g>
+          <g stroke={c.accent} strokeWidth=".8" fill="none" opacity=".65"><path d="M434 225v92M86 225v92M181 318l-37-49M339 318l37-49M260 462l-61-28m61 28 61-28" />{[[434,317],[86,317],[144,269],[376,269],[199,434],[321,434]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="3" fill={c.fill} />)}</g>
+          <g fill={c.fill} stroke={c.accent} strokeWidth="1.2">{nodes.map(([x,y]) => <rect key={`${x}-${y}`} x={x-3} y={y-3} width="6" height="6" rx=".7" />)}</g>
         </g>
       </svg>
     </div>

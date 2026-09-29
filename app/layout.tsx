@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { cookies } from 'next/headers';
@@ -10,6 +10,13 @@ import trMessages from '@/messages/tr.json';
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+});
+
+const displaySerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin", "latin-ext"],
+  weight: "400",
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -37,7 +44,7 @@ export default async function RootLayout({
   const locale = requestedLocale === 'de' || requestedLocale === 'tr' ? requestedLocale : 'en';
   const messageSets = { en: enMessages, de: deMessages, tr: trMessages };
   return (
-    <html lang={locale} className={`${geistSans.variable} h-full antialiased`}>
+    <html lang={locale} className={`${geistSans.variable} ${displaySerif.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[#F9F8F6] text-[#141414]">
         <NextIntlClientProvider messages={messageSets[locale]} locale={locale}>{children}</NextIntlClientProvider>
       </body>
