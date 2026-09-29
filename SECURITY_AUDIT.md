@@ -30,6 +30,8 @@ Kod kontrolleri temizdir: 13 test, ESLint, TypeScript ve production build geçmi
 
 Temel şema ve `security_advisor_hardening_20260916` canlı projeye MCP ile transaction olarak uygulandı; `profiles`, `orders`, `order_files`, `order_messages`, `site_settings` ve `portfolio_items` tablolarında RLS açık olduğu doğrulandı. Trigger-only `handle_new_user` ve Supabase'in otomatik RLS event fonksiyonunun Data API çalıştırma yetkileri kaldırıldı. Kimliği yalnız `auth.uid()` üzerinden türeten, veri değiştirmeyen policy helper fonksiyonları doğrudan RPC çağrısında da yalnız boolean döndürdüğü için bilinçli advisor uyarıları olarak kaldı. Buna rağmen iki ayrı müşteri ve bir admin JWT'siyle pozitif/negatif tenant testi henüz yapılmadı.
 
+**29 Eylül ilerlemesi:** `supabase/tests/database/tenant_matrix.test.sql`, iki müşteri + bir operatörle 26 izin/red kontrolünü (profil yükseltme, fiyat/durum değişimi, çapraz tenant sipariş/mesaj/dosya, sahte operatör mesajı, private bucket listeleme, bağlı upload silme, tarama karantinası, tamamlanma öncesi master kilidi) yerel Supabase'de çalıştırır ve CI `database-security` işinde koşar. Canlı projede aynı matris henüz çalıştırılmadı.
+
 **Kapatma ölçütü:** Farklı tenant'larla profil, order, message, order_files ve üç private bucket için izin/red matrisini otomatik test et; kalan bilinçli advisor uyarılarını dokümante et veya helper'ları exposed olmayan bir şemaya taşı.
 
 ### H-02 — Malware karantinası hazır, production engine aktivasyonu bekliyor
