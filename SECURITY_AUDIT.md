@@ -26,7 +26,7 @@ Kod kontrolleri temizdir: 13 test, ESLint, TypeScript ve production build geçmi
 ### H-01 — Canlı migration uygulandı, tenant izolasyonu uçtan uca kanıtlanmadı
 
 **Durum:** AÇIK / DEPLOYMENT ENGELİ
-**Konum:** `supabase/schema.sql`, `supabase/migrations/20260907_access_hardening.sql`, `supabase/migrations/20260916_production_workflows.sql`
+**Konum:** `supabase/schema.sql`, `supabase/migrations/20260907000000_access_hardening.sql`, `supabase/migrations/20260916000000_production_workflows.sql`
 
 Temel şema ve `security_advisor_hardening_20260916` canlı projeye MCP ile transaction olarak uygulandı; `profiles`, `orders`, `order_files`, `order_messages`, `site_settings` ve `portfolio_items` tablolarında RLS açık olduğu doğrulandı. Trigger-only `handle_new_user` ve Supabase'in otomatik RLS event fonksiyonunun Data API çalıştırma yetkileri kaldırıldı. Kimliği yalnız `auth.uid()` üzerinden türeten, veri değiştirmeyen policy helper fonksiyonları doğrudan RPC çağrısında da yalnız boolean döndürdüğü için bilinçli advisor uyarıları olarak kaldı. Buna rağmen iki ayrı müşteri ve bir admin JWT'siyle pozitif/negatif tenant testi henüz yapılmadı.
 
@@ -101,4 +101,4 @@ Kod tabanı quote-first yayın modeline hazırlanmıştır; ancak H-01 ve H-02 d
 
 ## 17 Eylül 2026 — Ek hizmet fiyatları
 
-`20260917_agency_services.sql` yerelde hazırlandı; canlı veritabanına uygulanmadı. Üç ajans hizmeti ayrı ayrı 50 USD; veritabanı yalnız izin verilen hizmet kimliklerini kabul eder, tekrarları tekilleştirir ve ek hizmet bedelini vektör ekspres çarpanından sonra ekler. Canlı kullanım öncesinde migration ve veritabanı doğrulaması gerekir. Ayrı teslim tahmini her hizmet için stüdyo onayından sonra 3–5 iş günüdür.
+`20260917000000_agency_services.sql` yerelde hazırlandı; canlı veritabanına uygulanmadı. Üç ajans hizmeti ayrı ayrı 50 USD; veritabanı yalnız izin verilen hizmet kimliklerini kabul eder, tekrarları tekilleştirir ve ek hizmet bedelini vektör ekspres çarpanından sonra ekler. Canlı kullanım öncesinde migration ve veritabanı doğrulaması gerekir. Ayrı teslim tahmini her hizmet için stüdyo onayından sonra 3–5 iş günüdür.
