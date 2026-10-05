@@ -1,165 +1,176 @@
-# Artlantix — project context for AI assistants
+# Artlantix: context for AI assistants
 
-Last reviewed: 2026-09-18. Read this document before changing the project. It describes the current implementation, not a promise that external production services have been configured. Verify relevant source before relying on a statement; update this document when architecture or behavior changes.
+Last reviewed: 2026-10-05, against `main` at `362154a` (v0.7.0) plus open draft PRs #2 to #5. Read this before changing anything. It describes what the code does today, not what production services have been set up. Verify against the source before relying on a statement, and update this file when behavior changes.
 
-## Purpose and product workflow
+Where something is not known, this file says **Unknown**. Do not fill those gaps with guesses.
 
-Artlantix is a manual vectorization and artwork reconstruction studio platform. Customers upload raster artwork, select reconstruction specifications, request a studio-reviewed quote, and track orders. Operators review jobs, change production status, and prepare previews and final deliverables. Customers can request revisions, approve previews, and access an artwork archive. The B2B portal creates real per-file quote requests from a multi-file batch.
+## 1. Rules from the owner (read first)
 
-The site markets human redrawing, not automatic vector generation. Do not present generated demo artwork as a real production deliverable.
+The owner is Enes (GitHub `enesbv`). He writes in Turkish and works on the business with his father.
 
-Public pricing grids (home, comparison home, pricing and business) include a fourth, price-free Contact us option for complex artwork and business/custom scopes. It opens the quote wizard with `review=1`; the detail-level picker also offers this choice to all customers. Its summary hides the automatic vector estimate and leaves price and delivery subject to studio review. The existing internal estimate remains in the order contract; the request is explicitly marked in notes and requires operator review before any agreed price.
+1. **Do not touch the UI.** On 2026-09-29 the owner rejected three AI-made homepage redesigns and said he will do all UI and visual design himself. Agents must not change layout, styling, components' look, fonts, colors or illustrations. PR #1 (homepage redesign) was closed for this reason. Copy fixes that leave every `className` unchanged were accepted as a separate PR (#5). When unsure whether something counts as UI, ask.
+2. **No monospace type.** `tests/regressions.mjs` fails if any `.ts/.tsx/.css` file contains `font-mono`, `Geist_Mono` or `font-geist-mono`. The interface uses Geist Sans only.
+3. **Never present demos as real.** Case studies, the before/after slider and seeded orders are labelled studio demonstrations. Do not invent testimonials, customer names, performance numbers or production claims.
+4. **No fake payment.** The product is quote-first: no checkout, no card charge, no invoice. Do not add payment success states.
+5. **Live services are the owner's job.** Do not create, configure or write to a live Supabase project, ClamAV deployment, Resend account, domain or hosting. Prepare code and give the owner short steps instead.
+6. **Work on branches.** Branch from `main` and open draft PRs. Do not push to `main`.
 
-## Stack and entry points
+## 2. Product
 
-- Next.js 16.3.4 App Router, React 19.2.8, TypeScript, Tailwind CSS 4.
-- next-intl for English, German, and Turkish; lucide-react icons.
-- Supabase browser client from `@supabase/ssr` for production. localStorage mock data is allowed only in development or with explicit `NEXT_PUBLIC_DEMO_MODE=true`; production fails closed without Supabase.
-- `package.json` pins pnpm 11.19.0. `pnpm-lock.yaml` is the only dependency lockfile; use frozen-lockfile installs in CI and do not add a second package-manager lockfile.
-- Next.js instructions live in `AGENTS.md`. Read applicable bundled documentation in `node_modules/next/dist/docs/` before writing framework code. Do not delete the Next-generated AGENTS block.
+Artlantix is a manual vectorization and artwork reconstruction studio. People redraw artwork by hand; nothing is auto-traced. Customers upload raster artwork (AI-generated logos, blurry logos, old scans), choose a detail level and options, see a provisional estimate, and send a quote request. The studio reviews it, confirms price and scope, draws, shares a preview, takes approval or revision requests, and delivers master files to the customer's private archive.
 
-## Repository map
+Services listed in `lib/marketing.ts`: AI/blurry logo vectorization, lettering and logotype reconstruction, mascots and badges, screen print / DTF colour separation, CNC/laser/vinyl-ready closed paths, embroidery-ready simplification. Optional agency add-ons: brand identity, alternative logo and social media kit (USD 50 each).
 
-| Location | Responsibility |
-| --- | --- |
-| `app/[locale]/` | Localized public home, quote, services, work, pricing, guides and FAQ pages; next-intl provider |
-| `app/page.tsx`, `app/quote/page.tsx` | English entry pages |
-| `app/login`, `app/signup` | Authentication UI, currently not localized routes |
-| `app/dashboard/` | Overview, orders and detail, artwork vault, business hub, profile |
-| `app/admin/` | Operator orders and content management |
-| `components/HomePageContent.tsx` | Public marketing, portfolio and pricing UI |
-| `lib/marketing.ts` | Type-safe Turkish, English and German service, case-study, guide and public FAQ catalogue |
-| `components/ServiceVisual.tsx` | Six code-native service illustrations displayed in homepage service cards |
-| `components/MarketingVisual.tsx` | Code-native localized production artwork used across public marketing pages |
-| `components/QuotePageContent.tsx` | Upload/specification/order wizard |
-| `components/ComplexityPicker.tsx` | Illustrated detail-level and artist-assessment selector |
-| `components/OrderNotifications.tsx` | Portal notification polling and dismissal |
-| `components/RevisionAnnotator.tsx` | Percentage-based artwork revision markers |
-| `components/AccessGate.tsx` | Client-side account/role navigation gate, not a security boundary |
-| `components/BeforeAfterSlider.tsx` | Artwork comparison and keyboard-accessible slider |
-| `lib/types.ts` | Shared user, order, file, message, and pricing contracts |
-| `lib/pricing.ts` | Base prices, add-ons, express multiplier, manual review rule |
-| `lib/order-status.ts` | Delivery estimates, next actions, labels and history fallbacks |
-| `lib/services/` | Authentication, orders, CMS and private storage workflows |
-| `lib/mock-data.ts` | Demo personas, example orders and portfolio items |
-| `lib/supabase/client.ts` | Optional browser client and configuration detection |
-| `i18n/`, `messages/`, `lib/locale.ts` | Locale routing, dictionaries and preference persistence |
-| `proxy.ts` | Public-page locale middleware |
-| `app/auth/callback/route.ts` | Supabase OAuth code exchange and safe redirect |
-| `supabase/schema.sql` | Initial tables and RLS/storage setup |
-| `supabase/migrations/20260907_access_hardening.sql` | Follow-up role/ownership/status restrictions; apply after base schema |
-| `supabase/migrations/20260916_production_workflows.sql` | Atomic order/file metadata RPC and narrowly scoped failed-upload cleanup policy |
-| `supabase/migrations/20260916_security_advisor_hardening.sql` | Revokes Data API execution from trigger-only security-definer functions; policy helpers remain intentional boolean-only calls |
-| `supabase/config.toml`, `supabase/tests/database/` | Local Supabase config and pgTAP tenant/RLS tests; requires Docker-compatible runtime |
-| `infra/malware-scanner/` | Private ClamAV HTTP adapter, container topology and protocol regression test |
-| `tests/regressions.mjs` | Isolated regression tests using Node test runner and in-memory TypeScript transpilation |
-| `SECURITY_AUDIT.md` | Production security findings, applied code fixes, open deployment risks and release verdict |
-| `REVIEW.md` | Detailed Turkish audit, implemented fixes and prioritized remaining work |
+Users:
+- **Customer:** quote wizard, order tracker at `/dashboard`, order detail with preview approval, revision markers, chat and downloads.
+- **Business customer:** batch quote hub at `/dashboard/business` (up to 20 files, one quote per file). No volume discounts or invoicing.
+- **Operator (admin):** order workspace at `/admin/orders`, CMS at `/admin/content`.
 
-## Routing invariants
+## 3. Market and languages
 
-Public pages support `en`, `de`, `tr`, with the default English prefix optional. Dashboard and admin routes do **not** exist below a locale prefix. Login, signup, and auth routes are excluded from locale middleware. After a quote, navigate to `/dashboard/orders/<id>`, never `/tr/dashboard/...` or `/de/dashboard/...`.
+- **Target market: United States and the European Union** (owner, 2026-09-29). Turkey is not a launch market.
+- **Languages: English (default), German, Turkish.** English and German are for customers. Turkish exists so the owner and his father can read and run the site.
+- Copy standard: natural **US English**, **formal German (Sie)**, **formal Turkish (siz)**. A native speaker must not find anything awkward. PR #5 applies this across the site.
+- Legal: GDPR applies for EU customers, plus a US privacy notice. KVKK is not the target. **There is no privacy policy, terms or imprint page yet**; the footer only shows a short text. This is a launch blocker the owner must decide on.
+- Prices are in USD.
 
-The language selector preserves query parameters and hash and persists `NEXT_LOCALE`. On dashboard/auth routes it refreshes the current route instead of navigating away. The root provider and HTML `lang` use that cookie; public pages have nested locale providers. Public navigation, footer, marketing pages and quote flow are translated. Several account, B2B and admin strings remain English.
+## 4. Stack
 
-The public `/business` page in all three locales targets sign manufacturers, print/card producers, apparel companies and agencies, with a split hero and labelled workspace preview, an interactive industry selector with code-native signage/card/apparel/brand illustrations in BusinessArtwork.tsx, operational benefits and CMS-backed tier starting prices. CTAs open the real batch workspace or preselect business signup with a safe dashboard return path. It does not implement volume discounts or invoicing.
+- Next.js 16.3.4 App Router, React 19.2.8, TypeScript, Tailwind CSS 4. This Next.js version has breaking changes; read `AGENTS.md` and the docs in `node_modules/next/dist/docs/` before writing framework code. Do not delete the Next-generated block in `AGENTS.md`.
+- next-intl 4 (`i18n/routing.ts`: locales `en`, `de`, `tr`, default `en`, `localePrefix: 'as-needed'`).
+- Supabase (Auth, Postgres with RLS, private Storage) via `@supabase/ssr` and `@supabase/supabase-js`.
+- react-hook-form + zod, lucide-react icons, clsx/tailwind-merge.
+- pnpm 11.19.0 (pinned in `package.json`). `pnpm-lock.yaml` is the only lockfile; CI uses `--frozen-lockfile`. **pnpm 11 needs Node 22+** (it uses `node:sqlite`); on Node 20 it does not start.
+- Malware scanning: a private ClamAV HTTP adapter in `infra/malware-scanner/`.
+- Order emails: Resend (server only, not configured).
+- Hosting: **Unknown / not chosen.** Vercel was suggested in an earlier thread but nothing is set up.
 
-The public marketing information architecture includes `/services`, `/services/<slug>`, `/work`, `/work/<slug>`, `/pricing`, `/guides`, `/guides/<slug>` and `/faq` below every locale. English uses the unprefixed canonical path. Case studies in the code are explicitly labelled studio demonstrations; do not turn them into customer claims unless publication permission and verifiable project information exist.
-
-The only dedicated order-list page is `/admin/orders`, restricted to operators. `/dashboard/orders` is a compatibility redirect to it. Customer sign-in defaults to `/dashboard`; customer order details remain at `/dashboard/orders/<id>` for quotes, approval, revisions and downloads. The admin header/sidebar no longer offer a second customer-list view.
-
-The operator panel is a responsive order workspace with actionable review/production/revision/packaging cards, all-status filters, search and 20-row client pagination. It fetches order rows without embedding file/message arrays; chat loads messages on demand. Visible tabs refresh the list every 60 seconds and operators can refresh manually. The header notification dropdown derives actionable review, revision, approved-master and overdue alerts from the same order list and opens the update dialog. These are workflow alerts, not push notifications or an unread-message service. Loading failures are visible and retain the last fetched list. Static SLA percentages, decorative charts, fake active artists, shift claims and inert collapse/calendar controls have been removed. Operator updates require a chosen file to upload a deliverable even in demo mode; changing status alone does not create one. The existing upload/metadata/status sequence is still non-atomic.
-
-The customer `/dashboard` is a localized order tracker, not a metrics dashboard. Cards show three milestones (artist review, drawing, files ready), a short status-specific explanation and one relevant action. Preview approval/revision and approved packaging remain in the drawing milestone; only `completed` shows files ready. Cancelled orders do not show a progress path. Active orders prioritize previews awaiting approval; past orders appear separately and all orders are accessible through incremental display. Authenticated customer-only queries refresh once per minute, show loading/error/empty states and use no fabricated delivery percentages or SLA data. The customer shell uses a compact brand/header with notifications and an account menu for profile, files and business-only batch tools.
-
-The tracker now shows a large code-native illustration for the current milestone (review clipboard, drawing pen, ready folder), with the three small steps underneath. Only one initial demo order is seeded (`ord_atx_9480`). Reading old demo storage retires the four other known fixture IDs, saving the original records under `artlantix_orders_before_single_sample`; custom orders are preserved and live Supabase orders are never cleaned this way.
-
-Quote submission now displays a receipt screen with the saved order number rather than immediately opening details. In isolated demo mode, signed-out visitors can submit using name/email with a browser-local guest identity and no password; this is NOT production guest intake or cross-device guest tracking. Production still requires authenticated ownership. `/api/orders/receipt` prepares Resend confirmation emails for verified authenticated owners using database-confirmed numbers and the authenticated email, with same-origin checks and a provider idempotency key. It does not send demo emails. `RESEND_API_KEY` and verified `ORDER_EMAIL_FROM` are required; neither is currently configured. Provider acceptance is labelled as queued, not delivered. No transactional outbox or delivery webhook exists. Production guest orders require a separate secure email-verified ownership/tracking flow before launch; never expose orders by number/email alone.
-
-## Demo versus real services
-
-`isSupabaseConfigured()` checks `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, excluding recognized placeholders. No secret/service-role key may be placed in a NEXT_PUBLIC variable or client code.
-
-`lib/runtime-mode.ts` is the mode boundary. In development, mock mode is enabled unless `NEXT_PUBLIC_DEMO_MODE=false`; in production it is disabled unless explicitly set to `true`. When both Supabase and demo mode are unavailable, authentication and mutations fail closed instead of creating browser-local identities or orders. The `/api/health` route returns 503 for this invalid production configuration.
-
-With Supabase, auth must not fall back to a local demo identity. Role authority comes from the database profile, never editable auth user metadata. Demo account controls are disabled in this mode. Email signup without a session displays a confirmation notice.
-
-Supabase mode includes OAuth callback exchange, password-reset email requests, database-backed profile updates, database-backed messages, CMS tables/policies and private customer/preview storage paths. Remote mutations now surface failures rather than reporting local fallback success. On 2026-09-16 the consolidated schema and trigger-access hardening were applied through the authenticated Supabase MCP connection to project `lsgrbyyatcssrrkvmxmg`; all six public tables reported RLS enabled. Live multi-tenant authorization tests are still required. Do not claim that supplying environment variables alone completes the integration.
-
-## Orders, pricing and files
-
-- The visual brand accent uses a Radix-inspired green scale: `#18794E` for primary actions and text, `#115C3B` for hover states, `#E9F9EE` for soft surfaces, and `#B4DFC4` for accent borders. Amber remains reserved for semantic pending/warning states rather than brand decoration.
-- The interface uses Geist Sans only. Do not load a monospace webfont, use the Tailwind `font-mono` utility, or reintroduce letter-spaced monospace eyebrow labels.
-- Order states: `quote_requested`, `in_review`, `in_progress`, `preview_ready`, `approved`, `revision_requested`, `completed`, `cancelled`. Customer approval enters `approved`; only an operator delivery moves the order to `completed`.
-- New order IDs use UUIDs; existing demo order IDs retain their original strings.
-- Base tiers: simple 25, standard 45, complex 75 USD. CMS can override base rates. Add-ons and express pricing are defined in `lib/pricing.ts`.
-- Complex artwork plus reconstruction plus text triggers manual review. Customer choice to pay after review also starts at quote_requested.
-- `components/ComplexityPicker.tsx` provides localized illustrated detail levels and an explicit artist-assessment choice. `PricingInput.artistReviewRequested` forces manual review regardless of tier. The shown price is provisional. Every public submission starts as `quote_requested` with `pay_after_quote_review`; the site does not collect payment or claim that a card or invoice transaction occurred.
-- Quote form state is debounced into a browser-local draft and restored after navigation. A prior order can prefill a new quote through `?reorder=<order-id>`. File objects themselves are not serializable; the local demo stores a small data URL while production users may need to choose the file again after a reload.
-- Service pages prefill the quote through `?service=<slug>`. The production brief captures intended use and optional company/brand. The quote UI no longer collects the AI tool or a requested date, or offers typography, damage repair or colour separation add-ons; new quotes and restored drafts use no such add-ons. Optional agency services (brand identity, alternative logo and social media design kit) each cost USD 50 and add to the estimate after the vector-only express multiplier. Each has an independent provisional 3–5 business day delivery window after studio approval. Selections persist in drafts, summary, order notes and the agency_services array. The 20260917_agency_services.sql migration adds trusted database pricing and RPC persistence; it is prepared locally, not applied to the live database in this session. Apply it before using agency selections with Supabase; the old database trigger otherwise recalculates only vector pricing. Turnaround remains selectable through large standard/express radio cards. The artwork classification selector is removed; artwork type remains derived from service/reorder/draft context or the default. Section containers are white with neutral borders; only selected complexity, agency and turnaround cards use green backgrounds and borders; keyboard focus uses an inset indicator without adding an outer frame on pointer clicks. These fields are stored as structured lines within the existing order notes boundary so current deployments remain schema-compatible.
-- Orders have expected-delivery metadata, status-history fallbacks, a next-action panel with direct section links, notification polling and visual revision annotations. Stored coordinates use percentages so they remain aligned responsively. The annotation UI shows its marker limit and supports removing the selected marker or undoing the latest marker.
-- The quote wizard keeps an itemized price, turnaround, privacy and deliverable summary visible beside the specification/review steps. Specification sections share consistent heading, body and card styles. The desktop continue action is in the right summary. On small screens, the specification step uses a fixed bottom price/action bar; do not add a second mobile forward action.
-- Customer order lists and details use loading skeletons so an unresolved request is not shown as an empty result. Signed preview URL failure must not leave the detail page loading indefinitely; action failures are presented in the page rather than only logged.
-- The operator queue begins with actionable workload cards for review, production, customer approval, revisions and due/overdue work. It has separate mobile cards and a desktop table.
-- Homepage FAQ copy must match the approval boundary: customer approval starts master packaging and QA; downloads unlock only after an operator completes delivery. FAQ accordions expose their expanded state to assistive technology.
-- Pricing is shown in the browser and independently recalculated by the database insert trigger. If online payment is introduced later, its trusted server flow must use the database-confirmed amount and a verified webhook.
-- Quote submission validates file presence, rejects invalid tiers, reports errors and blocks simultaneous submissions. This is not durable server-side idempotency.
-- Current customer upload helper accepts nonempty JPG/JPEG, PNG, WebP and PDF up to 2 MB, validates extension, MIME and magic bytes, and handles reader/decode errors and cancellation. Operator and portfolio uploads have category-specific extension, MIME, signature and size checks. Browser quota may still fill across multiple demo orders.
-- Production buckets enforce MIME and size limits through SQL while metadata constraints and RLS bind file rows to owned orders. Customer uploads start with `scan_status=pending`; only the server-only scan route may send them to the private ClamAV adapter. Admin Storage reads require `clean`; infected objects are deleted and scanner failures remain quarantined. The adapter protocol is tested, but the real ClamAV engine still needs deployment verification.
-- There is no checkout service. The launch workflow is quote-first with external collection after studio review. Do not reintroduce fake payment success states.
-- Supabase customer uploads are sent to a private user/order path before `create_order_with_file` atomically inserts the order and file metadata. If the RPC fails, the client removes the still-unattached object through a constrained Storage delete policy. Operator preview/master actions require a real file in Supabase mode; their upload/metadata/status sequence still needs production integration testing and periodic orphan monitoring.
-- The artwork vault downloads only stored `final_master` files. The old fake package-manifest action was removed.
-- The business hub accepts up to 20 validated files and creates one independently trackable quote request per file. It does not promise invoicing or automatic volume discounts.
-- Portfolio SVG content is displayed in an image context. Do not restore raw `dangerouslySetInnerHTML` insertion for uploaded SVG/HTML.
-
-## Security and migration boundaries
-
-Client-side gates improve navigation only. Enforce real ownership and permissions through database RLS and/or trusted server operations, including every mutation and file download.
-
-The SQL migrations prevent user metadata and profile updates from granting admin rights, constrain customer file/message inserts to owned orders, limit customer order updates to preview approval/revision, and add atomic customer order/file creation. The consolidated `schema.sql` and `20260916_security_advisor_hardening.sql` are applied to the current live Supabase project. They have not yet been integration-tested with separate customer/admin JWTs. For a new project, apply the consolidated schema, then any later timestamped migrations not already incorporated into it.
-
-Production responses define CSP, HSTS, clickjacking, MIME-sniffing, referrer, permissions and private-cache headers in `next.config.ts`; `X-Powered-By` is disabled. The static CSP currently requires `unsafe-inline` for framework scripts/styles. Treat a nonce- or SRI-based strict CSP as future hardening, and verify headers again at the final CDN/proxy because intermediaries can alter them.
-
-The database recalculates inserted prices from CMS rates and selected options, overwrites client status, and keeps every remote order at `quote_requested`. A payment webhook is not required for the current quote-only launch model because no online payment is accepted. Remaining deployment blockers are live multi-tenant RLS/Storage validation, deployment of the included ClamAV stack, auth/WAF operational settings and end-to-end staging tests. Review existing admin grants separately; the migrations do not revoke previously granted roles.
-
-## Verification
-
-Use a compatible installed Node runtime; this project was verified with the bundled Node runtime available on the development machine. Do not hardcode a contributor's machine-specific runtime path in repository commands.
+## 5. Commands
 
 ```sh
-pnpm dev
+pnpm install --frozen-lockfile
+pnpm dev            # local site, demo mode on by default in development
+pnpm test           # node --test: tests/regressions.mjs + infra/malware-scanner/scanner.test.mjs
 pnpm lint
-pnpm build
-pnpm test
+pnpm build          # production build incl. TypeScript
 git diff --check
+
+# Local database (needs Docker; in a cloud container start dockerd in the background first)
+pnpm db:start       # supabase start
+pnpm db:reset       # rebuild DB from supabase/migrations
+pnpm db:test        # pgTAP tests in supabase/tests/database
+pnpm db:lint
+pnpm scanner:up / pnpm scanner:down   # local ClamAV adapter via docker compose
 ```
 
-Latest verification (0.6.5): production build/TypeScript passed; all 22 tests passed, including receipt authorization, demo guest boundaries, customer tracking, scanner protocol and typography guards; ESLint had zero errors and zero warnings. The tracker was visually checked at desktop and 390 px mobile widths. The current local environment is demo-only with no Supabase or mail credentials; real receipt delivery was not tested. The earlier 2026-09-16 audit reported no known production dependency vulnerabilities and successful live schema application with six RLS-enabled public tables; neither audit nor live database checks were repeated for this release. Lighthouse, a real ClamAV engine run and live multi-tenant RLS/Storage tests still need to be performed before launch.
+CI (`.github/workflows/ci.yml`) has two jobs: `verify` (test, lint, build) and `database-security` (db start/reset/test/lint). **On `main` CI is red**: it still uses Node 20, and `db reset` fails because the base schema is not a migration. PR #2 fixes both. PR #5 also carries that fix.
 
-Tests isolate auth/storage and exercise the real pricing source. They are not substitutes for database RLS, private-storage and malware-scanning integration tests. Add meaningful regressions for changed behavior, not tests that merely match source text.
+Tests transpile real TypeScript sources in memory with mocked auth/storage. Add regressions for behavior you change, not tests that only match source text. pgTAP storage deletes need `SET LOCAL storage.allow_delete_query = 'true'`.
 
-## Priorities for future work
+## 6. Demo mode vs Supabase
 
-1. Continue UI/UX improvements in the customer and operator portals while preserving the production security boundaries introduced in v0.2.0; the public marketing redesign and content architecture are now implemented.
-2. Run live private-storage/RLS authorization tests for two customers and one admin against the applied schema.
-3. Deploy the included ClamAV stack and verify clean/EICAR uploads end to end; consider PDF CDR for higher-risk customers.
-4. Add idempotency keys, operator-delivery compensation and periodic orphan-object reconciliation.
-5. Configure and verify Supabase Auth rate limits, CAPTCHA, redirect allowlists, leaked-password protection, MFA for admins, OAuth, confirmation, recovery and session invalidation.
-6. Finish translations for account/B2B/admin content and expand localized metadata beyond the public detail pages.
-7. Add server-side order-list pagination, reduce homepage client work and measure LCP/INP with production media.
-8. Add approved company accounts and external invoice reconciliation if commercial invoicing becomes part of the product.
-9. Add verified customer proof only after obtaining permission to publish real project names, artwork and outcomes; do not invent testimonials or performance claims.
+`lib/runtime-mode.ts` decides the mode:
+- **Development:** demo mode is on unless `NEXT_PUBLIC_DEMO_MODE=false`. Data lives in the browser's localStorage.
+- **Production:** demo mode is off unless `NEXT_PUBLIC_DEMO_MODE=true`. Without Supabase, auth and mutations fail closed, and `/api/health` returns 503.
 
-## Keeping this context useful
+`isSupabaseConfigured()` (`lib/supabase/client.ts`) checks `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, ignoring placeholders. See `.env.example` for all variables. Never put a service-role key or other secret in a `NEXT_PUBLIC_` variable or client code.
 
-The homepage hero uses `HeroVectorArtwork`: an original code-native line-art crest with a pointer-following SVG mask and delayed trail exposing dark green contours and control nodes. Touch devices show the full drawing with a one-time stroke animation; reduced-motion users get a static full drawing. It is decorative, not an automatic vectorization tool, and has no external animation dependency.
+Demo specifics: login as `artlantix@admin.com` opens the admin panel, `artlantix@customer.com` the customer panel. One seeded order (`ord_atx_9480`). Signed-out visitors can place a browser-local guest order with name and email; this exists **only in demo** and is not a production guest flow.
 
-The homepage process section presents its four localized steps as numbered icon cards on a dark green background, with desktop connector arrows, a responsive one/two/four-column layout and a localized quote link.
+**Current real state:** the owner runs the site locally in demo mode only. He has **not** created or configured a Supabase project (owner, 2026-09-29). Older docs (`SECURITY_AUDIT.md`, `REVIEW.md`, earlier versions of this file) say a live project `lsgrbyyatcssrrkvmxmg` received the schema on 2026-09-16. The owner says he never set one up, so treat that claim as unverified and do not rely on any live database existing. Supabase is needed only before real customers arrive.
 
-Homepage pricing shows one localized starting-price/USD label above the cards, CMS-backed tier amounts, localized complexity descriptions and quote links. Prices remain provisional; the custom-scope card has no fixed price. FAQ content is available on dedicated localized FAQ pages rather than the current homepage.
+In Supabase mode: role comes from the `profiles` table, never from user metadata; auth never falls back to a demo identity; remote failures are shown, not hidden.
 
-Update this document and the audit when fixing a listed limitation. Clearly distinguish local changes, committed code, pushed code, deployed code and applied database migrations. Use Git history for current revision status instead of maintaining a hardcoded commit hash here. Do not report tests, deployments, integrations or performance improvements that have not been verified.
+## 7. Repository map
 
-The homepage work showcase uses an editorial split heading and a localized comparison panel. `BeforeAfterSlider` presents a fixed studio demonstration, with artwork/node views, pointer and keyboard controls, and descriptive features instead of unverified performance percentages. Its raster and vector layers share responsive bounds; it does not accept or inspect customer files. The shared panel is also used on the work and order-detail pages.
+| Path | What it is |
+| --- | --- |
+| `app/[locale]/` | Public localized pages: home, quote, services(+slug), work(+slug), pricing, guides(+slug), faq, business |
+| `app/page.tsx`, `app/quote/page.tsx` | Unprefixed English entry pages |
+| `app/login`, `app/signup`, `app/reset-password`, `app/auth/callback` | Auth (not under a locale prefix) |
+| `app/dashboard/` | Customer tracker, order detail, artwork vault, business hub, account |
+| `app/admin/` | Operator orders and CMS |
+| `app/api/health`, `app/api/orders/receipt`, `app/api/uploads/scan` | Health check, Resend receipt email, server-only malware scan |
+| `app/tr1/` | Temporary noindex copy of the previous Turkish homepage (`PreviousHomePageContent.tsx`); candidate for removal |
+| `components/` | All UI. Off limits for agents (see rule 1) |
+| `lib/pricing.ts` | Tiers, add-ons, express multiplier, manual-review rule |
+| `lib/marketing.ts` | Localized service, case study, guide and FAQ catalogue |
+| `lib/services/` | auth, orders, content (CMS), storage, quote drafts |
+| `lib/order-status.ts`, `lib/customer-tracking.ts`, `lib/delivery-calculator.ts` | Status labels, milestones, delivery estimates |
+| `lib/admin-orders.ts` | Operator alert derivation |
+| `lib/security.ts` | Input validation and safe redirects |
+| `lib/mock-data.ts` | Demo personas and orders |
+| `lib/types.ts` | Shared types |
+| `i18n/`, `messages/{en,de,tr}.json`, `lib/locale.ts`, `proxy.ts` | Locale routing, dictionaries, locale middleware |
+| `supabase/schema.sql` | Declarative schema: tables, RLS, storage policies |
+| `supabase/migrations/` | Timestamped migrations (renamed and extended by PR #2) |
+| `supabase/tests/database/` | pgTAP tests |
+| `infra/malware-scanner/` | ClamAV adapter, Dockerfile, compose file, protocol test |
+| `tests/regressions.mjs` | Node regression tests |
+| `SECURITY_AUDIT.md`, `REVIEW.md` | Security findings and release review (Turkish) |
+| `RELEASE_NOTES_*.md` | Release notes (Turkish) |
 
-The temporary `/tr1` route renders the Turkish homepage before the latest visual refresh using `PreviousHomePageContent.tsx`, including the service illustrations and process icons. It bypasses locale redirection, is marked noindex and is omitted from the sitemap. `/tr` remains the current homepage.
+## 8. Routing invariants
+
+- Public pages exist under `en` (no prefix), `/de` and `/tr`.
+- `/dashboard`, `/admin`, `/login`, `/signup` and auth routes are **never** under a locale prefix. After a quote, go to `/dashboard/orders/<id>`, never `/tr/dashboard/...`.
+- The language switcher keeps query and hash and stores `NEXT_LOCALE`. On dashboard/auth routes it refreshes instead of navigating.
+- `/admin/orders` is the only order list (operators only). `/dashboard/orders` redirects there. Customers track orders at `/dashboard`.
+- Account, B2B and admin screens still have some English-only strings.
+
+## 9. Orders, pricing and files
+
+- Statuses: `quote_requested`, `in_review`, `in_progress`, `preview_ready`, `approved`, `revision_requested`, `completed`, `cancelled`. Customer approval sets `approved`; only an operator delivery sets `completed`, which unlocks downloads.
+- Every submission starts as `quote_requested` with `pay_after_quote_review`. The shown price is provisional. The database insert trigger recalculates the price from CMS rates and overwrites the client's status.
+- Tiers (`lib/pricing.ts`): simple 25, standard 45, complex 75 USD. CMS can override them. Express is ×1.35 on the vector part only; agency add-ons are added after it.
+- Manual review: complex + reconstruction + text, or the customer picks "artist assessment". The public "Contact us" card opens the quote with `review=1` and hides the estimate.
+- Customer uploads: JPG/JPEG, PNG, WebP, PDF, up to 2 MB, checked by extension, MIME and magic bytes. Uploads start with `scan_status=pending`; operators can only open `clean` files.
+- Supabase uploads go to a private user/order path, then `create_order_with_file` writes order and file rows in one transaction. If it fails, the client deletes the unattached object.
+- Operator delivery on `main` is three separate steps (upload, file row, status). PR #4 makes it one RPC (`record_operator_delivery`) with cleanup on failure.
+- Resend receipt email (`/api/orders/receipt`): verified authenticated owner only, same-origin check, recipient from auth. `RESEND_API_KEY` and `ORDER_EMAIL_FROM` are not configured; no outbox or delivery webhook.
+- Uploaded SVG is shown in an image context only. Never use raw `dangerouslySetInnerHTML` for uploaded content.
+
+## 10. Security model
+
+- Client gates (`AccessGate`) are navigation only. Real permissions are Postgres RLS and Storage policies plus server routes.
+- Customers see only their own profile, orders, messages and files. They cannot change role, price, ownership or set arbitrary status.
+- Buckets are private; downloads use short-lived signed URLs.
+- `next.config.ts` sets CSP (with `unsafe-inline`), HSTS, frame, nosniff, referrer and permissions headers.
+- `SECURITY_AUDIT.md` verdict: **CONDITIONAL NO-GO** for real customer files until the launch blockers below are done.
+
+## 11. Open PRs (as of 2026-10-05)
+
+All are drafts with green CI and none is merged. Merge order: **#2 → #3 → #4**. #5 is independent but already contains #2's changes.
+
+- **#2 `fix/db-migrations`**: base schema added as migration `20260901000000_base_schema.sql`, migrations renamed to full timestamps (two shared `20260916`), CI on Node 22. Live databases built by hand need `supabase migration repair --status applied <version>` before any `db push`.
+- **#3 `test/tenant-matrix`**: 26-check pgTAP allow/deny matrix for two customers and one operator across tables and buckets (audit H-01, local only).
+- **#4 `fix/atomic-operator-delivery`**: `record_operator_delivery` RPC and an admin delete policy for unattached preview/master objects (audit H-03).
+- **#5 `fix/copy-review`**: EN/DE/TR proofreading for the US/EU launch, softened claims the product can't back. Copy only.
+
+Several of these PRs also edit this file. When they merge, keep the facts in this version and update section 11.
+
+## 12. Open decisions (owner has not answered)
+
+Do not resolve these yourself; ask the owner.
+
+1. **Prices:** service pages in `lib/marketing.ts` show starting prices of $40, $50 and $55 for some services, while the tiers are $25/$45/$75. Which is right?
+2. **Turnaround:** services promise fixed times (24–48 hours, 2–4 days, 24–72 hours) and `lib/pricing.ts` labels standard 24–48h and express <12–16h. Can the studio commit to these?
+3. **Order page claims:** every order shows a fixed "0.01 mm tolerance", "5 formats" and "Round 1 of 2" revisions. Are two revision rounds actually offered?
+4. **Legal pages:** privacy policy (GDPR + US), terms, and an imprint for Germany.
+5. **Hosting and domain:** not chosen.
+6. **`/tr1` route:** temporary; remove when the owner no longer needs it.
+
+## 13. Launch blockers (owner's steps, not code)
+
+1. Create the Supabase project, apply migrations, set env vars.
+2. Run the tenant matrix against that project (H-01).
+3. Deploy ClamAV and test with a clean file and EICAR; set `MALWARE_SCANNER_URL` and `MALWARE_SCANNER_TOKEN` (H-02).
+4. Resend: API key and verified sender domain.
+5. Supabase Auth: email confirmation, exact redirect URLs, rate limits, CAPTCHA, leaked-password check, admin MFA.
+6. Hosting, domain, legal pages, then an end-to-end smoke test (signup, upload, quote, preview, revision, delivery).
+
+Code work still open after the PRs: idempotency keys for quotes and deliveries, periodic orphan-object cleanup, server-side order pagination, audit log, finishing account/B2B/admin translations, a production guest-order flow with email verification (never expose an order by number or email alone).
+
+## 14. Keeping this file honest
+
+Distinguish clearly between local changes, committed, pushed, merged, deployed and applied-to-database. Do not report tests, deployments or integrations you have not run. Use Git history for revision status instead of hardcoding commit hashes beyond the review line at the top.
