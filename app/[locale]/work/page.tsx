@@ -1,11 +1,13 @@
 import React from 'react';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
-import { ArrowRight } from 'lucide-react';
 import PublicPageShell from '@/components/PublicPageShell';
-import MarketingVisual from '@/components/MarketingVisual';
+import PageHero from '@/components/ui/PageHero';
 import BeforeAfterSlider from '@/components/BeforeAfterSlider';
+import WorkPlates from '@/components/home/WorkPlates';
+import DropCta from '@/components/home/DropCta';
+import { container, sectionTitleSm } from '@/components/ui/styles';
+import { homeCopy } from '@/lib/home-copy';
 import { caseStudies, localizedPath, marketingCopy, normalizeMarketingLocale } from '@/lib/marketing';
 
 export const metadata: Metadata = {
@@ -13,78 +15,54 @@ export const metadata: Metadata = {
   description: 'See how Artlantix approaches common vector reconstruction problems with interactive split-slider inspection.',
 };
 
+const inspect = {
+  en: {
+    label: 'Inspection desk',
+    title: 'Slide to compare the pixels with the paths.',
+    body: 'Drag the handle, or use the arrow keys, to compare degraded pixel artifacts with the clean Bézier paths of the redrawn version. This is a studio demonstration, not a customer file.',
+  },
+  de: {
+    label: 'Prüftisch',
+    title: 'Schieben Sie, um Pixel und Pfade zu vergleichen.',
+    body: 'Ziehen Sie den Regler oder nutzen Sie die Pfeiltasten, um Pixelartefakte mit den sauberen Bézier-Pfaden der neu gezeichneten Fassung zu vergleichen. Das ist eine Studio-Demonstration, keine Kundendatei.',
+  },
+  tr: {
+    label: 'İnceleme masası',
+    title: 'Kaydırarak pikselleri yollarla karşılaştırın.',
+    body: 'Tutamacı sürükleyin ya da ok tuşlarını kullanın; bozuk piksel kalıntılarını yeniden çizilmiş sürümün temiz Bézier yollarıyla karşılaştırın. Bu, bir stüdyo demonstrasyonudur; müşteri dosyası değildir.',
+  },
+} as const;
+
 export default async function WorkPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const lang = normalizeMarketingLocale(locale);
   const copy = marketingCopy[lang];
+  const h = homeCopy[lang];
+  const text = inspect[lang];
 
   return (
     <PublicPageShell>
       <main>
-        <section className="border-b border-[#DAD8D2] bg-white">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <p className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">
-              {copy.pages.workEyebrow}
-            </p>
-            <h1 className="mt-4 max-w-4xl text-5xl font-black tracking-[-0.04em] text-[#102A20] sm:text-6xl">
-              {copy.pages.workTitle}
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#5E625F]">
-              {copy.pages.workBody}
-            </p>
-          </div>
-        </section>
+        <PageHero title={copy.pages.workTitle} body={copy.pages.workBody} meta={copy.common.demo} />
 
-        {/* Interactive Comparison Inspection Showcase */}
-        <section className="border-b border-[#DAD8D2] bg-[#F9F8F6]">
-          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <div className="mb-6 flex flex-col gap-1">
-              <span className="font-sans text-xs font-bold uppercase tracking-wider text-[#18794E]">
-                {lang === 'tr' ? 'İnteraktif İnceleme Konsolu' : 'Interactive Inspection Console'}
-              </span>
-              <h2 className="text-2xl font-bold tracking-tight text-[#102A20]">
-                {lang === 'tr' ? 'Etkileşimli Karşılaştırma & Vektör Düğüm Analizi' : 'Interactive Comparison & Vector Node Analysis'}
-              </h2>
-              <p className="text-sm text-[#5E625F]">
-                {lang === 'tr'
-                  ? 'Kaydırıcıyı sağa-sola hareket ettirerek piksel gürültüsü ve kusursuz matematiksel bezier eğrilerini karşılaştırın.'
-                  : 'Slide back and forth to inspect degraded pixel artifacts against clean mathematical bezier paths.'}
+        <section className={`${container} py-16 lg:py-24`}>
+          <div className="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] lg:items-end lg:gap-16">
+            <div>
+              <p className="flex items-center gap-3 text-[13px] font-semibold uppercase tracking-[0.1em] text-ink-2">
+                <span aria-hidden="true" className="h-2 w-2 bg-signal" />
+                {text.label}
               </p>
+              <h2 className={`${sectionTitleSm} mt-5 max-w-2xl`}>{text.title}</h2>
             </div>
-            <BeforeAfterSlider
-              title={lang === 'tr' ? 'Apex Falcon Crest — Raster vs. Vektör Karşılaştırması' : 'Apex Falcon Crest — Raster vs. Vector Comparison'}
-              category={lang === 'tr' ? 'Stüdyo Kalite Kontrolü' : 'Studio Quality Inspection'}
-            />
+            <p className="text-[15px] leading-7 text-ink-2">{text.body}</p>
           </div>
+          <BeforeAfterSlider />
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-7 px-4 py-20 sm:px-6 lg:grid-cols-3 lg:px-8">
-          {caseStudies.map((study) => (
-            <Link
-              key={study.slug}
-              href={localizedPath(lang, `/work/${study.slug}`)}
-              className="group overflow-hidden rounded-3xl border border-[#DAD8D2] bg-white"
-            >
-              <MarketingVisual kind={study.visual} compact />
-              <div className="p-7">
-                <span className="rounded-full bg-[#E9F9EE] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">
-                  {copy.common.demo}
-                </span>
-                <h2 className="mt-5 text-2xl font-black text-[#102A20]">
-                  {study.title[lang]}
-                </h2>
-                <p className="mt-3 leading-7 text-[#5E625F]">
-                  {study.summary[lang]}
-                </p>
-                <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">
-                  {copy.common.viewCase}
-                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                </span>
-              </div>
-            </Link>
-          ))}
-        </section>
+        <WorkPlates lang={lang} demo={copy.common.demo} viewCase={copy.common.viewCase} studies={caseStudies} plain />
+
+        <DropCta title={copy.home.finalTitle} body={copy.home.finalBody} action={copy.home.primary} href={`${localizedPath(lang, '/quote')}?review=1`} formats={h.cta.formats} />
       </main>
     </PublicPageShell>
   );

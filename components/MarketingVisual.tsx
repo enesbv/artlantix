@@ -7,9 +7,11 @@ type VisualKind = 'crest' | 'mascot' | 'lettering';
 export default function MarketingVisual({
   kind = 'crest',
   compact = false,
+  className = '',
 }: {
   kind?: VisualKind;
   compact?: boolean;
+  className?: string;
 }) {
   const artwork = {
     crest: (
@@ -34,18 +36,19 @@ export default function MarketingVisual({
   }[kind];
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-[#CFE8D8] bg-[#102A20] ${compact ? 'aspect-[4/3]' : 'min-h-[430px]'}`}>
-      <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(#B4DFC4_1px,transparent_1px),linear-gradient(90deg,#B4DFC4_1px,transparent_1px)] [background-size:24px_24px]" />
-      <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-[#2CB67D]/30 blur-3xl" />
-      <div className="absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-[#B4DFC4]/15 blur-3xl" />
-      <svg viewBox="0 0 320 340" className="absolute inset-0 h-full w-full p-8" aria-hidden="true">
-        <g fill="none" stroke="#DFF7E7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="5">
+    <div className={`relative overflow-hidden bg-paper-3 ${compact ? 'aspect-[4/3]' : 'min-h-[430px]'} ${className}`}>
+      <svg viewBox="0 0 320 340" className="absolute inset-0 h-full w-full p-8" aria-hidden="true" focusable="false">
+        <g stroke="var(--color-rule)" strokeWidth="1">
+          {[20, 60, 100, 140, 180, 220, 260, 300].map((x) => <path key={`v${x}`} d={`M${x} 0V340`} />)}
+          {[40, 80, 120, 160, 200, 240, 280, 320].map((y) => <path key={`h${y}`} d={`M0 ${y}H320`} />)}
+        </g>
+        <g fill="none" stroke="var(--color-ink)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="5">
           {artwork}
         </g>
-        <g fill="#2CB67D">
-          <circle cx="65" cy="82" r="5" />
-          <circle cx="255" cy="82" r="5" />
-          <circle cx="160" cy="297" r="5" />
+        <g fill="var(--color-signal)" stroke="var(--color-ink)" strokeWidth="1.5">
+          <rect x="60" y="77" width="10" height="10" />
+          <rect x="250" y="77" width="10" height="10" />
+          <rect x="155" y="292" width="10" height="10" />
         </g>
       </svg>
     </div>

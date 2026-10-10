@@ -11,7 +11,7 @@ export default async function RootQuotePage() {
     <NextIntlClientProvider messages={messages} locale="en">
       <Suspense
         fallback={
-          <div className="min-h-screen bg-[#F9F8F6] flex items-center justify-center text-xs text-[#737373]">
+          <div className="min-h-screen bg-paper flex items-center justify-center text-xs text-ink-3">
             Loading Studio Questionnaire...
           </div>
         }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useLocale } from 'next-intl';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -33,9 +34,18 @@ import {
   LoaderCircle,
 } from 'lucide-react';
 
+/** The two inspection views, in the reader's language. */
+const INSPECT_COPY = {
+  en: { title: 'Compare the artwork', body: 'Put the file you sent next to the vector the studio is drawing.', slider: 'Slider', sideBySide: 'Side by side', plate: 'Quality check' },
+  de: { title: 'Zeichnung vergleichen', body: 'Ihre eingereichte Datei neben dem Vektor, den das Studio zeichnet.', slider: 'Schieberegler', sideBySide: 'Nebeneinander', plate: 'Qualitätskontrolle' },
+  tr: { title: 'Çizimi karşılaştırın', body: 'Gönderdiğiniz dosyayı, stüdyonun çizdiği vektörün yanına koyun.', slider: 'Kaydırıcı', sideBySide: 'Yan yana', plate: 'Kalite kontrolü' },
+} as const;
+
 export default function OrderDetailPage() {
   const params = useParams();
   const orderId = params?.id as string;
+  const locale = useLocale();
+  const inspect = INSPECT_COPY[locale === 'tr' || locale === 'de' ? locale : 'en'];
 
   const [order, setOrder] = useState<Order | null>(null);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -104,36 +114,36 @@ export default function OrderDetailPage() {
   if (loading) {
     return (
       <div role="status" aria-label="Loading order details" className="space-y-5 py-4">
-        <div className="h-20 animate-pulse rounded-2xl bg-[#F1F0EC]" />
+        <div className="h-20 animate-pulse rounded-2xl bg-paper" />
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <div className="h-44 animate-pulse rounded-2xl bg-[#F1F0EC]" />
-          <div className="h-44 animate-pulse rounded-2xl bg-[#F1F0EC]" />
+          <div className="h-44 animate-pulse rounded-2xl bg-paper" />
+          <div className="h-44 animate-pulse rounded-2xl bg-paper" />
         </div>
-        <div className="h-96 animate-pulse rounded-2xl bg-[#F1F0EC]" />
+        <div className="h-96 animate-pulse rounded-2xl bg-paper" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-white p-12 text-center">
+      <div className="rounded-2xl border border-red-200 bg-paper-2 p-12 text-center">
         <AlertCircle className="mx-auto h-8 w-8 text-red-600" />
-        <h2 className="mt-3 text-base font-bold text-[#141414]">Order could not be loaded</h2>
-        <p className="mt-1 text-sm text-[#737373]">{loadError}</p>
-        <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-lg bg-[#141414] px-4 py-2.5 text-sm font-bold text-white">Try again</button>
+        <h2 className="mt-3 text-base font-bold text-ink">Order could not be loaded</h2>
+        <p className="mt-1 text-sm text-ink-3">{loadError}</p>
+        <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-lg bg-ink px-4 py-2.5 text-sm font-bold text-white">Try again</button>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="rounded-2xl border border-[#EAE8E3] bg-white p-12 text-center">
+      <div className="border border-ink bg-paper-2 p-12 text-center">
         <AlertCircle className="mx-auto h-8 w-8 text-amber-600" />
-        <h2 className="mt-3 text-base font-bold text-[#141414]">Order Not Found</h2>
-        <p className="mt-1 text-xs text-[#737373]">The requested order ID does not exist or has been removed.</p>
+        <h2 className="mt-3 text-base font-bold text-ink">Order Not Found</h2>
+        <p className="mt-1 text-xs text-ink-3">The requested order ID does not exist or has been removed.</p>
         <Link
           href={currentUser?.is_admin ? '/admin/orders' : '/dashboard'}
-          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#141414] px-4 py-2 text-xs font-bold text-white hover:bg-black"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black"
         >
           Back to Orders
         </Link>
@@ -156,7 +166,7 @@ export default function OrderDetailPage() {
           particleCount: 80,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#18794E', '#141414', '#10B981'],
+          colors: ['#EB4A1E', '#15171C', '#2B59FF', '#FF6A3D'],
         });
       }
     } catch (error: unknown) {
@@ -202,12 +212,12 @@ export default function OrderDetailPage() {
     quote_requested: { label: 'Quote Requested', color: 'text-amber-800 bg-amber-50 border-amber-200' },
     in_review: { label: 'Feasibility Review', color: 'text-blue-800 bg-blue-50 border-blue-200' },
     in_progress: { label: 'Artist Actively Redrawing', color: 'text-purple-800 bg-purple-50 border-purple-200' },
-    preview_ready: { label: 'Watermarked Preview Ready for Review', color: 'text-[#18794E] bg-[#E9F9EE] border-[#B4DFC4] font-bold' },
+    preview_ready: { label: 'Watermarked Preview Ready for Review', color: 'text-signal-ink bg-signal-tint border-signal-line font-bold' },
     approved: { label: 'Approved · Masters Being Prepared', color: 'text-blue-800 bg-blue-50 border-blue-200 font-bold' },
     revision_requested: { label: 'Revision In Progress (Round 1 of 2)', color: 'text-yellow-800 bg-yellow-50 border-yellow-200' },
-    completed: { label: 'Approved & Master Vectors Unlocked', color: 'text-emerald-800 bg-emerald-50 border-emerald-200 font-bold' },
-    cancelled: { label: 'Cancelled', color: 'text-gray-700 bg-gray-100 border-gray-200' },
-  }[order.status] || { label: order.status, color: 'text-gray-700 bg-gray-100 border-gray-200' };
+    completed: { label: 'Approved & Master Vectors Unlocked', color: 'text-ok-ink bg-ok-tint border-ok-line font-bold' },
+    cancelled: { label: 'Cancelled', color: 'text-ink-2 bg-paper-3 border-rule' },
+  }[order.status] || { label: order.status, color: 'text-ink-2 bg-paper-3 border-rule' };
   const nextAction = getNextOrderAction(order);
   const expectedDelivery = getExpectedDelivery(order);
   const statusHistory = getStatusHistory(order);
@@ -215,31 +225,31 @@ export default function OrderDetailPage() {
   return (
     <div className="space-y-8">
       {/* Top Breadcrumb & Status Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAE8E3] pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rule pb-6">
         <div className="flex items-center gap-3">
           <Link
             href={currentUser?.is_admin ? '/admin/orders' : '/dashboard'}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#EAE8E3] bg-white text-[#737373] hover:bg-[#F5F4F0] hover:text-[#141414] transition-colors"
+            className="flex h-9 w-9 items-center justify-center border border-rule-strong bg-paper-2 text-ink-3 hover:bg-paper hover:text-ink transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight text-[#141414]">
+              <h1 className="text-xl font-bold tracking-tight text-ink">
                 {order.project_name}
               </h1>
-              <span className="font-sans text-xs font-semibold text-[#737373]">
+              <span className="font-sans text-xs font-semibold text-ink-3">
                 ({order.order_number})
               </span>
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-xs text-[#737373]">
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-xs text-ink-3">
               <span>Submitted {new Date(order.created_at).toLocaleDateString()}</span>
               <span>•</span>
               <span className="capitalize">{order.artwork_type.replace('_', ' ')}</span>
               <span>•</span>
               <span className="capitalize">{order.complexity} Complexity</span>
               <span>•</span>
-              <span>Price: <strong className="text-[#141414]">${order.final_price || order.estimated_price}</strong></span>
+              <span>Price: <strong className="text-ink">${order.final_price || order.estimated_price}</strong></span>
             </div>
           </div>
         </div>
@@ -254,7 +264,7 @@ export default function OrderDetailPage() {
       </div>
 
       {actionSuccess && (
-        <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
+        <div role="status" className="rounded-xl border border-ok-line bg-ok-tint p-4 text-sm font-medium text-ok-ink">
           ✓ {actionSuccess}
         </div>
       )}
@@ -265,24 +275,24 @@ export default function OrderDetailPage() {
       )}
 
       <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]" aria-label="Order progress">
-        <div className="rounded-2xl border-2 border-[#18794E] bg-[#E9F9EE] p-5">
-          <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-[#115C3B]">Your next step</span>
-          <h2 className="mt-2 text-lg font-bold text-[#141414]">{nextAction.title}</h2>
-          <p className="mt-1 text-sm text-[#555]">{nextAction.detail}</p>
-          <p className="mt-4 text-xs text-[#737373]">Estimated delivery: <strong className="text-[#141414]">{new Date(expectedDelivery).toLocaleString()}</strong></p>
-          {order.assigned_artist && <p className="mt-1 text-xs text-[#737373]">Assigned artist: <strong className="text-[#141414]">{order.assigned_artist}</strong></p>}
-          {nextAction.action === 'review' && <a href="#artwork-review" className="mt-5 inline-flex rounded-lg bg-[#18794E] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#115C3B]">Review preview</a>}
-          {nextAction.action === 'message' && <a href="#order-messages" className="mt-5 inline-flex rounded-lg border border-[#B4DFC4] bg-white px-4 py-2.5 text-sm font-bold text-[#115C3B] hover:bg-[#F5FFF8]">Message the studio</a>}
-          {nextAction.action === 'download' && <a href="#master-files" className="mt-5 inline-flex rounded-lg bg-[#18794E] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#115C3B]">View downloads</a>}
+        <div className="rounded-2xl border-2 border-ink bg-signal-tint p-5">
+          <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-signal-ink">Your next step</span>
+          <h2 className="mt-2 text-lg font-bold text-ink">{nextAction.title}</h2>
+          <p className="mt-1 text-sm text-ink-2">{nextAction.detail}</p>
+          <p className="mt-4 text-xs text-ink-3">Estimated delivery: <strong className="text-ink">{new Date(expectedDelivery).toLocaleString()}</strong></p>
+          {order.assigned_artist && <p className="mt-1 text-xs text-ink-3">Assigned artist: <strong className="text-ink">{order.assigned_artist}</strong></p>}
+          {nextAction.action === 'review' && <a href="#artwork-review" className="mt-5 inline-flex rounded-lg bg-ink px-4 py-2.5 text-sm font-bold text-white hover:bg-signal-ink">Review preview</a>}
+          {nextAction.action === 'message' && <a href="#order-messages" className="mt-5 inline-flex rounded-lg border border-signal-line bg-paper-2 px-4 py-2.5 text-sm font-bold text-signal-ink hover:bg-paper-2">Message the studio</a>}
+          {nextAction.action === 'download' && <a href="#master-files" className="mt-5 inline-flex rounded-lg bg-ink px-4 py-2.5 text-sm font-bold text-white hover:bg-signal-ink">View downloads</a>}
         </div>
-        <div className="rounded-2xl border border-[#EAE8E3] bg-white p-5">
+        <div className="border border-ink bg-paper-2 p-5">
           <h2 className="text-sm font-bold">Status history</h2>
           <ol className="mt-3 space-y-1">
             {statusHistory.map((event, index) => (
               <li key={event.id} className="relative flex gap-3 pb-3 text-xs last:pb-0">
-                {index < statusHistory.length - 1 && <span className="absolute left-[5px] top-3 h-full w-px bg-[#B4DFC4]" />}
-                <span className={`relative mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-4 ring-white ${index === statusHistory.length - 1 ? 'bg-[#18794E]' : 'bg-emerald-500'}`} />
-                <span><strong className="block text-sm text-[#141414]">{ORDER_STATUS_LABELS[event.status]}</strong><span className="text-xs text-[#737373]">{new Date(event.created_at).toLocaleString()}</span></span>
+                {index < statusHistory.length - 1 && <span className="absolute left-[5px] top-3 h-full w-px bg-signal-line" />}
+                <span className={`relative mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-4 ring-white ${index === statusHistory.length - 1 ? 'bg-ink' : 'bg-ok'}`} />
+                <span><strong className="block text-sm text-ink">{ORDER_STATUS_LABELS[event.status]}</strong><span className="text-xs text-ink-3">{new Date(event.created_at).toLocaleString()}</span></span>
               </li>
             ))}
           </ol>
@@ -299,37 +309,27 @@ export default function OrderDetailPage() {
       />
 
       {/* 1. DUAL VIEW COMPARISON: ORIGINAL VS COMPLETED/PREVIEW */}
-      <div id="artwork-review" className="scroll-mt-24 rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xs sm:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAE8E3] pb-4">
+      <div id="artwork-review" className="scroll-mt-24 border border-ink bg-paper-2 p-6 sm:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rule pb-4">
           <div>
-            <h2 className="text-sm font-bold text-[#141414]">Artwork Inspection &amp; Comparison</h2>
-            <p className="text-xs text-[#737373]">
-              Side-by-side and interactive split-slider comparison of original upload vs reconstructed vector draft
-            </p>
+            <h2 className="font-display text-lg font-bold tracking-[-0.02em] text-ink">{inspect.title}</h2>
+            <p className="mt-1 text-[14px] leading-6 text-ink-2">{inspect.body}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-lg border border-[#DAD8D2] bg-[#F9F8F6] p-1 text-xs font-semibold">
+            <div className="inline-flex border border-ink text-[13px] font-semibold">
               <button
                 type="button"
                 onClick={() => setComparisonView('slider')}
-                className={`rounded-md px-3 py-1 text-xs font-bold transition-all ${
-                  comparisonView === 'slider'
-                    ? 'bg-[#18794E] text-white shadow-xs'
-                    : 'text-[#5E625F] hover:text-[#102A20]'
-                }`}
+                className={`px-3.5 py-2 transition-colors ${comparisonView === 'slider' ? 'bg-ink text-paper' : 'text-ink hover:bg-paper-3'}`}
               >
-                ↔️ Karşılaştırma Kaydırıcısı (Slider)
+                {inspect.slider}
               </button>
               <button
                 type="button"
                 onClick={() => setComparisonView('side-by-side')}
-                className={`rounded-md px-3 py-1 text-xs font-bold transition-all ${
-                  comparisonView === 'side-by-side'
-                    ? 'bg-[#18794E] text-white shadow-xs'
-                    : 'text-[#5E625F] hover:text-[#102A20]'
-                }`}
+                className={`border-l border-ink px-3.5 py-2 transition-colors ${comparisonView === 'side-by-side' ? 'bg-ink text-paper' : 'text-ink hover:bg-paper-3'}`}
               >
-                Yan Yana Görünüm
+                {inspect.sideBySide}
               </button>
             </div>
           </div>
@@ -337,23 +337,20 @@ export default function OrderDetailPage() {
 
         {comparisonView === 'slider' ? (
           <div className="mt-6">
-            <BeforeAfterSlider
-              title={`${order.project_name} — Vektör Kalite Kontrolü`}
-              category="Stüdyo Kalite Kontrolü"
-            />
+            <BeforeAfterSlider title={`${order.project_name} — ${inspect.plate}`} />
           </div>
         ) : (
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Side A: Original Upload */}
-          <div className="flex flex-col rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#EAE8E3] bg-[#F5F4F0] px-4 py-2 text-xs font-semibold text-[#141414]">
+          <div className="flex flex-col border border-rule-strong bg-paper overflow-hidden">
+            <div className="flex items-center justify-between border-b border-rule bg-paper px-4 py-2 text-xs font-semibold text-ink">
               <span>A. Customer Submission</span>
-              <span className="text-[10px] text-[#737373] font-sans">
+              <span className="text-[10px] text-ink-3 font-sans">
                 {customerUpload?.format.toUpperCase() || 'RASTER'}
               </span>
             </div>
 
-            <div className="flex h-72 w-full items-center justify-center p-6 bg-[#F9F8F6]">
+            <div className="flex h-72 w-full items-center justify-center p-6 bg-paper">
               {customerArtworkUrl ? (
                 <Image
                   src={customerArtworkUrl}
@@ -364,29 +361,29 @@ export default function OrderDetailPage() {
                   className="max-h-full max-w-full object-contain rounded filter contrast-90"
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center text-center text-[#737373]">
-                  <Layers className="h-10 w-10 text-[#CCCCCC]" />
+                <div className="flex flex-col items-center justify-center text-center text-ink-3">
+                  <Layers className="h-10 w-10 text-paper-3" />
                   <span className="mt-2 text-xs font-medium">
                     {customerUpload?.filename || 'Original Raster File'}
                   </span>
-                  <span className="text-[10px] font-sans text-[#999999]">
+                  <span className="text-[10px] font-sans text-ink-3">
                     {customerUpload?.size_bytes ? `${(customerUpload.size_bytes / 1024 / 1024).toFixed(1)} MB` : '3.4 MB'}
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="border-t border-[#EAE8E3] bg-white p-3 font-sans text-[11px] text-[#737373] flex justify-between">
+            <div className="border-t border-rule bg-paper-2 p-3 font-sans text-[11px] text-ink-3 flex justify-between">
               <span>Source: Client Upload</span>
               <span>Status: {customerUpload?.scan_status === 'clean' ? 'Security scan passed' : customerUpload?.scan_status === 'infected' ? 'Rejected by security scan' : 'Security scan pending'}</span>
             </div>
           </div>
 
           {/* Side B: Vector Reconstruction / Watermarked Preview */}
-          <div className="flex flex-col rounded-xl border-2 border-[#141414] bg-white overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#141414] bg-[#141414] px-4 py-2 text-xs font-bold text-white">
+          <div className="flex flex-col rounded-xl border-2 border-ink bg-paper-2 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-ink bg-ink px-4 py-2 text-xs font-bold text-white">
               <span>B. Artlantix Reconstructed Vector</span>
-              <span className="text-[10px] text-[#18794E] uppercase font-sans">
+              <span className="text-[10px] text-signal-ink uppercase font-sans">
                 {order.status === 'completed' ? 'Master Approved' : 'Watermarked Preview'}
               </span>
             </div>
@@ -394,16 +391,16 @@ export default function OrderDetailPage() {
             <div
               className={`relative flex h-72 w-full items-center justify-center p-6 transition-colors ${
                 inspectorBackdrop === 'dark'
-                  ? 'bg-[#141414]'
+                  ? 'bg-ink'
                   : inspectorBackdrop === 'grid'
-                  ? 'bg-[#FAFAFA]'
-                  : 'bg-[#F9F8F6]'
+                  ? 'bg-paper-2'
+                  : 'bg-paper'
               }`}
               style={
                 inspectorBackdrop === 'grid'
                   ? {
                       backgroundImage:
-                        'linear-gradient(45deg, #e0e0e0 25%, transparent 25%), linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e0e0e0 75%), linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)',
+                        'linear-gradient(45deg, #d9d3c4 25%, transparent 25%), linear-gradient(-45deg, #d9d3c4 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d9d3c4 75%), linear-gradient(-45deg, transparent 75%, #d9d3c4 75%)',
                       backgroundSize: '12px 12px',
                     }
                   : undefined
@@ -421,17 +418,17 @@ export default function OrderDetailPage() {
                 {previewArtworkUrl ? (
                   <Image src={previewArtworkUrl} alt={`${order.project_name} preview`} fill sizes="(max-width: 768px) 100vw, 50vw" unoptimized className="object-contain p-6" />
                 ) : <svg viewBox="0 0 400 400" className="h-56 w-56 drop-shadow-xs">
-                  <circle cx="200" cy="200" r="150" fill={inspectorMode === 'wireframe' ? 'none' : '#FFFFFF'} stroke="#141414" strokeWidth={inspectorMode === 'wireframe' ? '2' : '6'} />
-                  <circle cx="200" cy="200" r="130" fill="none" stroke="#18794E" strokeWidth="2.5" strokeDasharray="6 4" />
-                  <path d="M 200 80 L 235 150 L 310 150 L 250 195 L 270 270 L 200 225 L 130 270 L 150 195 L 90 150 L 165 150 Z" fill={inspectorMode === 'wireframe' ? 'none' : '#141414'} stroke={inspectorMode === 'wireframe' ? '#18794E' : undefined} strokeWidth={inspectorMode === 'wireframe' ? '2' : undefined} />
-                  <circle cx="200" cy="200" r="22" fill={inspectorMode === 'wireframe' ? 'none' : '#18794E'} stroke={inspectorMode === 'wireframe' ? '#18794E' : undefined} strokeWidth={inspectorMode === 'wireframe' ? '2' : undefined} />
-                  <text x="200" y="325" fontFamily="sans-serif" fontWeight="800" fontSize="16" letterSpacing="4" fill={inspectorBackdrop === 'dark' ? '#FFFFFF' : '#141414'} textAnchor="middle">
+                  <circle cx="200" cy="200" r="150" fill={inspectorMode === 'wireframe' ? 'none' : 'var(--color-paper-2)'} stroke="var(--color-ink)" strokeWidth={inspectorMode === 'wireframe' ? '2' : '6'} />
+                  <circle cx="200" cy="200" r="130" fill="none" stroke="var(--color-guide)" strokeWidth="2.5" strokeDasharray="6 4" />
+                  <path d="M 200 80 L 235 150 L 310 150 L 250 195 L 270 270 L 200 225 L 130 270 L 150 195 L 90 150 L 165 150 Z" fill={inspectorMode === 'wireframe' ? 'none' : 'var(--color-ink)'} stroke={inspectorMode === 'wireframe' ? 'var(--color-guide)' : undefined} strokeWidth={inspectorMode === 'wireframe' ? '2' : undefined} />
+                  <circle cx="200" cy="200" r="22" fill={inspectorMode === 'wireframe' ? 'none' : 'var(--color-signal)'} stroke={inspectorMode === 'wireframe' ? 'var(--color-guide)' : undefined} strokeWidth={inspectorMode === 'wireframe' ? '2' : undefined} />
+                  <text x="200" y="325" fontFamily="sans-serif" fontWeight="800" fontSize="16" letterSpacing="4" fill={inspectorBackdrop === 'dark' ? 'var(--color-paper-2)' : 'var(--color-ink)'} textAnchor="middle">
                     {order.project_name.toUpperCase().slice(0, 16)}
                   </text>
                 </svg>}
 
                 {order.revision_annotations?.map((annotation, index) => (
-                  <span key={annotation.id} title={annotation.message} className="absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-[#18794E] text-xs font-bold text-white shadow-md" style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}>{index + 1}</span>
+                  <span key={annotation.id} title={annotation.message} className="absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-ink text-xs font-bold text-white shadow-md" style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}>{index + 1}</span>
                 ))}
 
                 {order.status !== 'completed' && (
@@ -444,9 +441,9 @@ export default function OrderDetailPage() {
               </div>
             </div>
 
-            <div className="border-t border-[#EAE8E3] bg-white p-3 font-sans text-[11px] flex justify-between">
-              <span className="text-emerald-700 font-semibold">✓ Tangency Verified</span>
-              <span className="text-[#737373]">Tolerance: 0.01mm</span>
+            <div className="border-t border-rule bg-paper-2 p-3 font-sans text-[11px] flex justify-between">
+              <span className="text-ok font-semibold">✓ Tangency Verified</span>
+              <span className="text-ink-3">Tolerance: 0.01mm</span>
             </div>
           </div>
         </div>
@@ -465,13 +462,13 @@ export default function OrderDetailPage() {
 
         {/* ACTION BAR FOR PREVIEW APPROVAL OR REVISION */}
         {order.status === 'preview_ready' && (
-          <div className="mt-8 rounded-2xl border-2 border-[#18794E] bg-[#E9F9EE] p-6 sm:p-8">
+          <div className="mt-8 rounded-2xl border-2 border-ink bg-signal-tint p-6 sm:p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h3 className="text-sm font-bold text-[#141414]">
+                <h3 className="text-sm font-bold text-ink">
                   Do you approve this reconstructed vector draft?
                 </h3>
-                <p className="text-xs text-[#737373] mt-1 max-w-xl">
+                <p className="text-xs text-ink-3 mt-1 max-w-xl">
                   Approval confirms the artwork and sends it to final packaging and quality control. Downloads appear only after the studio uploads and completes the master delivery.
                 </p>
               </div>
@@ -480,7 +477,7 @@ export default function OrderDetailPage() {
                 <button
                   type="button"
                   onClick={() => setRevisionModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#141414] bg-white px-4 py-2.5 text-xs font-bold text-[#141414] hover:bg-[#F5F4F0] transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-ink bg-paper-2 px-4 py-2.5 text-xs font-bold text-ink hover:bg-paper transition-colors"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   <span>Request Revision</span>
@@ -490,7 +487,7 @@ export default function OrderDetailPage() {
                   type="button"
                   onClick={handleApprove}
                   disabled={isApproving}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-6 py-2.5 text-sm font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg bg-ink px-6 py-2.5 text-sm font-bold text-white hover:bg-signal-ink transition-colors disabled:opacity-60"
                 >
                   {isApproving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                   <span>{isApproving ? 'Approving...' : 'Approve Artwork'}</span>
@@ -521,25 +518,25 @@ export default function OrderDetailPage() {
 
       {/* 2. MASTER FILES DOWNLOAD DRAWER WITH TACTILE DELIVERABLE BADGES */}
       {order.status === 'completed' && (
-        <div id="master-files" className="scroll-mt-24 rounded-2xl border border-emerald-300 bg-white p-6 shadow-xs sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAE8E3] pb-5">
+        <div id="master-files" className="scroll-mt-24 rounded-2xl border border-ok-line bg-paper-2 p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rule pb-5">
             <div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                <h2 className="text-base font-bold text-[#141414]">
+                <CheckCircle2 className="h-5 w-5 text-ok" />
+                <h2 className="text-base font-bold text-ink">
                   Production Master Deliverables (Unlocked)
                 </h2>
               </div>
-              <p className="text-xs text-[#737373] mt-0.5">
+              <p className="text-xs text-ink-3 mt-0.5">
                 Archived permanently in your Artlantix Vault. Click any format badge to download immediately.
               </p>
             </div>
 
             <button
               onClick={() => downloadAllMasterFiles(order).catch((error: unknown) => setActionError(error instanceof Error ? error.message : 'Downloads could not be started.'))}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#141414] px-5 py-2.5 text-xs font-bold text-white hover:bg-black transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-xs font-bold text-white hover:bg-black transition-colors"
             >
-              <Download className="h-4 w-4 text-[#18794E]" />
+              <Download className="h-4 w-4 text-signal-ink" />
               <span>Download All Master Files</span>
             </button>
           </div>
@@ -576,31 +573,31 @@ export default function OrderDetailPage() {
       {/* REVISION REQUEST MODAL */}
       {revisionModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="revision-dialog-title" className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150 sm:p-8">
-            <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="revision-dialog-title" className="max-h-[92vh] w-full max-w-3xl overflow-y-auto border border-ink bg-paper-2 p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150 sm:p-8">
+            <div className="flex items-center justify-between border-b border-rule pb-4">
               <div className="flex items-center gap-2">
-                <RotateCcw className="h-4 w-4 text-[#18794E]" />
-                <h3 id="revision-dialog-title" className="text-sm font-bold text-[#141414]">Request Artwork Revision</h3>
+                <RotateCcw className="h-4 w-4 text-signal-ink" />
+                <h3 id="revision-dialog-title" className="text-sm font-bold text-ink">Request Artwork Revision</h3>
               </div>
               <button
                 type="button"
                 aria-label="Close revision request"
                 onClick={() => setRevisionModalOpen(false)}
-                className="text-xs text-[#737373] hover:text-[#141414]"
+                className="text-xs text-ink-3 hover:text-ink"
               >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSubmitRevision} className="mt-4 space-y-4">
-              <p className="text-xs text-[#737373] leading-relaxed">
+              <p className="text-xs text-ink-3 leading-relaxed">
                 Detail the precise adjustments required. Your senior artist will refine the vector contours (Round 1 of 2 included).
               </p>
 
               <RevisionAnnotator annotations={revisionAnnotations} onChange={setRevisionAnnotations} imageUrl={previewArtworkUrl || undefined} />
 
               <div>
-                <label className="block text-xs font-bold text-[#141414]">
+                <label className="block text-xs font-bold text-ink">
                   Revision Details &amp; Path Feedback
                 </label>
                 <textarea
@@ -609,7 +606,7 @@ export default function OrderDetailPage() {
                   value={revisionFeedback}
                   onChange={(e) => setRevisionFeedback(e.target.value)}
                   placeholder="e.g., Please thicken the outer crest stroke by 0.5pt, slightly widen the serifs on the letter 'S', and remove the stray anchor node on the falcon eye..."
-                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-3 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                  className="mt-2 w-full border border-rule-strong bg-paper p-3 text-sm text-ink focus:border-ink focus:bg-paper-2 focus:outline-hidden"
                 />
               </div>
 
@@ -617,14 +614,14 @@ export default function OrderDetailPage() {
                 <button
                   type="button"
                   onClick={() => setRevisionModalOpen(false)}
-                  className="rounded-lg border border-[#EAE8E3] bg-white px-4 py-2 text-xs font-semibold text-[#737373] hover:bg-[#F5F4F0]"
+                  className="border border-rule-strong bg-paper-2 px-4 py-2 text-xs font-semibold text-ink-3 hover:bg-paper"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingRevision || (!revisionFeedback.trim() && !revisionAnnotations.some((annotation) => annotation.message.trim()))}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-5 py-2 text-xs font-bold text-white hover:bg-[#115C3B] disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-5 py-2 text-xs font-bold text-white hover:bg-signal-ink disabled:opacity-50"
                 >
                   <span>{isSubmittingRevision ? 'Submitting...' : 'Submit Revision Request'}</span>
                 </button>

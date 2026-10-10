@@ -51,7 +51,7 @@ export const services: MarketingService[] = [
     },
     description: {
       tr: 'Yapay zekâ çıktısındaki bozuk harfleri, asimetrik eğrileri ve piksel kalıntılarını otomatik izleme kullanmadan yeniden çizeriz. Sonuç; web, baskı, tabela ve tekstilde kullanılabilen düzenli bir master sistemidir.',
-      en: 'We rebuild broken lettering, asymmetric curves and raster artefacts without auto-trace. The result is an organised master system ready for web, print, signage and apparel.',
+      en: 'We rebuild broken lettering, asymmetric curves and raster artifacts without auto-trace. The result is an organized master system ready for web, print, signage and apparel.',
       de: 'Wir rekonstruieren fehlerhafte Schrift, asymmetrische Kurven und Rasterartefakte ohne Auto-Trace. Das Ergebnis ist ein geordnetes Mastersystem für Web, Druck, Beschilderung und Textilien.',
     },
     idealFor: {
@@ -83,7 +83,7 @@ export const services: MarketingService[] = [
     },
     description: {
       tr: 'Elinizde yalnızca küçük veya bulanık bir logo varsa dış hatları, simetriyi, renkleri ve yazıyı yeniden kurarız. Yeni dosya kartvizitten tabelaya kadar kalite kaybetmeden ölçeklenir.',
-      en: 'When the only source is a small or blurry logo, we rebuild outlines, symmetry, colour and type. The new file scales from a business card to signage without quality loss.',
+      en: 'When the only source is a small or blurry logo, we rebuild outlines, symmetry, color and type. The new file scales from a business card to signage without quality loss.',
       de: 'Wenn nur ein kleines oder unscharfes Logo vorhanden ist, rekonstruieren wir Konturen, Symmetrie, Farben und Schrift. Die neue Datei skaliert verlustfrei von Visitenkarte bis Schild.',
     },
     idealFor: {
@@ -93,7 +93,7 @@ export const services: MarketingService[] = [
     },
     includes: {
       tr: ['Temiz kapalı eğriler', 'Renk eşleştirme', 'Baskı ve web masterları'],
-      en: ['Clean closed paths', 'Colour matching', 'Print and web masters'],
+      en: ['Clean closed paths', 'Color matching', 'Print and web masters'],
       de: ['Saubere geschlossene Pfade', 'Farbabgleich', 'Druck- und Web-Master'],
     },
     useCases: {
@@ -142,7 +142,7 @@ export const services: MarketingService[] = [
     title: { tr: 'Maskot ve Karmaşık Rozet Çizimi', en: 'Mascot & Complex Badge Vectorization', de: 'Maskottchen- und Abzeichen-Vektorisierung' },
     short: {
       tr: 'Maskot, arma ve ayrıntılı illüstrasyonları düzenlenebilir renk katmanlarıyla yeniden çizer.',
-      en: 'Rebuild mascots, crests and detailed illustrations with editable colour layers.',
+      en: 'Rebuild mascots, crests and detailed illustrations with editable color layers.',
       de: 'Maskottchen, Wappen und detaillierte Illustrationen werden in editierbaren Farbebenen aufgebaut.',
     },
     description: {
@@ -157,7 +157,7 @@ export const services: MarketingService[] = [
     },
     includes: {
       tr: ['Katmanlı master', 'Renk sadeleştirme', 'Küçük boyut varyantı'],
-      en: ['Layered master', 'Colour simplification', 'Small-size variant'],
+      en: ['Layered master', 'Color simplification', 'Small-size variant'],
       de: ['Ebenen-Master', 'Farbreduktion', 'Variante für kleine Größen'],
     },
     useCases: {
@@ -174,12 +174,12 @@ export const services: MarketingService[] = [
     title: { tr: 'Emprime ve DTF Renk Ayrımı', en: 'Screen Print & DTF Separation', de: 'Siebdruck- und DTF-Farbseparation' },
     short: {
       tr: 'Görseli temiz spot renk katmanlarına ve baskı toleranslarına hazırlar.',
-      en: 'Prepare artwork as clean spot-colour layers with production tolerances.',
+      en: 'Prepare artwork as clean spot-color layers with production tolerances.',
       de: 'Motive werden als saubere Volltonfarbebenen mit Produktionstoleranzen vorbereitet.',
     },
     description: {
       tr: 'Spot renkleri ayırır, alt tabaka taşmalarını ve minimum çizgi kalınlıklarını kontrol ederiz. Dosya, üretim ekibinin yeniden temizlemek zorunda kalmayacağı şekilde düzenlenir.',
-      en: 'We separate spot colours, check underbase trapping and minimum line widths, and organise the file so the production team does not need to clean it again.',
+      en: 'We separate spot colors, check underbase trapping and minimum line widths, and organize the file so the production team does not need to clean it again.',
       de: 'Wir trennen Volltonfarben, prüfen Unterleger-Trapping und Mindestlinienstärken und organisieren die Datei so, dass die Produktion sie nicht erneut bereinigen muss.',
     },
     idealFor: {
@@ -189,7 +189,7 @@ export const services: MarketingService[] = [
     },
     includes: {
       tr: ['Spot renk katmanları', 'Pantone notları', 'Alt tabaka/trapping kontrolü'],
-      en: ['Spot-colour layers', 'Pantone notes', 'Underbase/trapping checks'],
+      en: ['Spot-color layers', 'Pantone notes', 'Underbase/trapping checks'],
       de: ['Volltonfarbebenen', 'Pantone-Angaben', 'Unterleger-/Trapping-Prüfung'],
     },
     useCases: {
@@ -238,7 +238,7 @@ export const services: MarketingService[] = [
     title: { tr: 'Nakışa Hazır Vektör Sadeleştirme', en: 'Embroidery-Ready Vector Simplification', de: 'Vektorvereinfachung für Stickerei' },
     short: {
       tr: 'Logoyu küçük ölçekte okunabilir, temiz renk bölgelerine dönüştürür.',
-      en: 'Turn logos into readable, clean colour regions that hold up at small sizes.',
+      en: 'Turn logos into readable, clean color regions that hold up at small sizes.',
       de: 'Logos werden in lesbare, saubere Farbflächen für kleine Stickgrößen umgesetzt.',
     },
     description: {
@@ -253,7 +253,7 @@ export const services: MarketingService[] = [
     },
     includes: {
       tr: ['Küçük boyut varyantı', 'Minimum çizgi kontrolü', 'Temiz renk bölgeleri'],
-      en: ['Small-size variant', 'Minimum-stroke check', 'Clean colour regions'],
+      en: ['Small-size variant', 'Minimum-stroke check', 'Clean color regions'],
       de: ['Kleinformat-Variante', 'Mindestlinienprüfung', 'Saubere Farbflächen'],
     },
     useCases: {
@@ -278,7 +278,7 @@ export const caseStudies: MarketingCaseStudy[] = [
     },
     challenge: {
       tr: 'Raster taslakta harfler okunamıyor, dış hat kalınlıkları değişiyor ve simetri merkezi kayıyordu. Otomatik izleme bu hataları vektörle birlikte kalıcı hale getiriyordu.',
-      en: 'The raster concept had unreadable letters, inconsistent outline weights and a shifted centre. Auto-trace would simply preserve those defects as vectors.',
+      en: 'The raster concept had unreadable letters, inconsistent outline weights and a shifted center. Auto-trace would simply preserve those defects as vectors.',
       de: 'Der Rasterentwurf hatte unleserliche Buchstaben, wechselnde Konturstärken und eine verschobene Mitte. Auto-Trace hätte diese Fehler nur konserviert.',
     },
     approach: {
@@ -288,7 +288,7 @@ export const caseStudies: MarketingCaseStudy[] = [
     },
     outcome: {
       tr: 'Ortaya büyük tabela, küçük etiket ve folyo kesim için ayrı ayrı test edilebilen düzenli bir master sistemi çıktı.',
-      en: 'The result is an organised master system that can be tested independently for large signage, small labels and vinyl cutting.',
+      en: 'The result is an organized master system that can be tested independently for large signage, small labels and vinyl cutting.',
       de: 'Das Ergebnis ist ein geordnetes Mastersystem für große Schilder, kleine Etiketten und Folienplot.',
     },
     deliverables: {
@@ -301,31 +301,31 @@ export const caseStudies: MarketingCaseStudy[] = [
     slug: 'mascot-color-separation',
     serviceSlug: 'mascot-vectorization',
     visual: 'mascot',
-    title: { tr: 'Maskot Çiziminde Temiz Renk Katmanları', en: 'Clean Colour Layers for a Mascot Mark', de: 'Saubere Farbebenen für ein Maskottchen' },
+    title: { tr: 'Maskot Çiziminde Temiz Renk Katmanları', en: 'Clean Color Layers for a Mascot Mark', de: 'Saubere Farbebenen für ein Maskottchen' },
     category: { tr: 'Stüdyo demonstrasyonu · Tekstil', en: 'Studio demonstration · Apparel', de: 'Studio-Demonstration · Textil' },
     summary: {
       tr: 'Karmaşık bir maskotu beş düzenlenebilir renk katmanına ve küçük boyut varyantına dönüştüren üretim yaklaşımı.',
-      en: 'A production approach that turns a complex mascot into five editable colour layers and a small-size variant.',
+      en: 'A production approach that turns a complex mascot into five editable color layers and a small-size variant.',
       de: 'Ein Produktionsansatz, der ein komplexes Maskottchen in fünf editierbare Farbebenen und eine Kleinformat-Variante überführt.',
     },
     challenge: {
       tr: 'Gölgeler yüzlerce küçük renk lekesinden oluşuyor, ince çizgiler baskıda kayboluyor ve silüet küçük ölçekte okunmuyordu.',
-      en: 'Shading consisted of hundreds of tiny colour fragments, thin lines would disappear in print and the silhouette failed at small sizes.',
+      en: 'Shading consisted of hundreds of tiny color fragments, thin lines would disappear in print and the silhouette failed at small sizes.',
       de: 'Die Schattierung bestand aus vielen kleinen Farbflächen, dünne Linien wären im Druck verschwunden und die Silhouette war klein nicht lesbar.',
     },
     approach: {
       tr: 'Ana silüet güçlendirildi, gölgeler kontrollü spot renklere indirildi ve küçük kullanım için ikinci bir sade varyant hazırlandı.',
-      en: 'The silhouette was strengthened, shading reduced to controlled spot colours and a simplified secondary version created for small use.',
+      en: 'The silhouette was strengthened, shading reduced to controlled spot colors and a simplified secondary version created for small use.',
       de: 'Die Silhouette wurde verstärkt, Schattierungen auf kontrollierte Volltonfarben reduziert und eine vereinfachte Kleinversion erstellt.',
     },
     outcome: {
       tr: 'Renkleri değiştirilebilen, ekran baskı ve DTF süreçlerine aktarılabilen temiz bir katman yapısı elde edildi.',
-      en: 'The outcome is a clean, recolourable layer structure suitable for screen print and DTF workflows.',
+      en: 'The outcome is a clean, recolorable layer structure suitable for screen print and DTF workflows.',
       de: 'Entstanden ist eine saubere, umfärbbare Ebenenstruktur für Siebdruck und DTF.',
     },
     deliverables: {
       tr: ['Beş spot renk katmanı', 'Ana ve sade varyant', 'Koyu/açık zemin versiyonları', 'Üretim notları'],
-      en: ['Five spot-colour layers', 'Primary and simplified variants', 'Dark/light background versions', 'Production notes'],
+      en: ['Five spot-color layers', 'Primary and simplified variants', 'Dark/light background versions', 'Production notes'],
       de: ['Fünf Volltonfarbebenen', 'Haupt- und vereinfachte Variante', 'Versionen für helle/dunkle Flächen', 'Produktionshinweise'],
     },
   },
@@ -423,7 +423,7 @@ export const guides: MarketingGuide[] = [
     title: { tr: 'Logonuzu Nakışa Nasıl Hazırlarsınız?', en: 'How to Prepare a Logo for Embroidery', de: 'So bereiten Sie ein Logo für Stickerei vor' },
     excerpt: {
       tr: 'Küçük detay, çizgi kalınlığı, renk sayısı ve sade varyant hazırlama rehberi.',
-      en: 'A guide to fine detail, stroke width, colour count and simplified variants.',
+      en: 'A guide to fine detail, stroke width, color count and simplified variants.',
       de: 'Ein Leitfaden zu Details, Linienstärke, Farbanzahl und vereinfachten Varianten.',
     },
     readTime: { tr: '6 dk okuma', en: '6 min read', de: '6 Min. Lesezeit' },
@@ -453,7 +453,7 @@ export const marketingCopy = {
       eyebrow: 'Manuel vektör üretim stüdyosu',
       titleLines: ['Pikselden', 'Vektöre'],
       description: 'Yapay zekâ taslaklarını, bulanık logoları ve eski taramaları baskı, nakış, tabela ve CNC için temiz vektör masterlara dönüştürüyoruz.',
-      primary: 'Dosyanı yükle', secondary: 'Önce / sonra gör',
+      primary: 'Dosyanızı yükleyin', secondary: 'Önce / sonra görün',
       proofEyebrow: 'Doğrulanabilir stüdyo standardı', proofTitle: 'Söz değil, görülebilir üretim disiplini.',
       servicesEyebrow: 'Hizmetler', servicesTitle: 'Dosyanızın gideceği üretime göre çalışırız.', servicesBody: 'Her hizmetin kapsamı, başlangıç fiyatı, süresi ve teslimatları ayrı ayrı açıklanır.', allServices: 'Tüm hizmetleri gör',
       processEyebrow: 'Süreç', processTitle: 'Dört net adım. Tek özel çalışma alanı.',
@@ -519,7 +519,7 @@ export const processSteps = {
   en: [
     { title: 'Submit', text: 'Share your file and intended use through the private quote workspace.' },
     { title: 'Audit', text: 'The studio reviews geometry, damage and production requirements.' },
-    { title: 'Rebuild', text: 'Paths, lettering and colour layers are reconstructed by hand.' },
+    { title: 'Rebuild', text: 'Paths, lettering and color layers are reconstructed by hand.' },
     { title: 'Approve and receive', text: 'Approve the preview, then download masters from your private vault.' },
   ],
   de: [

@@ -3,12 +3,107 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import PublicPageShell from '@/components/PublicPageShell';
-import MarketingVisual from '@/components/MarketingVisual';
+import PageHero from '@/components/ui/PageHero';
+import Sheet from '@/components/ui/Sheet';
+import RuledColumns from '@/components/ui/RuledColumns';
+import ServiceVisual from '@/components/ServiceVisual';
+import DropCta from '@/components/home/DropCta';
+import { btnChip, btnPrimary, container, textLink } from '@/components/ui/styles';
+import { homeCopy } from '@/lib/home-copy';
 import { getService, localizedPath, marketingCopy, normalizeMarketingLocale, services } from '@/lib/marketing';
 import { routing } from '@/i18n/routing';
 
-export function generateStaticParams() { return routing.locales.flatMap(locale => services.map(service => ({ locale, slug: service.slug }))); }
-export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> { const { locale, slug } = await params; const item = getService(slug); if (!item) return {}; const lang = normalizeMarketingLocale(locale); return { title: `${item.title[lang]} · Artlantix`, description: item.short[lang] }; }
-export default async function ServiceDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) { const { locale, slug } = await params; setRequestLocale(locale); const lang = normalizeMarketingLocale(locale); const item = getService(slug); if (!item) notFound(); const copy = marketingCopy[lang]; return <PublicPageShell><main><section className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8 lg:py-24"><div><Link href={localizedPath(lang, '/services')} className="inline-flex items-center gap-2 text-sm font-bold text-[#18794E]"><ArrowLeft className="h-4 w-4" />{copy.common.back}</Link><p className="mt-10 font-sans text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.common.from} ${item.startingPrice} · {item.turnaround[lang]}</p><h1 className="mt-4 text-5xl font-black tracking-[-0.04em] text-[#102A20] sm:text-6xl">{item.title[lang]}</h1><p className="mt-6 text-lg leading-8 text-[#5E625F]">{item.description[lang]}</p><Link href={`${localizedPath(lang, '/quote')}?service=${item.slug}`} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[#18794E] px-6 py-3.5 text-sm font-bold text-white">{copy.common.startService}<ArrowRight className="h-4 w-4" /></Link></div><MarketingVisual kind={item.artworkType === 'mascot_badge' ? 'mascot' : item.artworkType === 'lettering_typography' ? 'lettering' : 'crest'} /></section><section className="border-y border-[#DAD8D2] bg-white"><div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">{[[copy.common.included,item.includes[lang]],[copy.common.idealFor,item.idealFor[lang]],[copy.common.useCases,item.useCases[lang]]].map(([title,list]) => <div key={title as string}><h2 className="text-lg font-bold text-[#102A20]">{title as string}</h2><ul className="mt-5 space-y-3">{(list as string[]).map(value => <li key={value} className="flex gap-2 text-sm text-[#5E625F]"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#18794E]" />{value}</li>)}</ul></div>)}</div></section></main></PublicPageShell>; }
+const pad = (n: number) => String(n).padStart(2, '0');
+
+export function generateStaticParams() {
+  return routing.locales.flatMap((locale) => services.map((service) => ({ locale, slug: service.slug })));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const item = getService(slug);
+  if (!item) return {};
+  const lang = normalizeMarketingLocale(locale);
+  return { title: `${item.title[lang]} · Artlantix`, description: item.short[lang] };
+}
+
+export default async function ServiceDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const lang = normalizeMarketingLocale(locale);
+  const item = getService(slug);
+  if (!item) notFound();
+  const index = services.findIndex((service) => service.slug === item.slug);
+  const copy = marketingCopy[lang];
+  const h = homeCopy[lang];
+  const quoteHref = `${localizedPath(lang, '/quote')}?service=${item.slug}`;
+  const others = services.filter((service) => service.slug !== item.slug);
+
+  return (
+    <PublicPageShell>
+      <main>
+        <PageHero
+          back={{ href: localizedPath(lang, '/services'), label: copy.common.back }}
+          meta={copy.home.servicesEyebrow}
+          title={item.title[lang]}
+          body={item.description[lang]}
+          actions={
+            <Link href={quoteHref} className={btnPrimary}>
+              {copy.common.startService}
+              <span className={btnChip}><ArrowRight className="h-4 w-4" aria-hidden="true" /></span>
+            </Link>
+          }
+          aside={
+            <Sheet
+              caption={`${pad(index + 1)} / ${pad(services.length)}`}
+              cells={[[copy.common.from, `$${item.startingPrice}`], [h.services.typical, item.turnaround[lang]]]}
+            >
+              <ServiceVisual slug={item.slug} />
+            </Sheet>
+          }
+        />
+
+        <section className={`${container} py-16 lg:py-24`}>
+          <RuledColumns
+            columns={[
+              { title: copy.common.included, items: item.includes[lang] },
+              { title: copy.common.idealFor, items: item.idealFor[lang] },
+              { title: copy.common.useCases, items: item.useCases[lang] },
+            ]}
+          />
+        </section>
+
+        <section className="border-t border-rule">
+          <div className={`${container} py-14 lg:py-20`}>
+            <div className="flex items-end justify-between gap-6">
+              <h2 className="font-display text-2xl font-bold tracking-[-0.02em]">{copy.home.servicesEyebrow}</h2>
+              <Link href={localizedPath(lang, '/services')} className={`${textLink} hidden shrink-0 sm:inline-flex`}>
+                {copy.home.allServices}
+                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+            <ul className="mt-8 border-t border-ink">
+              {others.map((service) => (
+                <li key={service.slug} className="border-b border-ink">
+                  <Link
+                    href={localizedPath(lang, `/services/${service.slug}`)}
+                    className="group grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-6 py-4 sm:grid-cols-[3rem_minmax(0,1fr)_auto_auto]"
+                  >
+                    <span className="hidden font-display text-sm font-semibold tabular-nums text-ink-3 transition-colors group-hover:text-signal-ink sm:block">{pad(services.findIndex((s) => s.slug === service.slug) + 1)}</span>
+                    <span className="font-display text-lg font-bold leading-snug tracking-[-0.015em] transition-transform duration-300 group-hover:translate-x-1.5 sm:text-xl">{service.title[lang]}</span>
+                    <span className="text-[13px] font-semibold text-ink-2">{copy.common.from} ${service.startingPrice}</span>
+                    <ArrowUpRight className="h-5 w-5 text-ink-3 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-signal-ink" aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <DropCta title={copy.home.finalTitle} body={copy.home.finalBody} action={copy.common.startService} href={quoteHref} formats={h.cta.formats} />
+      </main>
+    </PublicPageShell>
+  );
+}

@@ -1,13 +1,81 @@
 import React from 'react';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
 import PublicPageShell from '@/components/PublicPageShell';
+import PageHero from '@/components/ui/PageHero';
+import DropCta from '@/components/home/DropCta';
+import { container } from '@/components/ui/styles';
+import { homeCopy } from '@/lib/home-copy';
 import { getGuide, guides, localizedPath, marketingCopy, normalizeMarketingLocale } from '@/lib/marketing';
 import { routing } from '@/i18n/routing';
 
-export function generateStaticParams() { return routing.locales.flatMap(locale => guides.map(guide => ({ locale, slug: guide.slug }))); }
-export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> { const { locale, slug } = await params; const guide = getGuide(slug); if (!guide) return {}; const lang = normalizeMarketingLocale(locale); return { title: `${guide.title[lang]} · Artlantix`, description: guide.excerpt[lang] }; }
-export default async function GuidePage({ params }: { params: Promise<{ locale: string; slug: string }> }) { const { locale, slug } = await params; setRequestLocale(locale); const lang = normalizeMarketingLocale(locale); const guide = getGuide(slug); if (!guide) notFound(); const copy = marketingCopy[lang]; return <PublicPageShell><main><article><header className="border-b border-[#DAD8D2] bg-white"><div className="mx-auto max-w-3xl px-4 py-20 sm:px-6"><Link href={localizedPath(lang, '/guides')} className="inline-flex items-center gap-2 text-sm font-bold text-[#18794E]"><ArrowLeft className="h-4 w-4" />{copy.common.back}</Link><p className="mt-10 font-sans text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{guide.readTime[lang]}</p><h1 className="mt-4 text-5xl font-black tracking-[-0.04em] text-[#102A20]">{guide.title[lang]}</h1><p className="mt-6 text-lg leading-8 text-[#5E625F]">{guide.excerpt[lang]}</p></div></header><div className="mx-auto max-w-3xl space-y-12 px-4 py-16 sm:px-6">{guide.sections[lang].map((section,index) => <section key={section.title}><span className="font-sans text-xs text-[#18794E]">0{index+1}</span><h2 className="mt-3 text-2xl font-black text-[#102A20]">{section.title}</h2><p className="mt-4 text-base leading-8 text-[#4F5551]">{section.body}</p></section>)}<div className="rounded-3xl bg-[#102A20] p-8 text-white"><h2 className="text-2xl font-black">{copy.home.finalTitle}</h2><p className="mt-3 text-white/65">{copy.home.finalBody}</p><Link href={localizedPath(lang, '/quote')} className="mt-6 inline-flex items-center gap-2 font-bold text-[#78D5A6]">{copy.home.primary}<ArrowRight className="h-4 w-4" /></Link></div></div></article></main></PublicPageShell>; }
+const contentsLabel = { en: 'Contents', de: 'Inhalt', tr: 'İçindekiler' } as const;
+
+export function generateStaticParams() {
+  return routing.locales.flatMap((locale) => guides.map((guide) => ({ locale, slug: guide.slug })));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const guide = getGuide(slug);
+  if (!guide) return {};
+  const lang = normalizeMarketingLocale(locale);
+  return { title: `${guide.title[lang]} · Artlantix`, description: guide.excerpt[lang] };
+}
+
+export default async function GuidePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const lang = normalizeMarketingLocale(locale);
+  const guide = getGuide(slug);
+  if (!guide) notFound();
+  const copy = marketingCopy[lang];
+  const h = homeCopy[lang];
+  const sections = guide.sections[lang];
+
+  return (
+    <PublicPageShell>
+      <main>
+        <PageHero
+          back={{ href: localizedPath(lang, '/guides'), label: copy.common.back }}
+          meta={guide.readTime[lang]}
+          title={guide.title[lang]}
+          body={guide.excerpt[lang]}
+        />
+
+        <article className={`${container} py-16 lg:py-24`}>
+          <div className="grid gap-12 lg:grid-cols-[15rem_minmax(0,44rem)] lg:gap-24">
+            <nav aria-label={contentsLabel[lang]} className="hidden lg:block">
+              <div className="sticky top-28">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3">{contentsLabel[lang]}</p>
+                <ol className="mt-4 border-t border-ink">
+                  {sections.map((section, index) => (
+                    <li key={section.title} className="border-b border-rule">
+                      <a href={`#section-${index + 1}`} className="group flex gap-3 py-3 text-[15px] leading-snug text-ink-2 transition-colors hover:text-ink">
+                        <span className="font-display text-sm font-semibold tabular-nums text-ink-3 transition-colors group-hover:text-signal-ink">0{index + 1}</span>
+                        {section.title}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </nav>
+
+            <div className="space-y-16">
+              {sections.map((section, index) => (
+                <section key={section.title} id={`section-${index + 1}`} className="scroll-mt-28">
+                  <span aria-hidden="true" className="block font-display text-[3.25rem] font-extrabold leading-none text-transparent [-webkit-text-stroke:1.5px_var(--color-ink)]">0{index + 1}</span>
+                  <h2 className="mt-5 font-display text-[clamp(1.7rem,2.6vw,2.2rem)] font-bold leading-[1.1] tracking-[-0.025em]">{section.title}</h2>
+                  <p className="mt-5 text-lg leading-8 text-ink-2">{section.body}</p>
+                </section>
+              ))}
+            </div>
+          </div>
+        </article>
+
+        <DropCta title={copy.home.finalTitle} body={copy.home.finalBody} action={copy.home.primary} href={`${localizedPath(lang, '/quote')}?review=1`} formats={h.cta.formats} />
+      </main>
+    </PublicPageShell>
+  );
+}

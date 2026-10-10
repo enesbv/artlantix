@@ -196,24 +196,24 @@ export default function AdminContentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F8F6] text-[#141414]">
+    <div className="min-h-screen bg-paper text-ink">
 
       {/* Admin Header & Sub-Navigation */}
-      <div className="border-b border-[#EAE8E3] bg-white">
+      <div className="border-b border-rule bg-paper-2">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between py-6 gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-[#18794E]" />
-                <h1 className="text-xl font-bold tracking-tight text-[#141414]">
+                <ShieldCheck className="h-5 w-5 text-signal-ink" />
+                <h1 className="text-xl font-bold tracking-tight text-ink">
                   Production Studio Admin Desk
                 </h1>
-                <span className="rounded-full bg-[#141414] px-2.5 py-0.5 font-sans text-[10px] font-bold text-white uppercase">
+                <span className="rounded-full bg-ink px-2.5 py-0.5 font-sans text-[10px] font-bold text-white uppercase">
                   Lead Operator
                 </span>
               </div>
-              <p className="text-xs text-[#737373] mt-1">
-                Operator account: <strong className="text-[#141414]">{currentUser?.full_name || 'Elena Vance'}</strong> ({currentUser?.email || 'admin@artlantix.com'})
+              <p className="text-xs text-ink-3 mt-1">
+                Operator account: <strong className="text-ink">{currentUser?.full_name || 'Elena Vance'}</strong> ({currentUser?.email || 'admin@artlantix.com'})
               </p>
             </div>
 
@@ -221,7 +221,7 @@ export default function AdminContentPage() {
               <Link
                 href="/"
                 target="_blank"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2 text-xs font-semibold text-[#141414] hover:border-[#141414] transition-colors"
+                className="inline-flex items-center gap-1.5 border border-rule-strong bg-paper px-3.5 py-2 text-xs font-semibold text-ink hover:border-ink transition-colors"
               >
                 <span>Preview Live Site</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -230,10 +230,10 @@ export default function AdminContentPage() {
           </div>
 
           {/* Sub Navigation Tabs */}
-          <nav className="flex space-x-6 border-t border-[#EAE8E3]/60 pt-1 pb-2 font-sans text-xs">
+          <nav className="flex space-x-6 border-t border-rule/60 pt-1 pb-2 font-sans text-xs">
             <Link
               href="/admin/orders"
-              className="inline-flex items-center gap-1.5 border-b-2 border-transparent py-2 font-medium text-[#737373] hover:border-[#CCCCCC] hover:text-[#141414] transition-colors"
+              className="inline-flex items-center gap-1.5 border-b-2 border-transparent py-2 font-medium text-ink-3 hover:border-rule hover:text-ink transition-colors"
             >
               <Layers className="h-3.5 w-3.5" />
               <span>Production Queue</span>
@@ -241,7 +241,7 @@ export default function AdminContentPage() {
 
             <Link
               href="/admin/content"
-              className="inline-flex items-center gap-1.5 border-b-2 border-[#18794E] py-2 font-bold text-[#18794E] transition-colors"
+              className="inline-flex items-center gap-1.5 border-b-2 border-ink py-2 font-bold text-signal-ink transition-colors"
             >
               <FileText className="h-3.5 w-3.5" />
               <span>Visual Content CMS</span>
@@ -252,21 +252,21 @@ export default function AdminContentPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-8">
         {/* Module Switcher Pills */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAE8E3] pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rule pb-6">
           <div>
-            <h2 className="text-lg font-bold text-[#141414]">In-App Visual Content Management</h2>
-            <p className="text-xs text-[#737373]">
+            <h2 className="text-lg font-bold text-ink">In-App Visual Content Management</h2>
+            <p className="text-xs text-ink-3">
               Update live portfolio showcases, before/after comparisons, hero headlines, and baseline rates without writing code.
             </p>
           </div>
 
-          <div className="inline-flex rounded-full border border-[#EAE8E3] bg-white p-1 shadow-xs">
+          <div className="inline-flex rounded-full border border-rule bg-paper-2 p-1">
             <button
               onClick={() => setActiveTab('showcases')}
               className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
                 activeTab === 'showcases'
-                  ? 'bg-[#141414] text-white shadow-xs'
-                  : 'text-[#737373] hover:text-[#141414]'
+                  ? 'bg-ink text-white'
+                  : 'text-ink-3 hover:text-ink'
               }`}
             >
               Portfolio &amp; Before/After
@@ -275,8 +275,8 @@ export default function AdminContentPage() {
               onClick={() => setActiveTab('copy_pricing')}
               className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
                 activeTab === 'copy_pricing'
-                  ? 'bg-[#141414] text-white shadow-xs'
-                  : 'text-[#737373] hover:text-[#141414]'
+                  ? 'bg-ink text-white'
+                  : 'text-ink-3 hover:text-ink'
               }`}
             >
               Micro-Copy &amp; Rates
@@ -286,12 +286,12 @@ export default function AdminContentPage() {
 
         {/* NOTICES */}
         {showcaseNotice && (
-          <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-xs font-medium text-emerald-800">
+          <div className="rounded-xl border border-ok-line bg-ok-tint p-4 text-xs font-medium text-ok-ink">
             ✓ {showcaseNotice}
           </div>
         )}
         {settingsNotice && (
-          <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-xs font-medium text-emerald-800">
+          <div className="rounded-xl border border-ok-line bg-ok-tint p-4 text-xs font-medium text-ok-ink">
             ✓ {settingsNotice}
           </div>
         )}
@@ -304,17 +304,17 @@ export default function AdminContentPage() {
         {/* TAB 1: PORTFOLIO & BEFORE/AFTER MANAGER */}
         {activeTab === 'showcases' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-[#EAE8E3] bg-white p-6 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-ink bg-paper-2 p-6">
               <div>
-                <h3 className="text-base font-bold text-[#141414]">Before/After Showcase Catalog</h3>
-                <p className="text-xs text-[#737373] mt-0.5">
+                <h3 className="text-base font-bold text-ink">Before/After Showcase Catalog</h3>
+                <p className="text-xs text-ink-3 mt-0.5">
                   Items marked active appear in the homepage interactive slider and proof gallery.
                 </p>
               </div>
 
               <button
                 onClick={() => setModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-4 py-2 text-xs font-bold text-white hover:bg-[#115C3B] transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-signal-ink transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Add New Showcase Pair</span>
@@ -328,14 +328,14 @@ export default function AdminContentPage() {
                 return (
                   <div
                     key={item.id}
-                    className={`flex flex-col justify-between rounded-2xl border bg-white p-6 shadow-xs transition-all ${
-                      isActive ? 'border-[#EAE8E3]' : 'border-dashed border-[#CCCCCC] opacity-60'
+                    className={`flex flex-col justify-between rounded-2xl border bg-paper-2 p-6 transition-all ${
+                      isActive ? 'border-rule' : 'border-dashed border-rule opacity-60'
                     }`}
                   >
                     <div>
                       {/* Thumbnail & Active status bar */}
-                      <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-3">
-                        <span className="rounded-full bg-[#F5F4F0] px-2.5 py-0.5 font-sans text-[10px] font-bold uppercase text-[#141414]">
+                      <div className="flex items-center justify-between border-b border-rule pb-3">
+                        <span className="rounded-full bg-paper px-2.5 py-0.5 font-sans text-[10px] font-bold uppercase text-ink">
                           {item.category}
                         </span>
 
@@ -345,18 +345,18 @@ export default function AdminContentPage() {
                             onClick={() => handleToggleActive(item.id, isActive)}
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-sans font-semibold transition-colors ${
                               isActive
-                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                : 'bg-gray-100 text-gray-600 border border-gray-200'
+                                ? 'bg-ok-tint text-ok-ink border border-ok-line'
+                                : 'bg-paper-3 text-ink-2 border border-rule'
                             }`}
                           >
-                            <span className={`h-1.5 w-1.5 rounded-full ${isActive ? 'bg-emerald-600' : 'bg-gray-400'}`} />
+                            <span className={`h-1.5 w-1.5 rounded-full ${isActive ? 'bg-ok' : 'bg-ink-3'}`} />
                             <span>{isActive ? 'Active on Home' : 'Hidden'}</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleDeleteShowcase(item.id)}
-                            className="text-[#737373] hover:text-red-600 transition-colors p-1"
+                            className="text-ink-3 hover:text-red-600 transition-colors p-1"
                             title="Delete Showcase"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -365,7 +365,7 @@ export default function AdminContentPage() {
                       </div>
 
                       {/* Image Preview Box */}
-                      <div className="relative mt-4 h-40 w-full rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] overflow-hidden flex items-center justify-center p-2">
+                      <div className="relative mt-4 h-40 w-full border border-rule-strong bg-paper overflow-hidden flex items-center justify-center p-2">
                         {item.rasterUrl && item.rasterUrl.startsWith('data:') ? (
                           <Image
                             src={item.rasterUrl}
@@ -377,20 +377,20 @@ export default function AdminContentPage() {
                           />
                         ) : (
                           <svg viewBox="0 0 200 200" className="h-28 w-28">
-                            <circle cx="100" cy="100" r="65" fill="#FFFFFF" stroke="#141414" strokeWidth="3" />
-                            <circle cx="100" cy="100" r="50" fill="none" stroke="#18794E" strokeWidth="2" strokeDasharray="4 3" />
-                            <path d="M 100 50 L 115 80 L 150 80 L 122 102 L 132 135 L 100 115 L 68 135 L 78 102 L 50 80 L 85 80 Z" fill="#141414" />
+                            <circle cx="100" cy="100" r="65" fill="var(--color-paper-2)" stroke="var(--color-ink)" strokeWidth="3" />
+                            <circle cx="100" cy="100" r="50" fill="none" stroke="var(--color-guide)" strokeWidth="2" strokeDasharray="4 3" />
+                            <path d="M 100 50 L 115 80 L 150 80 L 122 102 L 132 135 L 100 115 L 68 135 L 78 102 L 50 80 L 85 80 Z" fill="var(--color-ink)" />
                           </svg>
                         )}
                       </div>
 
-                      <h4 className="mt-4 text-sm font-bold text-[#141414]">{item.title}</h4>
-                      <p className="mt-1 text-xs text-[#737373] line-clamp-2 leading-relaxed">
+                      <h4 className="mt-4 text-sm font-bold text-ink">{item.title}</h4>
+                      <p className="mt-1 text-xs text-ink-3 line-clamp-2 leading-relaxed">
                         {item.description}
                       </p>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-[#EAE8E3] flex items-center justify-between font-sans text-[10px] text-[#737373]">
+                    <div className="mt-4 pt-3 border-t border-rule flex items-center justify-between font-sans text-[10px] text-ink-3">
                       <span>Badge: {item.badge || 'Standard'}</span>
                       <span>Client: {item.clientType || 'Commercial'}</span>
                     </div>
@@ -405,16 +405,16 @@ export default function AdminContentPage() {
         {activeTab === 'copy_pricing' && (
           <form onSubmit={handleSaveSettings} className="space-y-8 max-w-3xl">
             {/* Hero Copy Card */}
-            <div className="rounded-2xl border border-[#EAE8E3] bg-white p-8 shadow-xs space-y-6">
-              <div className="border-b border-[#EAE8E3] pb-4">
-                <h3 className="text-base font-bold text-[#141414]">Hero Headline &amp; Subtitle</h3>
-                <p className="text-xs text-[#737373] mt-0.5">
+            <div className="border border-ink bg-paper-2 p-8 space-y-6">
+              <div className="border-b border-rule pb-4">
+                <h3 className="text-base font-bold text-ink">Hero Headline &amp; Subtitle</h3>
+                <p className="text-xs text-ink-3 mt-0.5">
                   Update the primary headline and supporting editorial message seen by every visitor.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block text-xs font-bold uppercase tracking-wider text-ink">
                   Display Headline
                 </label>
                 <input
@@ -423,12 +423,12 @@ export default function AdminContentPage() {
                   maxLength={INPUT_LIMITS.heroTitle}
                   value={settings.hero_title}
                   onChange={(e) => setSettings({ ...settings, hero_title: e.target.value })}
-                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-4 py-2.5 text-sm text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                  className="mt-2 w-full border border-rule-strong bg-paper px-4 py-2.5 text-sm text-ink focus:border-ink focus:bg-paper-2 focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#141414]">
+                <label className="block text-xs font-bold uppercase tracking-wider text-ink">
                   Supporting Subtitle (Max 2 punchy sentences)
                 </label>
                 <textarea
@@ -437,25 +437,25 @@ export default function AdminContentPage() {
                   maxLength={INPUT_LIMITS.heroSubtitle}
                   value={settings.hero_subtitle}
                   onChange={(e) => setSettings({ ...settings, hero_subtitle: e.target.value })}
-                  className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-4 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden leading-relaxed"
+                  className="mt-2 w-full border border-rule-strong bg-paper p-4 text-xs text-ink focus:border-ink focus:bg-paper-2 focus:outline-hidden leading-relaxed"
                 />
               </div>
             </div>
 
             {/* Baseline Pricing Card */}
-            <div className="rounded-2xl border border-[#EAE8E3] bg-white p-8 shadow-xs space-y-6">
-              <div className="border-b border-[#EAE8E3] pb-4">
-                <h3 className="text-base font-bold text-[#141414]">Baseline Geometry Tier Rates</h3>
-                <p className="text-xs text-[#737373] mt-0.5">
-                  Adjust standard pricing. These values propagate dynamically to the pricing grid and instant quote engine.
+            <div className="border border-ink bg-paper-2 p-8 space-y-6">
+              <div className="border-b border-rule pb-4">
+                <h3 className="text-base font-bold text-ink">Baseline Geometry Tier Rates</h3>
+                <p className="text-xs text-ink-3 mt-0.5">
+                  Adjust standard pricing. These values are used by the public pricing grid and the quote estimate.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] p-5">
-                  <span className="font-sans text-xs font-bold uppercase text-[#737373]">Tier 1: Simple</span>
+                <div className="border border-rule-strong bg-paper p-5">
+                  <span className="font-sans text-xs font-bold uppercase text-ink-3">Tier 1: Simple</span>
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="font-sans text-lg font-bold text-[#141414]">$</span>
+                    <span className="font-sans text-lg font-bold text-ink">$</span>
                     <input
                       type="number"
                       required
@@ -463,16 +463,16 @@ export default function AdminContentPage() {
                       max={500}
                       value={settings.simple_tier_price}
                       onChange={(e) => setSettings({ ...settings, simple_tier_price: Number(e.target.value) })}
-                      className="w-full rounded border border-[#EAE8E3] bg-white px-3 py-1.5 font-sans text-sm font-bold text-[#141414] focus:border-[#141414]"
+                      className="w-full rounded border border-rule bg-paper-2 px-3 py-1.5 font-sans text-sm font-bold text-ink focus:border-ink"
                     />
                   </div>
-                  <p className="mt-2 text-[10px] text-[#737373]">Single-color, basic shapes</p>
+                  <p className="mt-2 text-[10px] text-ink-3">Single-color, basic shapes</p>
                 </div>
 
-                <div className="rounded-xl border-2 border-[#18794E] bg-[#E9F9EE] p-5">
-                  <span className="font-sans text-xs font-bold uppercase text-[#18794E]">Tier 2: Standard</span>
+                <div className="rounded-xl border-2 border-ink bg-signal-tint p-5">
+                  <span className="font-sans text-xs font-bold uppercase text-signal-ink">Tier 2: Standard</span>
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="font-sans text-lg font-bold text-[#18794E]">$</span>
+                    <span className="font-sans text-lg font-bold text-signal-ink">$</span>
                     <input
                       type="number"
                       required
@@ -480,16 +480,16 @@ export default function AdminContentPage() {
                       max={500}
                       value={settings.standard_tier_price}
                       onChange={(e) => setSettings({ ...settings, standard_tier_price: Number(e.target.value) })}
-                      className="w-full rounded border border-[#B4DFC4] bg-white px-3 py-1.5 font-sans text-sm font-bold text-[#141414] focus:border-[#18794E]"
+                      className="w-full rounded border border-signal-line bg-paper-2 px-3 py-1.5 font-sans text-sm font-bold text-ink focus:border-ink"
                     />
                   </div>
-                  <p className="mt-2 text-[10px] text-[#737373]">Multi-color badges &amp; logos</p>
+                  <p className="mt-2 text-[10px] text-ink-3">Multi-color badges &amp; logos</p>
                 </div>
 
-                <div className="rounded-xl border border-[#EAE8E3] bg-[#F9F8F6] p-5">
-                  <span className="font-sans text-xs font-bold uppercase text-[#737373]">Tier 3: Complex</span>
+                <div className="border border-rule-strong bg-paper p-5">
+                  <span className="font-sans text-xs font-bold uppercase text-ink-3">Tier 3: Complex</span>
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="font-sans text-lg font-bold text-[#141414]">$</span>
+                    <span className="font-sans text-lg font-bold text-ink">$</span>
                     <input
                       type="number"
                       required
@@ -497,10 +497,10 @@ export default function AdminContentPage() {
                       max={1000}
                       value={settings.complex_tier_price}
                       onChange={(e) => setSettings({ ...settings, complex_tier_price: Number(e.target.value) })}
-                      className="w-full rounded border border-[#EAE8E3] bg-white px-3 py-1.5 font-sans text-sm font-bold text-[#141414] focus:border-[#141414]"
+                      className="w-full rounded border border-rule bg-paper-2 px-3 py-1.5 font-sans text-sm font-bold text-ink focus:border-ink"
                     />
                   </div>
-                  <p className="mt-2 text-[10px] text-[#737373]">Mascots &amp; fine engravings</p>
+                  <p className="mt-2 text-[10px] text-ink-3">Mascots &amp; fine engravings</p>
                 </div>
               </div>
             </div>
@@ -510,7 +510,7 @@ export default function AdminContentPage() {
               <button
                 type="button"
                 onClick={handleResetSettings}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[#EAE8E3] bg-white px-4 py-2.5 text-xs font-semibold text-[#737373] hover:bg-[#F5F4F0] hover:text-[#141414] transition-colors"
+                className="inline-flex items-center gap-1.5 border border-rule-strong bg-paper-2 px-4 py-2.5 text-xs font-semibold text-ink-3 hover:bg-paper hover:text-ink transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Reset to Studio Defaults</span>
@@ -519,7 +519,7 @@ export default function AdminContentPage() {
               <button
                 type="submit"
                 disabled={isSavingSettings}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#18794E] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#115C3B] transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-ink px-6 py-2.5 text-xs font-bold text-white hover:bg-signal-ink transition-colors disabled:opacity-50"
               >
                 <Check className="h-4 w-4" />
                 <span>{isSavingSettings ? 'Publishing...' : 'Publish Changes to Homepage'}</span>
@@ -531,15 +531,15 @@ export default function AdminContentPage() {
         {/* MODAL: ADD NEW BEFORE/AFTER SHOWCASE PAIR */}
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-            <div className="w-full max-w-xl rounded-2xl border border-[#EAE8E3] bg-white p-8 shadow-xl animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-4">
+            <div className="w-full max-w-xl border border-ink bg-paper-2 p-8 shadow-xl animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-rule pb-4">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#18794E]" />
-                  <h3 className="text-base font-bold text-[#141414]">Add New Before/After Showcase Pair</h3>
+                  <Sparkles className="h-4 w-4 text-signal-ink" />
+                  <h3 className="text-base font-bold text-ink">Add New Before/After Showcase Pair</h3>
                 </div>
                 <button
                   onClick={() => setModalOpen(false)}
-                  className="text-xs text-[#737373] hover:text-[#141414]"
+                  className="text-xs text-ink-3 hover:text-ink"
                 >
                   ✕
                 </button>
@@ -547,7 +547,7 @@ export default function AdminContentPage() {
 
               <form onSubmit={handleCreateShowcase} className="mt-6 space-y-6">
                 <div>
-                  <label className="block text-xs font-bold text-[#141414]">Project Title</label>
+                  <label className="block text-xs font-bold text-ink">Project Title</label>
                   <input
                     type="text"
                     required
@@ -555,17 +555,17 @@ export default function AdminContentPage() {
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="e.g., Apex Falcon Crest Reconstruction"
-                    className="mt-1.5 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                    className="mt-1.5 w-full border border-rule-strong bg-paper px-3.5 py-2 text-xs text-ink focus:border-ink focus:bg-paper-2 focus:outline-hidden"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-[#141414]">Category Tag</label>
+                    <label className="block text-xs font-bold text-ink">Category Tag</label>
                     <select
                       value={newCategory}
                       onChange={(e) => setNewCategory(e.target.value)}
-                      className="mt-1.5 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3 py-2 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                      className="mt-1.5 w-full border border-rule-strong bg-paper px-3 py-2 text-xs text-ink focus:border-ink focus:bg-paper-2 focus:outline-hidden"
                     >
                       <option value="AI-Generated Logo">AI-Generated Logo</option>
                       <option value="Blurry Low-Res Scan">Blurry Low-Res Scan</option>
@@ -577,38 +577,38 @@ export default function AdminContentPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#141414]">Client Industry</label>
+                    <label className="block text-xs font-bold text-ink">Client Industry</label>
                     <input
                       type="text"
                       value={newClientType}
                       maxLength={INPUT_LIMITS.portfolioClientType}
                       onChange={(e) => setNewClientType(e.target.value)}
                       placeholder="e.g., FinTech Startup"
-                      className="mt-1.5 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                      className="mt-1.5 w-full border border-rule-strong bg-paper px-3.5 py-2 text-xs text-ink focus:border-ink focus:bg-paper-2 focus:outline-hidden"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#141414]">Badge / Tag</label>
+                    <label className="block text-xs font-bold text-ink">Badge / Tag</label>
                     <input
                       type="text"
                       value={newBadge}
                       maxLength={INPUT_LIMITS.portfolioBadge}
                       onChange={(e) => setNewBadge(e.target.value)}
                       placeholder="e.g., Precision Rebuild"
-                      className="mt-1.5 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] px-3.5 py-2 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                      className="mt-1.5 w-full border border-rule-strong bg-paper px-3.5 py-2 text-xs text-ink focus:border-ink focus:bg-paper-2 focus:outline-hidden"
                     />
                   </div>
                 </div>
 
                 {/* Upload Before Raster */}
                 <div>
-                  <label className="block text-xs font-bold text-[#141414]">
+                  <label className="block text-xs font-bold text-ink">
                     1. Original Raster Upload (Before)
                   </label>
                   <div
                     onClick={() => rasterInputRef.current?.click()}
-                    className="mt-1.5 flex h-24 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#EAE8E3] bg-[#F9F8F6] p-4 text-center hover:border-[#141414] transition-colors"
+                    className="mt-1.5 flex h-24 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-rule bg-paper p-4 text-center hover:border-ink transition-colors"
                   >
                     <input
                       ref={rasterInputRef}
@@ -617,13 +617,13 @@ export default function AdminContentPage() {
                       className="hidden"
                       onChange={handleRasterUpload}
                     />
-                    <UploadCloud className="h-5 w-5 text-[#18794E]" />
-                    <span className="mt-1 text-xs font-medium text-[#141414]">
+                    <UploadCloud className="h-5 w-5 text-signal-ink" />
+                    <span className="mt-1 text-xs font-medium text-ink">
                       {newRasterUrl ? 'File selected (Click to change)' : 'Upload blurry or AI raster image'}
                     </span>
                   </div>
                   {newRasterUrl && (
-                    <div className="mt-2 text-[11px] text-emerald-700 font-semibold">
+                    <div className="mt-2 text-[11px] text-ok font-semibold">
                       ✓ Original raster image loaded
                     </div>
                   )}
@@ -631,12 +631,12 @@ export default function AdminContentPage() {
 
                 {/* Upload After Vector Preview */}
                 <div>
-                  <label className="block text-xs font-bold text-[#141414]">
+                  <label className="block text-xs font-bold text-ink">
                     2. Reconstructed Vector Upload (After Preview)
                   </label>
                   <div
                     onClick={() => vectorInputRef.current?.click()}
-                    className="mt-1.5 flex h-24 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#EAE8E3] bg-[#F9F8F6] p-4 text-center hover:border-[#141414] transition-colors"
+                    className="mt-1.5 flex h-24 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-rule bg-paper p-4 text-center hover:border-ink transition-colors"
                   >
                     <input
                       ref={vectorInputRef}
@@ -645,53 +645,53 @@ export default function AdminContentPage() {
                       className="hidden"
                       onChange={handleVectorUpload}
                     />
-                    <UploadCloud className="h-5 w-5 text-[#141414]" />
-                    <span className="mt-1 text-xs font-medium text-[#141414]">
+                    <UploadCloud className="h-5 w-5 text-ink" />
+                    <span className="mt-1 text-xs font-medium text-ink">
                       {newVectorUrl ? 'Vector preview selected' : 'Upload a PNG or WebP clean master preview'}
                     </span>
                   </div>
                   {newVectorUrl && (
-                    <div className="mt-2 text-[11px] text-emerald-700 font-semibold">
+                    <div className="mt-2 text-[11px] text-ok font-semibold">
                       ✓ Vector preview loaded
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#141414]">Brief Transformation Description</label>
+                  <label className="block text-xs font-bold text-ink">Brief Transformation Description</label>
                   <textarea
                     rows={2}
                     maxLength={INPUT_LIMITS.portfolioDescription}
                     value={newDesc}
                     onChange={(e) => setNewDesc(e.target.value)}
                     placeholder="e.g., Rebuilt 12,000 AI raster artifacts into 42 clean tangent bezier nodes for screen print separation."
-                    className="mt-1.5 w-full rounded-lg border border-[#EAE8E3] bg-[#F9F8F6] p-3 text-xs text-[#141414] focus:border-[#141414] focus:bg-white focus:outline-hidden"
+                    className="mt-1.5 w-full border border-rule-strong bg-paper p-3 text-xs text-ink focus:border-ink focus:bg-paper-2 focus:outline-hidden"
                   />
                 </div>
 
-                <div className="flex items-center justify-between border-t border-[#EAE8E3] pt-4">
+                <div className="flex items-center justify-between border-t border-rule pt-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newActive}
                       onChange={(e) => setNewActive(e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#18794E]"
+                      className="h-4 w-4 rounded accent-ink"
                     />
-                    <span className="text-xs font-semibold text-[#141414]">Publish immediately to live homepage</span>
+                    <span className="text-xs font-semibold text-ink">Publish immediately to live homepage</span>
                   </label>
 
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setModalOpen(false)}
-                      className="rounded-lg border border-[#EAE8E3] bg-white px-4 py-2 text-xs font-semibold text-[#737373] hover:bg-[#F5F4F0]"
+                      className="border border-rule-strong bg-paper-2 px-4 py-2 text-xs font-semibold text-ink-3 hover:bg-paper"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isCreatingShowcase || isUploadingMedia}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#18794E] px-5 py-2 text-xs font-bold text-white hover:bg-[#115C3B] disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-5 py-2 text-xs font-bold text-white hover:bg-signal-ink disabled:opacity-50"
                     >
                       <span>{isCreatingShowcase ? 'Adding...' : 'Add Showcase'}</span>
                     </button>

@@ -1,5 +1,9 @@
 import { TurnaroundSpeed, OrderStatus } from './types';
 
+export type DeliveryLocale = 'en' | 'de' | 'tr';
+
+const DATE_LOCALES: Record<DeliveryLocale, string> = { en: 'en-US', de: 'de-DE', tr: 'tr-TR' };
+
 export interface DeliverySchedule {
   targetDate: Date;
   targetIso: string;
@@ -27,7 +31,8 @@ export interface DeliveryPhase {
  */
 export function calculateDeliveryProjection(
   startDate: Date = new Date(),
-  turnaround: TurnaroundSpeed = 'standard'
+  turnaround: TurnaroundSpeed = 'standard',
+  lang: DeliveryLocale = 'en'
 ): DeliverySchedule {
   const isExpress = turnaround === 'express';
   const hoursNeeded = isExpress ? 16 : 48;
@@ -80,7 +85,7 @@ export function calculateDeliveryProjection(
   }
 
   const targetIso = current.toISOString();
-  const formattedTarget = formatStudioDate(current);
+  const formattedTarget = formatStudioDate(current, DATE_LOCALES[lang]);
 
   return {
     targetDate: current,
@@ -88,11 +93,11 @@ export function calculateDeliveryProjection(
     totalWorkingHours: hoursNeeded,
     isExpress,
     formattedTarget,
-    phases: getDeliveryPhases('quote_requested', turnaround),
+    phases: getDeliveryPhases('quote_requested', turnaround, lang),
   };
 }
 
-export function formatStudioDate(date: Date, locale: string = 'tr-TR'): string {
+export function formatStudioDate(date: Date, locale: string = 'en-US'): string {
   try {
     return new Intl.DateTimeFormat(locale, {
       weekday: 'short',
@@ -106,105 +111,160 @@ export function formatStudioDate(date: Date, locale: string = 'tr-TR'): string {
   }
 }
 
+const PHASE_TEXT: Record<DeliveryLocale, {
+  titles: string[];
+  descriptions: string[];
+  intakeWindow: string; intakeFast: string;
+  drawWindow: string; drawFast: string;
+  previewWindow: string; previewFast: string;
+  deliveryWindow: string;
+}> = {
+  en: {
+    titles: ['Intake and geometry review', 'Redrawing by an artist', 'Preview approval and checks', 'Master files released'],
+    descriptions: [
+      'The studio reviews the file, its tolerances and the level of detail.',
+      'Curves are redrawn by hand and the nodes are cleaned up.',
+      'You see a watermarked preview and ask for any revisions.',
+      'AI, EPS, SVG, PDF and high-resolution PNG files are unlocked.',
+    ],
+    intakeWindow: '1–2 hours', intakeFast: '1 hour',
+    drawWindow: '24–36 hours', drawFast: '8–10 hours',
+    previewWindow: '6–12 hours', previewFast: '2–4 hours',
+    deliveryWindow: 'After your approval',
+  },
+  de: {
+    titles: ['Annahme und Geometrieprüfung', 'Neuzeichnung durch den Artist', 'Vorschau-Freigabe und Kontrolle', 'Master-Dateien freigegeben'],
+    descriptions: [
+      'Das Studio prüft die Datei, ihre Toleranzen und den Detailgrad.',
+      'Die Kurven werden von Hand neu gezeichnet und die Knoten bereinigt.',
+      'Sie sehen eine Vorschau mit Wasserzeichen und können Korrekturen anfragen.',
+      'AI-, EPS-, SVG-, PDF- und hochauflösende PNG-Dateien werden freigeschaltet.',
+    ],
+    intakeWindow: '1–2 Stunden', intakeFast: '1 Stunde',
+    drawWindow: '24–36 Stunden', drawFast: '8–10 Stunden',
+    previewWindow: '6–12 Stunden', previewFast: '2–4 Stunden',
+    deliveryWindow: 'Nach Ihrer Freigabe',
+  },
+  tr: {
+    titles: ['Kabul ve geometri incelemesi', 'Çizerin yeniden çizimi', 'Önizleme onayı ve kontrol', 'Master dosyaların teslimi'],
+    descriptions: [
+      'Stüdyo dosyayı, toleransları ve detay seviyesini inceler.',
+      'Eğriler elle yeniden çizilir, düğüm noktaları temizlenir.',
+      'Filigranlı önizlemeyi görür, isterseniz revizyon istersiniz.',
+      'AI, EPS, SVG, PDF ve yüksek çözünürlüklü PNG dosyaları açılır.',
+    ],
+    intakeWindow: '1–2 saat', intakeFast: '1 saat',
+    drawWindow: '24–36 saat', drawFast: '8–10 saat',
+    previewWindow: '6–12 saat', previewFast: '2–4 saat',
+    deliveryWindow: 'Onayınızdan sonra',
+  },
+};
+
 export function getDeliveryPhases(
   status: OrderStatus = 'quote_requested',
-  turnaround: TurnaroundSpeed = 'standard'
+  turnaround: TurnaroundSpeed = 'standard',
+  lang: DeliveryLocale = 'en'
 ): DeliveryPhase[] {
   const isExpress = turnaround === 'express';
+  const text = PHASE_TEXT[lang];
 
   const phasesDef = [
     {
       id: 'intake',
       stepNumber: 1,
-      title: 'Kabul & Geometri İncelemesi',
-      shortDesc: 'Stüdyo görsel toleranslarını ve vektör detayını inceler.',
-      estimatedWindow: isExpress ? '1 saat' : '1–2 saat',
+      estimatedWindow: isExpress ? text.intakeFast : text.intakeWindow,
       activeStatuses: ['quote_requested', 'in_review'],
       doneStatuses: ['in_progress', 'preview_ready', 'approved', 'revision_requested', 'completed'],
     },
     {
       id: 'redrawing',
       stepNumber: 2,
-      title: 'Manuel Çizim (Senior Vector Artist)',
-      shortDesc: 'Bezier eğrileri pürüzsüzleştirilir, düğüm noktaları optimize edilir.',
-      estimatedWindow: isExpress ? '8–10 saat' : '24–36 saat',
+      estimatedWindow: isExpress ? text.drawFast : text.drawWindow,
       activeStatuses: ['in_progress', 'revision_requested'],
       doneStatuses: ['preview_ready', 'approved', 'completed'],
     },
     {
       id: 'preview',
       stepNumber: 3,
-      title: 'Önizleme Onayı & Kalite Kontrol',
-      shortDesc: 'Su damgalı taslak müşteriye sunulur; revizyonlar uygulanır.',
-      estimatedWindow: isExpress ? '2–4 saat' : '6–12 saat',
+      estimatedWindow: isExpress ? text.previewFast : text.previewWindow,
       activeStatuses: ['preview_ready'],
       doneStatuses: ['approved', 'completed'],
     },
     {
       id: 'delivery',
       stepNumber: 4,
-      title: 'Master Paket & Arşiv Teslimi',
-      shortDesc: 'AI, EPS, SVG, PDF ve yüksek çözünürlüklü PNG kilitleri açılır.',
-      estimatedWindow: 'Anında',
+      estimatedWindow: text.deliveryWindow,
       activeStatuses: ['approved'],
       doneStatuses: ['completed'],
     },
-  ];
+  ] as const;
 
-  return phasesDef.map((phase) => {
-    const isDone = phase.doneStatuses.includes(status);
-    const isCurrent = phase.activeStatuses.includes(status);
-
-    return {
-      id: phase.id,
-      stepNumber: phase.stepNumber,
-      title: phase.title,
-      shortDesc: phase.shortDesc,
-      estimatedWindow: phase.estimatedWindow,
-      isCurrent,
-      isDone,
-    };
-  });
+  return phasesDef.map((phase) => ({
+    id: phase.id,
+    stepNumber: phase.stepNumber,
+    title: text.titles[phase.stepNumber - 1],
+    shortDesc: text.descriptions[phase.stepNumber - 1],
+    estimatedWindow: phase.estimatedWindow,
+    isCurrent: (phase.activeStatuses as readonly string[]).includes(status),
+    isDone: (phase.doneStatuses as readonly string[]).includes(status),
+  }));
 }
 
-export function calculateRemainingHours(targetDateIso: string): {
+const REMAINING_TEXT: Record<DeliveryLocale, {
+  due: string;
+  days: (days: number, hours: number) => string;
+  hours: (hours: number, minutes: number) => string;
+  minutes: (minutes: number) => string;
+}> = {
+  en: {
+    due: 'In the delivery window (final checks)',
+    days: (days, hours) => `${days} d ${hours} h left`,
+    hours: (hours, minutes) => `${hours} h ${minutes} min left`,
+    minutes: (minutes) => `${minutes} min left`,
+  },
+  de: {
+    due: 'Im Lieferfenster (letzte Kontrollen)',
+    days: (days, hours) => `noch ${days} T ${hours} Std.`,
+    hours: (hours, minutes) => `noch ${hours} Std. ${minutes} Min.`,
+    minutes: (minutes) => `noch ${minutes} Min.`,
+  },
+  tr: {
+    due: 'Teslimat penceresi içinde (son kontroller)',
+    days: (days, hours) => `${days} gün ${hours} saat kaldı`,
+    hours: (hours, minutes) => `${hours} saat ${minutes} dk kaldı`,
+    minutes: (minutes) => `${minutes} dakika kaldı`,
+  },
+};
+
+export function calculateRemainingHours(
+  targetDateIso: string,
+  lang: DeliveryLocale = 'en'
+): {
   hoursLeft: number;
   minutesLeft: number;
   isOverdue: boolean;
   label: string;
 } {
+  const text = REMAINING_TEXT[lang];
   const target = new Date(targetDateIso).getTime();
-  const now = Date.now();
-  const diffMs = target - now;
+  const diffMs = target - Date.now();
 
   if (diffMs <= 0) {
-    return {
-      hoursLeft: 0,
-      minutesLeft: 0,
-      isOverdue: true,
-      label: 'Teslimat penceresi içinde (Son kontroller)',
-    };
+    return { hoursLeft: 0, minutesLeft: 0, isOverdue: true, label: text.due };
   }
 
   const totalMinutes = Math.floor(diffMs / (1000 * 60));
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
-  let label = '';
+  let label: string;
   if (hours > 24) {
-    const days = Math.floor(hours / 24);
-    const remHours = hours % 24;
-    label = `${days} gün ${remHours} saat kaldı`;
+    label = text.days(Math.floor(hours / 24), hours % 24);
   } else if (hours > 0) {
-    label = `${hours} saat ${minutes} dk kaldı`;
+    label = text.hours(hours, minutes);
   } else {
-    label = `${minutes} dakika kaldı`;
+    label = text.minutes(minutes);
   }
 
-  return {
-    hoursLeft: hours,
-    minutesLeft: minutes,
-    isOverdue: false,
-    label,
-  };
+  return { hoursLeft: hours, minutesLeft: minutes, isOverdue: false, label };
 }

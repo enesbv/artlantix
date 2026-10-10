@@ -49,47 +49,47 @@ export default function RevisionAnnotator({ annotations, onChange, imageUrl }: {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-bold text-[#141414]">Mark the exact areas to change</p>
-          <p id="revision-marker-help" className="mt-0.5 text-xs text-[#737373]">
+          <p className="text-sm font-bold text-ink">Mark the exact areas to change</p>
+          <p id="revision-marker-help" className="mt-0.5 text-xs text-ink-3">
             {annotations.length} of {INPUT_LIMITS.revisionMarkers} markers added
           </p>
         </div>
         {annotations.length > 0 && (
-          <button type="button" onClick={undoLastMarker} className="inline-flex items-center gap-1.5 rounded-lg border border-[#EAE8E3] bg-white px-3 py-2 text-xs font-semibold text-[#555] hover:bg-[#F5F4F0]">
+          <button type="button" onClick={undoLastMarker} className="inline-flex items-center gap-1.5 border border-rule-strong bg-paper-2 px-3 py-2 text-xs font-semibold text-ink-2 hover:bg-paper">
             <RotateCcw className="h-3.5 w-3.5" /> Undo last
           </button>
         )}
       </div>
-      <div className="relative overflow-hidden rounded-xl border border-[#EAE8E3] bg-[#F9F8F6]">
+      <div className="relative overflow-hidden border border-rule-strong bg-paper">
         <button type="button" onClick={addMarker} aria-describedby="revision-marker-help" className={`relative block h-64 w-full ${hasReachedLimit ? 'cursor-not-allowed' : 'cursor-crosshair'}`} aria-label={hasReachedLimit ? 'Maximum number of revision markers reached' : 'Click the artwork to add a revision marker'}>
           {imageUrl ? (
             <Image src={imageUrl} alt="Artwork preview to annotate" fill sizes="(max-width: 768px) 100vw, 48rem" unoptimized className="object-contain p-4" />
           ) : <svg viewBox="0 0 400 400" className="mx-auto h-full max-w-full p-6" aria-hidden="true">
-            <circle cx="200" cy="200" r="150" fill="#FFF" stroke="#141414" strokeWidth="6" />
-            <circle cx="200" cy="200" r="130" fill="none" stroke="#18794E" strokeWidth="2.5" strokeDasharray="6 4" />
-            <path d="M200 80 235 150 310 150 250 195 270 270 200 225 130 270 150 195 90 150 165 150Z" fill="#141414" />
-            <circle cx="200" cy="200" r="22" fill="#18794E" />
+            <circle cx="200" cy="200" r="150" fill="var(--color-paper-2)" stroke="var(--color-ink)" strokeWidth="6" />
+            <circle cx="200" cy="200" r="130" fill="none" stroke="var(--color-guide)" strokeWidth="2.5" strokeDasharray="6 4" />
+            <path d="M200 80 235 150 310 150 250 195 270 270 200 225 130 270 150 195 90 150 165 150Z" fill="var(--color-ink)" />
+            <circle cx="200" cy="200" r="22" fill="var(--color-signal)" />
           </svg>}
           {annotations.map((annotation, index) => (
-            <span key={annotation.id} className={`absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white shadow-md ${annotation.id === selectedId ? 'bg-[#141414]' : 'bg-[#18794E]'}`} style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}>{index + 1}</span>
+            <span key={annotation.id} className={`absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white shadow-md ${annotation.id === selectedId ? 'bg-ink' : 'bg-ink'}`} style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}>{index + 1}</span>
           ))}
         </button>
-        <p className="border-t border-[#EAE8E3] bg-white px-3 py-2 text-xs text-[#737373]">{hasReachedLimit ? 'Marker limit reached. Remove or undo a marker to add another.' : 'Click the exact area that needs a change. You can add more than one marker.'}</p>
+        <p className="border-t border-rule bg-paper-2 px-3 py-2 text-xs text-ink-3">{hasReachedLimit ? 'Marker limit reached. Remove or undo a marker to add another.' : 'Click the exact area that needs a change. You can add more than one marker.'}</p>
       </div>
 
       {selected && (
-        <div className="rounded-xl border border-[#B4DFC4] bg-[#E9F9EE] p-3">
+        <div className="rounded-xl border border-signal-line bg-signal-tint p-3">
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="marker-note" className="text-sm font-bold">Marker {annotations.findIndex((item) => item.id === selected.id) + 1} note</label>
             <button type="button" onClick={removeSelected} className="inline-flex items-center gap-1 text-xs font-semibold text-red-700"><Trash2 className="h-3.5 w-3.5" /> Remove</button>
           </div>
-          <input id="marker-note" autoFocus maxLength={INPUT_LIMITS.revisionMessage} value={selected.message} onChange={(event) => updateSelected(event.target.value)} placeholder="What should change at this point?" className="mt-2 w-full rounded-lg border border-[#EAE8E3] bg-white px-3 py-2.5 text-sm focus:border-[#141414] focus:outline-hidden" />
+          <input id="marker-note" autoFocus maxLength={INPUT_LIMITS.revisionMessage} value={selected.message} onChange={(event) => updateSelected(event.target.value)} placeholder="What should change at this point?" className="mt-2 w-full border border-rule-strong bg-paper-2 px-3 py-2.5 text-sm focus:border-ink focus:outline-hidden" />
         </div>
       )}
 
       {annotations.length > 1 && (
         <div className="flex flex-wrap gap-2">
-          {annotations.map((annotation, index) => <button key={annotation.id} type="button" onClick={() => setSelectedId(annotation.id)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${annotation.id === selectedId ? 'bg-[#141414] text-white' : 'bg-[#F5F4F0] text-[#555]'}`}>Marker {index + 1}</button>)}
+          {annotations.map((annotation, index) => <button key={annotation.id} type="button" onClick={() => setSelectedId(annotation.id)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${annotation.id === selectedId ? 'bg-ink text-white' : 'bg-paper text-ink-2'}`}>Marker {index + 1}</button>)}
         </div>
       )}
     </div>
