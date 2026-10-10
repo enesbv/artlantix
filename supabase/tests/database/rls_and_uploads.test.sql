@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(13);
+SELECT plan(14);
 
 SELECT has_table('public', 'orders', 'orders table exists');
 SELECT has_table('public', 'order_files', 'order_files table exists');

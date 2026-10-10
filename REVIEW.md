@@ -60,4 +60,4 @@ Uygulama kodu artık dürüst ve işlevsel bir quote-first MVP sınırına sahip
 
 ## 17 Eylül 2026 — Ek hizmet fiyatları
 
-`20260917_agency_services.sql` yerelde hazırlandı; canlı veritabanına uygulanmadı. Üç ajans hizmeti ayrı ayrı 50 USD; veritabanı yalnız izin verilen hizmet kimliklerini kabul eder, tekrarları tekilleştirir ve ek hizmet bedelini vektör ekspres çarpanından sonra ekler. Canlı kullanım öncesinde migration ve veritabanı doğrulaması gerekir. Ayrı teslim tahmini her hizmet için stüdyo onayından sonra 3–5 iş günüdür.
+`20260917000000_agency_services.sql` yerelde hazırlandı; canlı veritabanına uygulanmadı. Üç ajans hizmeti ayrı ayrı 50 USD; veritabanı yalnız izin verilen hizmet kimliklerini kabul eder, tekrarları tekilleştirir ve ek hizmet bedelini vektör ekspres çarpanından sonra ekler. Canlı kullanım öncesinde migration ve veritabanı doğrulaması gerekir. Ayrı teslim tahmini her hizmet için stüdyo onayından sonra 3–5 iş günüdür.
