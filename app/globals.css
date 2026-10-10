@@ -28,7 +28,31 @@
   --color-guide-tint: #E4EAFF;
   --color-guide-soft: #8CA6FF;
 
+  /* Success states in the portal: a muted green that sits quietly on paper. */
+  --color-ok: #2E7D4F;
+  --color-ok-ink: #1E5A38;
+  --color-ok-tint: #E6EFE3;
+  --color-ok-line: #BCD3BE;
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Drafted corners: cards and fields are squarer than the Tailwind defaults. Pills (rounded-full) stay round. */
+  --radius-xs: 0px;
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-xl: 4px;
+  --radius-2xl: 6px;
+  --radius-3xl: 8px;
+
+  /* Shadows are warm, tight and ink-tinted instead of grey and blurry. */
+  --shadow-2xs: 0 1px rgb(21 23 28 / 0.05);
+  --shadow-xs: 0 1px 0 rgb(21 23 28 / 0.08);
+  --shadow-sm: 0 1px 0 rgb(21 23 28 / 0.1), 0 2px 6px -2px rgb(21 23 28 / 0.08);
+  --shadow-md: 0 8px 16px -10px rgb(21 23 28 / 0.28);
+  --shadow-lg: 0 16px 32px -18px rgb(21 23 28 / 0.32);
+  --shadow-xl: 0 24px 48px -24px rgb(21 23 28 / 0.38);
+  --shadow-2xl: 0 32px 64px -28px rgb(21 23 28 / 0.42);
 }
 
 :root {
@@ -113,6 +137,15 @@ body {
   height: 0.26em;
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 24' preserveAspectRatio='none'><path d='M3 15C38 4 74 20 118 11S196 6 238 13 281 12 297 7' fill='none' stroke='%23EB4A1E' stroke-width='6' stroke-linecap='round'/></svg>") center / 100% 100% no-repeat;
   animation: reveal-x 1.1s var(--ease-out-expo) 0.55s both;
+}
+
+/* A ruler edge: long ticks every 40px, short ticks every 8px, hanging from a rule. Used under page heroes. */
+.ruler {
+  height: 16px;
+  background:
+    linear-gradient(var(--color-ink), var(--color-ink)) left top / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, var(--color-ink) 0 1px, transparent 1px 40px) left top / 100% 16px no-repeat,
+    repeating-linear-gradient(90deg, rgb(21 23 28 / 0.55) 0 1px, transparent 1px 8px) left top / 100% 8px no-repeat;
 }
 
 /* Path that draws itself once its section scrolls into view (see ProcessPath). */

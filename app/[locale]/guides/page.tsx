@@ -2,9 +2,48 @@ import React from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import PublicPageShell from '@/components/PublicPageShell';
+import PageHero from '@/components/ui/PageHero';
+import { container } from '@/components/ui/styles';
 import { guides, localizedPath, marketingCopy, normalizeMarketingLocale } from '@/lib/marketing';
 
 export const metadata: Metadata = { title: 'Vector Production Guides · Artlantix', description: 'Practical guides for vector artwork, print, cutting and embroidery.' };
-export default async function GuidesPage({ params }: { params: Promise<{ locale: string }> }) { const { locale } = await params; setRequestLocale(locale); const lang = normalizeMarketingLocale(locale); const copy = marketingCopy[lang]; return <PublicPageShell><main><section className="border-b border-[#DAD8D2] bg-white"><div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"><BookOpen className="h-7 w-7 text-[#18794E]" /><p className="mt-8 font-sans text-xs font-bold uppercase tracking-[0.2em] text-[#18794E]">{copy.pages.guidesEyebrow}</p><h1 className="mt-4 max-w-4xl text-5xl font-black tracking-[-0.04em] text-[#102A20] sm:text-6xl">{copy.pages.guidesTitle}</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-[#5E625F]">{copy.pages.guidesBody}</p></div></section><section className="mx-auto grid max-w-7xl gap-5 px-4 py-20 sm:px-6 md:grid-cols-3 lg:px-8">{guides.map((guide,index) => <Link key={guide.slug} href={localizedPath(lang, `/guides/${guide.slug}`)} className="group rounded-3xl border border-[#DAD8D2] bg-white p-7 transition hover:border-[#8FC9A6]"><span className="font-sans text-xs text-[#18794E]">0{index+1} · {guide.readTime[lang]}</span><h2 className="mt-8 text-2xl font-black text-[#102A20]">{guide.title[lang]}</h2><p className="mt-3 leading-7 text-[#5E625F]">{guide.excerpt[lang]}</p><span className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[#18794E]">{copy.common.read}<ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span></Link>)}</section></main></PublicPageShell>; }
+
+export default async function GuidesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const lang = normalizeMarketingLocale(locale);
+  const copy = marketingCopy[lang];
+
+  return (
+    <PublicPageShell>
+      <main>
+        <PageHero title={copy.pages.guidesTitle} body={copy.pages.guidesBody} meta={copy.home.guidesEyebrow} />
+
+        <section className={`${container} pb-24 pt-2 lg:pb-32`}>
+          <ol>
+            {guides.map((guide, index) => (
+              <li key={guide.slug} className="border-b border-ink">
+                <Link
+                  href={localizedPath(lang, `/guides/${guide.slug}`)}
+                  className="group grid gap-x-10 gap-y-4 py-9 md:grid-cols-[3rem_minmax(0,1.1fr)_minmax(0,1fr)] lg:py-11"
+                >
+                  <span className="font-display text-sm font-semibold tabular-nums text-ink-3 transition-colors group-hover:text-signal-ink md:pt-2">0{index + 1}</span>
+                  <h2 className="font-display text-[clamp(1.6rem,2.7vw,2.4rem)] font-bold leading-[1.08] tracking-[-0.025em] transition-transform duration-300 group-hover:translate-x-1.5">{guide.title[lang]}</h2>
+                  <div className="md:col-start-3">
+                    <p className="max-w-[48ch] text-[15px] leading-6 text-ink-2">{guide.excerpt[lang]}</p>
+                    <p className="mt-4 flex items-center gap-2 text-[13px] font-semibold text-ink-3">
+                      {guide.readTime[lang]}
+                      <ArrowUpRight className="h-4 w-4 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-signal-ink" aria-hidden="true" />
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </main>
+    </PublicPageShell>
+  );
+}

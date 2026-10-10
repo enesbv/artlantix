@@ -1,20 +1,39 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { useLocale } from 'next-intl';
 import { TurnaroundSpeed, OrderStatus } from '@/lib/types';
 import {
   calculateDeliveryProjection,
   getDeliveryPhases,
   calculateRemainingHours,
   formatStudioDate,
+  type DeliveryLocale,
 } from '@/lib/delivery-calculator';
-import {
-  Clock,
-  Zap,
-  CheckCircle2,
-  Calendar,
-  Sparkles,
-} from 'lucide-react';
+import { Check, Clock, Zap } from 'lucide-react';
+
+const COPY = {
+  en: {
+    quoteTitle: 'Estimated delivery plan', orderTitle: 'Production schedule',
+    express: 'Priority express (16 h)', standard: 'Standard studio (48 h)',
+    window: 'Window', hours: 'Calculated from studio hours, Monday to Saturday, 09:00–19:00.',
+    note: 'Every step is carried out by a person, never by automatic tracing.',
+  },
+  de: {
+    quoteTitle: 'Voraussichtlicher Lieferplan', orderTitle: 'Produktionsplan',
+    express: 'Prioritäts-Express (16 Std.)', standard: 'Standard-Studio (48 Std.)',
+    window: 'Dauer', hours: 'Berechnet nach Studiozeiten, Montag bis Samstag, 09:00–19:00 Uhr.',
+    note: 'Jeder Schritt wird von einem Menschen ausgeführt, nie durch Auto-Trace.',
+  },
+  tr: {
+    quoteTitle: 'Tahmini teslimat planı', orderTitle: 'Üretim takvimi',
+    express: 'Öncelikli ekspres (16 saat)', standard: 'Standart stüdyo (48 saat)',
+    window: 'Süre', hours: 'Pazartesi – Cumartesi 09:00 – 19:00 stüdyo mesai saatlerine göre hesaplanır.',
+    note: 'Her adım otomatik izleme ile değil, bir kişi tarafından yapılır.',
+  },
+} as const;
+
+const DATE_LOCALES: Record<DeliveryLocale, string> = { en: 'en-US', de: 'de-DE', tr: 'tr-TR' };
 
 interface DeliveryTimelineProps {
   turnaround: TurnaroundSpeed;
@@ -31,153 +50,73 @@ export default function DeliveryTimeline({
   expectedDeliveryAt,
   variant = 'quote',
 }: DeliveryTimelineProps) {
-  const startDate = useMemo(() => {
-    if (createdAt) return new Date(createdAt);
-    return new Date();
-  }, [createdAt]);
+  const locale = useLocale();
+  const lang: DeliveryLocale = locale === 'tr' || locale === 'de' ? locale : 'en';
+  const copy = COPY[lang];
 
-  const projection = useMemo(() => {
-    return calculateDeliveryProjection(startDate, turnaround);
-  }, [startDate, turnaround]);
+  const startDate = useMemo(() => (createdAt ? new Date(createdAt) : new Date()), [createdAt]);
 
-  const targetDateDisplay = useMemo(() => {
-    if (expectedDeliveryAt) {
-      return formatStudioDate(new Date(expectedDeliveryAt));
-    }
-    return projection.formattedTarget;
-  }, [expectedDeliveryAt, projection]);
+  const projection = useMemo(() => calculateDeliveryProjection(startDate, turnaround, lang), [startDate, turnaround, lang]);
 
-  const remaining = useMemo(() => {
-    const targetIso = expectedDeliveryAt || projection.targetIso;
-    return calculateRemainingHours(targetIso);
-  }, [expectedDeliveryAt, projection]);
+  const targetDateDisplay = useMemo(() => (
+    expectedDeliveryAt ? formatStudioDate(new Date(expectedDeliveryAt), DATE_LOCALES[lang]) : projection.formattedTarget
+  ), [expectedDeliveryAt, projection, lang]);
 
-  const phases = useMemo(() => {
-    return getDeliveryPhases(status, turnaround);
-  }, [status, turnaround]);
+  const remaining = useMemo(() => calculateRemainingHours(expectedDeliveryAt || projection.targetIso, lang), [expectedDeliveryAt, projection, lang]);
+
+  const phases = useMemo(() => getDeliveryPhases(status, turnaround, lang), [status, turnaround, lang]);
 
   const isExpress = turnaround === 'express';
 
   return (
-    <div className="w-full rounded-2xl border border-[#EAE8E3] bg-white p-5 shadow-xs sm:p-6">
-      {/* Header Info Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAE8E3]/70 pb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E9F9EE] text-[#18794E]">
-            <Calendar className="h-4 w-4" />
-          </div>
-          <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#737373]">
-              {variant === 'quote' ? 'Tahmini Teslimat Planı' : 'Sipariş Üretim Takvimi'}
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-[#141414]">
-                {targetDateDisplay}
-              </span>
-            </div>
-          </div>
+    <section className="border border-ink bg-paper-2">
+      <header className="flex flex-col justify-between gap-3 border-b border-ink px-4 py-3 sm:flex-row sm:items-center sm:px-5">
+        <div>
+          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3">
+            <span aria-hidden="true" className="h-2 w-2 bg-signal" />
+            {variant === 'quote' ? copy.quoteTitle : copy.orderTitle}
+          </p>
+          <p className="mt-1 font-display text-lg font-bold tracking-[-0.02em] text-ink">{targetDateDisplay}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Priority Pill */}
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
-              isExpress
-                ? 'bg-amber-100 text-amber-900 border border-amber-200'
-                : 'bg-[#F5F4F0] text-[#141414] border border-[#EAE8E3]'
-            }`}
-          >
-            {isExpress ? <Zap className="h-3 w-3 text-amber-700" /> : <Clock className="h-3 w-3 text-[#737373]" />}
-            <span>{isExpress ? 'Ekspres Öncelik (16 Saat)' : 'Standart Stüdyo (48 Saat)'}</span>
+          <span className="inline-flex items-center gap-1.5 border border-ink px-2.5 py-1 text-[11px] font-semibold">
+            {isExpress ? <Zap className="h-3 w-3 text-signal-ink" aria-hidden="true" /> : <Clock className="h-3 w-3 text-ink-3" aria-hidden="true" />}
+            {isExpress ? copy.express : copy.standard}
           </span>
-
-          {/* Remaining Time Badge in order-detail */}
           {variant === 'order-detail' && status !== 'completed' && (
-            <span
-              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                remaining.isOverdue
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-[#E9F9EE] text-[#18794E]'
-              }`}
-            >
+            <span className={`border px-2.5 py-1 text-[11px] font-semibold ${remaining.isOverdue ? 'border-red-300 bg-red-50 text-red-800' : 'border-signal-line bg-signal-tint text-signal-ink'}`}>
               {remaining.label}
             </span>
           )}
         </div>
-      </div>
+      </header>
 
-      {/* Progressive Step Line */}
-      <div className="mt-6">
-        <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-4">
-          {phases.map((phase, idx) => {
-            const isLast = idx === phases.length - 1;
+      <ol className="grid sm:grid-cols-2 lg:grid-cols-4">
+        {phases.map((phase, index) => (
+          <li
+            key={phase.id}
+            className={`relative px-4 py-5 sm:px-5 ${index > 0 ? 'border-t border-rule sm:border-t-0' : ''} ${index % 2 === 1 ? 'sm:border-l sm:border-ink' : ''} ${index >= 2 ? 'sm:border-t sm:border-ink lg:border-t-0' : ''} ${index === 2 ? 'lg:border-l lg:border-ink' : ''} ${phase.isCurrent ? 'bg-signal-tint/60' : ''}`}
+          >
+            <span
+              aria-hidden="true"
+              className={`grid h-7 w-7 place-items-center border text-[11px] font-bold tabular-nums ${
+                phase.isDone ? 'border-ink bg-ink text-paper' : phase.isCurrent ? 'border-ink bg-signal text-ink' : 'border-rule-strong text-ink-3'
+              }`}
+            >
+              {phase.isDone ? <Check className="h-3.5 w-3.5" /> : phase.stepNumber}
+            </span>
+            <p className="mt-3 text-[13px] font-semibold leading-snug text-ink">{phase.title}</p>
+            <p className="mt-1.5 text-[12px] leading-5 text-ink-3">{phase.shortDesc}</p>
+            <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-signal-ink">{copy.window}: {phase.estimatedWindow}</p>
+          </li>
+        ))}
+      </ol>
 
-            return (
-              <div key={phase.id} className="relative flex flex-col items-start">
-                {/* Connector Line (visible on desktop) */}
-                {!isLast && (
-                  <div
-                    aria-hidden="true"
-                    className={`hidden sm:block absolute top-4 left-7 right-0 h-0.5 -z-0 ${
-                      phase.isDone ? 'bg-[#18794E]' : 'bg-[#EAE8E3]'
-                    }`}
-                  />
-                )}
-
-                {/* Node Icon & Step */}
-                <div className="flex items-center gap-3 sm:flex-col sm:items-start">
-                  <div
-                    className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-all ${
-                      phase.isDone
-                        ? 'border-[#18794E] bg-[#18794E] text-white shadow-xs'
-                        : phase.isCurrent
-                        ? 'border-[#18794E] bg-[#E9F9EE] text-[#18794E] ring-4 ring-[#18794E]/15'
-                        : 'border-[#EAE8E3] bg-white text-[#737373]'
-                    }`}
-                  >
-                    {phase.isDone ? (
-                      <CheckCircle2 className="h-4 w-4" />
-                    ) : phase.isCurrent ? (
-                      <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-                    ) : (
-                      <span>{phase.stepNumber}</span>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-1.5 sm:mt-2">
-                      <span className="text-xs font-bold text-[#141414]">
-                        {phase.title}
-                      </span>
-                    </div>
-
-                    <p className="mt-0.5 text-[11px] text-[#737373] line-clamp-2">
-                      {phase.shortDesc}
-                    </p>
-
-                    <span className="mt-1 inline-block text-[10px] font-semibold text-[#18794E]">
-                      Süre: {phase.estimatedWindow}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Footer Assurance Banner */}
-      <div className="mt-5 flex items-center justify-between rounded-xl bg-[#F9F8F6] p-3 text-[11px] text-[#737373]">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#18794E]" />
-          <span>
-            Pazartesi – Cumartesi 09:00 – 19:00 stüdyo mesai saatlerine göre hesaplanmıştır.
-          </span>
-        </div>
-        <span className="hidden sm:inline font-semibold text-[#141414]">
-          100% İnsan Eliyle Vektörizasyon Garantisi
-        </span>
-      </div>
-    </div>
+      <footer className="flex flex-col gap-1 border-t border-ink px-4 py-3 text-[11px] leading-5 text-ink-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <span>{copy.hours}</span>
+        <span className="font-semibold text-ink-2">{copy.note}</span>
+      </footer>
+    </section>
   );
 }

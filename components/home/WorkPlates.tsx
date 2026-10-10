@@ -7,12 +7,14 @@ import { localizedPath, type MarketingCaseStudy, type MarketingLocale } from '@/
 
 interface Props {
   lang: MarketingLocale;
-  title: string;
-  body: string;
+  title?: string;
+  body?: string;
   demo: string;
   viewCase: string;
-  allLabel: string;
+  allLabel?: string;
   studies: MarketingCaseStudy[];
+  /** On the work page the hero already carries the title, so the section starts straight with the plates. */
+  plain?: boolean;
 }
 
 function Plate({ study, index, lang, demo, viewCase, variant }: { study: MarketingCaseStudy; index: number; lang: MarketingLocale; demo: string; viewCase: string; variant: 'large' | 'row' }) {
@@ -51,17 +53,19 @@ function Plate({ study, index, lang, demo, viewCase, variant }: { study: Marketi
 }
 
 /** The case studies as drawing plates: one large, two beside it. Every plate carries the demonstration label. */
-export default function WorkPlates({ lang, title, body, demo, viewCase, allLabel, studies }: Props) {
+export default function WorkPlates({ lang, title, body, demo, viewCase, allLabel, studies, plain = false }: Props) {
   const [first, ...rest] = studies;
   return (
     <section id="work" className="border-b border-rule bg-paper-3/55">
-      <div className={`${container} py-20 lg:py-28`}>
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
-          <h2 className={sectionTitle}>{title}</h2>
-          <p className="max-w-md text-[17px] leading-7 text-ink-2 lg:justify-self-end">{body}</p>
-        </div>
+      <div className={`${container} ${plain ? 'py-16 lg:py-24' : 'py-20 lg:py-28'}`}>
+        {!plain && (
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
+            <h2 className={sectionTitle}>{title}</h2>
+            <p className="max-w-md text-[17px] leading-7 text-ink-2 lg:justify-self-end">{body}</p>
+          </div>
+        )}
 
-        <div className="mt-14 grid gap-7 lg:grid-cols-12 lg:gap-9">
+        <div className={`${plain ? '' : 'mt-14'} grid gap-7 lg:grid-cols-12 lg:gap-9`}>
           {first && (
             <div className="lg:col-span-7">
               <Plate study={first} index={0} lang={lang} demo={demo} viewCase={viewCase} variant="large" />
@@ -74,10 +78,12 @@ export default function WorkPlates({ lang, title, body, demo, viewCase, allLabel
           </div>
         </div>
 
-        <Link href={localizedPath(lang, '/work')} className={`${textLink} mt-12`}>
-          {allLabel}
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
+        {!plain && allLabel && (
+          <Link href={localizedPath(lang, '/work')} className={`${textLink} mt-12`}>
+            {allLabel}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        )}
       </div>
     </section>
   );

@@ -23,7 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <AccessGate admin>
-      <div className="min-h-screen bg-[#F7F6F2] text-[#141414]">
+      <div className="min-h-screen bg-paper text-ink">
         <AdminSidebar
           currentUser={currentUser}
         />

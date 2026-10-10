@@ -352,7 +352,12 @@ test('studio delivery calculator projects accurate working shifts skipping Sunda
   const futureIso = new Date(Date.now() + 7200000).toISOString();
   const futureResult = calculateRemainingHours(futureIso);
   assert.equal(futureResult.isOverdue, false);
-  assert.match(futureResult.label, /saat/);
+  // Customer-facing strings follow the reader's language, so the default is English and
+  // every other locale returns its own wording rather than a hard-coded Turkish label.
+  assert.match(futureResult.label, /h .* left/);
+  assert.match(calculateRemainingHours(futureIso, 'tr').label, /saat/);
+  assert.match(calculateRemainingHours(futureIso, 'de').label, /Std\./);
+  assert.equal(getDeliveryPhases('in_progress', 'express', 'de')[1].title, 'Neuzeichnung durch den Artist');
 });
 
 test('demo order messages persist and completing an order does not fabricate deliverables', async () => {

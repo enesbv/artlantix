@@ -40,7 +40,7 @@ const SPECIMENS: Record<Tier, { tips: number; outer: number; inner: number; ring
 };
 
 /** More tips and rings mean more nodes to place by hand, which is what the tier prices. */
-function Specimen({ tier }: { tier: Tier }) {
+export function Specimen({ tier }: { tier: Tier }) {
   const { tips, outer, inner, rings } = SPECIMENS[tier];
   const points = starPoints(tips, outer, inner);
   const d = `M${points.map(([x, y]) => `${fix(x)} ${fix(y)}`).join('L')}Z`;
@@ -59,7 +59,7 @@ function Specimen({ tier }: { tier: Tier }) {
 }
 
 /** A loose pencil outline with a few open nodes: the scope is still to be drawn. */
-function OpenSpecimen() {
+export function OpenSpecimen() {
   return (
     <svg viewBox="0 0 100 100" className="h-24 w-24" aria-hidden="true" focusable="false" fill="none">
       <path d="M18 62C10 38 28 16 52 18c24 2 38 20 30 42-6 17-24 26-42 22-9-2-18-8-22-20Z" stroke="var(--color-ink)" strokeWidth="1.4" strokeDasharray="4 4" strokeLinecap="round" />

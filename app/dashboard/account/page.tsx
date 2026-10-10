@@ -51,17 +51,17 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="border-b border-[#E6E4DF] pb-4">
-        <h1 className="text-xl font-bold tracking-tight text-[#111111]">
+      <div className="border-b border-rule pb-4">
+        <h1 className="text-xl font-bold tracking-tight text-ink">
           Account &amp; Studio Profile
         </h1>
-        <p className="text-xs text-[#666666]">
+        <p className="text-xs text-ink-2">
           Manage your personal details, business invoicing information, and production settings.
         </p>
       </div>
 
       {saved && (
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-xs font-medium text-emerald-800">
+        <div className="rounded-lg border border-ok-line bg-ok-tint p-4 text-xs font-medium text-ok-ink">
           ✓ Profile changes saved successfully.
         </div>
       )}
@@ -71,76 +71,76 @@ export default function AccountPage() {
         </div>
       )}
 
-      <form onSubmit={handleSave} className="rounded-xl border border-[#E6E4DF] bg-white p-6 shadow-xs space-y-5">
+      <form onSubmit={handleSave} className="border border-rule-strong bg-paper-2 p-6 space-y-5">
         <div>
-          <label className="block text-xs font-bold text-[#111111]">Email Address</label>
+          <label className="block text-xs font-bold text-ink">Email Address</label>
           <input
             type="email"
             disabled
             value={user?.email || ''}
-            className="mt-1 w-full rounded border border-[#E6E4DF] bg-[#FAFAF8] px-3.5 py-2 text-xs text-[#888888] cursor-not-allowed"
+            className="mt-1 w-full rounded border border-rule bg-paper-2 px-3.5 py-2 text-xs text-ink-3 cursor-not-allowed"
           />
-          <span className="text-[10px] text-[#999999]">Email address is managed by authentication.</span>
+          <span className="text-[10px] text-ink-3">Email address is managed by authentication.</span>
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#111111]">Full Name</label>
+          <label className="block text-xs font-bold text-ink">Full Name</label>
           <input
             type="text"
             required
             maxLength={INPUT_LIMITS.name}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="mt-1 w-full rounded border border-[#E6E4DF] bg-white px-3.5 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-hidden"
+            className="mt-1 w-full rounded border border-rule bg-paper-2 px-3.5 py-2 text-xs text-ink focus:border-ink focus:outline-hidden"
           />
         </div>
 
-        <div className="border-t border-[#E6E4DF] pt-4">
-          <label className="block text-xs font-bold text-[#111111]">Company / Studio Name</label>
+        <div className="border-t border-rule pt-4">
+          <label className="block text-xs font-bold text-ink">Company / Studio Name</label>
           <input
             type="text"
             maxLength={INPUT_LIMITS.company}
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
             placeholder="e.g. Atelier Creative Studio"
-            className="mt-1 w-full rounded border border-[#E6E4DF] bg-white px-3.5 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-hidden"
+            className="mt-1 w-full rounded border border-rule bg-paper-2 px-3.5 py-2 text-xs text-ink focus:border-ink focus:outline-hidden"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#111111]">VAT / Tax Registration Number</label>
+          <label className="block text-xs font-bold text-ink">VAT / Tax Registration Number</label>
           <input
             type="text"
             maxLength={80}
             value={vatTaxId}
             onChange={(e) => setVatTaxId(e.target.value)}
             placeholder="e.g. US-829104882 or EU-123456789"
-            className="mt-1 w-full rounded border border-[#E6E4DF] bg-white px-3.5 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-hidden"
+            className="mt-1 w-full rounded border border-rule bg-paper-2 px-3.5 py-2 text-xs text-ink focus:border-ink focus:outline-hidden"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#111111]">Phone Number</label>
+          <label className="block text-xs font-bold text-ink">Phone Number</label>
           <input
             type="tel"
             maxLength={40}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="+1 (555) 000-0000"
-            className="mt-1 w-full rounded border border-[#E6E4DF] bg-white px-3.5 py-2 text-xs text-[#111111] focus:border-[#111111] focus:outline-hidden"
+            className="mt-1 w-full rounded border border-rule bg-paper-2 px-3.5 py-2 text-xs text-ink focus:border-ink focus:outline-hidden"
           />
         </div>
 
-        <div className="flex items-center justify-between border-t border-[#E6E4DF] pt-5">
-          <div className="flex items-center gap-2 text-xs text-[#666666]">
-            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+        <div className="flex items-center justify-between border-t border-rule pt-5">
+          <div className="flex items-center gap-2 text-xs text-ink-2">
+            <ShieldCheck className="h-4 w-4 text-ok" />
             <span>Account Role: {user?.is_admin ? 'Senior Operator / QA' : 'Client Account'}</span>
           </div>
 
           <button
             type="submit"
             disabled={saving}
-            className="rounded bg-[#111111] px-5 py-2 text-xs font-bold text-white hover:bg-black transition-colors disabled:opacity-50"
+            className="rounded bg-ink px-5 py-2 text-xs font-bold text-white hover:bg-black transition-colors disabled:opacity-50"
           >
             {saving ? 'Saving…' : 'Save Profile Settings'}
           </button>

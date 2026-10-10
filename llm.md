@@ -1,6 +1,6 @@
 # Artlantix — project context for AI assistants
 
-Last reviewed: 2026-09-18. Read this document before changing the project. It describes the current implementation, not a promise that external production services have been configured. Verify relevant source before relying on a statement; update this document when architecture or behavior changes.
+Last reviewed: 2026-10-10. Read this document before changing the project. It describes the current implementation, not a promise that external production services have been configured. Verify relevant source before relying on a statement; update this document when architecture or behavior changes.
 
 ## Purpose and product workflow
 
@@ -13,6 +13,7 @@ Public pricing grids (home, comparison home, pricing and business) include a fou
 ## Stack and entry points
 
 - Next.js 16.3.4 App Router, React 19.2.8, TypeScript, Tailwind CSS 4.
+- Three webfonts through `next/font/google`: Geist Sans for body copy (`--font-geist-sans`), Bricolage Grotesque for display headings (`--font-bricolage`, exposed as the `font-display` utility) and Caveat for the few hand-written notes (`--font-caveat`, `font-hand`). Latin-ext subsets are loaded so Turkish and German glyphs render.
 - next-intl for English, German, and Turkish; lucide-react icons.
 - Supabase browser client from `@supabase/ssr` for production. localStorage mock data is allowed only in development or with explicit `NEXT_PUBLIC_DEMO_MODE=true`; production fails closed without Supabase.
 - `package.json` pins pnpm 11.19.0. `pnpm-lock.yaml` is the only dependency lockfile; use frozen-lockfile installs in CI and do not add a second package-manager lockfile.
@@ -27,7 +28,12 @@ Public pricing grids (home, comparison home, pricing and business) include a fou
 | `app/login`, `app/signup` | Authentication UI, currently not localized routes |
 | `app/dashboard/` | Overview, orders and detail, artwork vault, business hub, profile |
 | `app/admin/` | Operator orders and content management |
-| `components/HomePageContent.tsx` | Public marketing, portfolio and pricing UI |
+| `components/HomePageContent.tsx` | Public homepage; composes the sections in `components/home/` |
+| `components/home/` | Homepage sections: `HeroSheet`, `DefectArt`, `ProblemSheet`, `ProcessPath`, `ServicesIndex`, `WorkPlates`, `RateCard`, `GuidesStrip`, `DropCta`, `CropMarks` |
+| `components/ui/` | Shared Atelier primitives: `styles.ts` (container, section titles, buttons), `PageHero`, `Sheet`, `RuledColumns` |
+| `components/brand/Brand.tsx` | `Mark`, `Wordmark` and `Lockup` drawn from `lib/brand-art.ts` |
+| `components/auth/AuthShell.tsx` | Split layout and field styles shared by login, signup and password reset |
+| `lib/brand-art.ts` | Generated geometry for the wordmark, emblem and mark; rebuilt by `scripts/brand/generate-brand-art.py`, never edited by hand |
 | `lib/marketing.ts` | Type-safe Turkish, English and German service, case-study, guide and public FAQ catalogue |
 | `components/ServiceVisual.tsx` | Six code-native service illustrations displayed in homepage service cards |
 | `components/MarketingVisual.tsx` | Code-native localized production artwork used across public marketing pages |
@@ -88,8 +94,10 @@ Supabase mode includes OAuth callback exchange, password-reset email requests, d
 
 ## Orders, pricing and files
 
-- The visual brand accent uses a Radix-inspired green scale: `#18794E` for primary actions and text, `#115C3B` for hover states, `#E9F9EE` for soft surfaces, and `#B4DFC4` for accent borders. Amber remains reserved for semantic pending/warning states rather than brand decoration.
-- The interface uses Geist Sans only. Do not load a monospace webfont, use the Tailwind `font-mono` utility, or reintroduce letter-spaced monospace eyebrow labels.
+- The visual language is an "atelier" drawing-sheet system defined as `@theme` tokens in `app/globals.css`: warm paper (`paper`, `paper-2`, `paper-3`), near-black ink (`ink`, `ink-2`, `ink-3`), hairline rules (`rule`, `rule-strong`), an orange signal accent (`signal` `#EB4A1E`, `signal-hot`, `signal-ink`, `signal-tint`, `signal-line`), a construction blue (`guide`, `guide-tint`, `guide-soft`) for nodes and guides, and `ok*` tokens for success states. Use the tokens (`bg-paper-2`, `text-ink-2`, `border-ink`) instead of hex values; red and amber stay reserved for semantic error and warning states.
+- Radii are globally small (`--radius-*` tops out at 8px) and shadows are warm and soft. Panels read as sheets: a 1px ink border, an optional caption bar and a title block of cells. Pills are reserved for primary actions.
+- Headings use Bricolage Grotesque (`font-display`); body copy uses Geist Sans; Caveat (`font-hand`) is only for the hero margin notes and the "price after review" line. Do not load a monospace webfont, use the Tailwind `font-mono` utility, or reintroduce letter-spaced monospace eyebrow labels.
+- Customer-facing English is US English. Customer-facing strings must be available in all three languages: do not hard-code Turkish (or English) text in a shared component; add an `en`/`de`/`tr` dictionary as `DeliveryTimeline`, `OrderChatHub`, `VectorInspector` and `BeforeAfterSlider` do.
 - Order states: `quote_requested`, `in_review`, `in_progress`, `preview_ready`, `approved`, `revision_requested`, `completed`, `cancelled`. Customer approval enters `approved`; only an operator delivery moves the order to `completed`.
 - New order IDs use UUIDs; existing demo order IDs retain their original strings.
 - Base tiers: simple 25, standard 45, complex 75 USD. CMS can override base rates. Add-ons and express pricing are defined in `lib/pricing.ts`.
@@ -134,7 +142,7 @@ pnpm test
 git diff --check
 ```
 
-Latest verification (0.6.5): production build/TypeScript passed; all 22 tests passed, including receipt authorization, demo guest boundaries, customer tracking, scanner protocol and typography guards; ESLint had zero errors and zero warnings. The tracker was visually checked at desktop and 390 px mobile widths. The current local environment is demo-only with no Supabase or mail credentials; real receipt delivery was not tested. The earlier 2026-09-16 audit reported no known production dependency vulnerabilities and successful live schema application with six RLS-enabled public tables; neither audit nor live database checks were repeated for this release. Lighthouse, a real ClamAV engine run and live multi-tenant RLS/Storage tests still need to be performed before launch.
+Latest verification (0.7, Atelier redesign): production build/TypeScript passed; all 22 tests passed; ESLint reported zero errors and zero warnings. The public pages, quote wizard, auth pages and customer portal were screenshot-checked at 1440 px and 390 px in English, German and Turkish. No Supabase or mail credentials exist in this environment, so Supabase mode, receipt email and the admin workflows beyond the order list were not exercised. Earlier verification (0.6.5): production build/TypeScript passed; all 22 tests passed, including receipt authorization, demo guest boundaries, customer tracking, scanner protocol and typography guards; ESLint had zero errors and zero warnings. The tracker was visually checked at desktop and 390 px mobile widths. The current local environment is demo-only with no Supabase or mail credentials; real receipt delivery was not tested. The earlier 2026-09-16 audit reported no known production dependency vulnerabilities and successful live schema application with six RLS-enabled public tables; neither audit nor live database checks were repeated for this release. Lighthouse, a real ClamAV engine run and live multi-tenant RLS/Storage tests still need to be performed before launch.
 
 Tests isolate auth/storage and exercise the real pricing source. They are not substitutes for database RLS, private-storage and malware-scanning integration tests. Add meaningful regressions for changed behavior, not tests that merely match source text.
 
@@ -152,14 +160,18 @@ Tests isolate auth/storage and exercise the real pricing source. They are not su
 
 ## Keeping this context useful
 
-The homepage hero uses `HeroVectorArtwork`: an original code-native line-art crest with a pointer-following SVG mask and delayed trail exposing dark green contours and control nodes. Touch devices show the full drawing with a one-time stroke animation; reduced-motion users get a static full drawing. It is decorative, not an automatic vectorization tool, and has no external animation dependency.
+The homepage hero uses `HeroSheet`: a framed drawing sheet in which a photographic source, the finished vector and its construction layer (guides, handles, anchors) are stacked and split by a draggable line, driven by a `--x` CSS variable so dragging does not re-render React. A styled range input under the sheet gives the same control to keyboard users, and a single gentle sweep on load hints at the interaction unless reduced motion is requested. It is a studio demonstration, not an automatic vectorization tool.
 
-The homepage process section presents its four localized steps as numbered icon cards on a dark green background, with desktop connector arrows, a responsive one/two/four-column layout and a localized quote link.
+`lib/brand-art.ts` holds the generated geometry (wordmark outlines, emblem, mark). Rerun `scripts/brand/generate-brand-art.py` against the Bricolage Grotesque woff2 to regenerate it; the script merges overlapping glyph contours, so hand-editing the file will be overwritten.
 
-Homepage pricing shows one localized starting-price/USD label above the cards, CMS-backed tier amounts, localized complexity descriptions and quote links. Prices remain provisional; the custom-scope card has no fixed price. FAQ content is available on dedicated localized FAQ pages rather than the current homepage.
+The homepage process section (`ProcessPath`) draws the four localized steps along a hand-drawn path that strokes itself into view, with numbered stations and a localized quote link. Reduced motion shows the finished path immediately.
+
+Homepage pricing (`RateCard`) is one printed rate card: three CMS-backed tiers, each with a generated node specimen whose number of points matches the work the tier prices, plus a fourth price-free "Contact us" cell. `/pricing` reuses the same specimens as full-width rows. Prices remain provisional; the custom-scope cell has no fixed price. FAQ content lives on the dedicated localized FAQ pages, not the homepage.
+
+The inner public pages share `PageHero` (back link, eyebrow, display title with a hand-drawn swash, optional `Sheet` aside and a ruler rule) and end with `DropCta`. `/services` and `/guides` are ruled index lists, `/services/<slug>` and `/work/<slug>` use `RuledColumns` instead of card grids, `/guides/<slug>` is an article with a sticky contents list, and `/faq` pairs the ruled accordion with a sticky quote sheet.
 
 Update this document and the audit when fixing a listed limitation. Clearly distinguish local changes, committed code, pushed code, deployed code and applied database migrations. Use Git history for current revision status instead of maintaining a hardcoded commit hash here. Do not report tests, deployments, integrations or performance improvements that have not been verified.
 
 The homepage work showcase uses an editorial split heading and a localized comparison panel. `BeforeAfterSlider` presents a fixed studio demonstration, with artwork/node views, pointer and keyboard controls, and descriptive features instead of unverified performance percentages. Its raster and vector layers share responsive bounds; it does not accept or inspect customer files. The shared panel is also used on the work and order-detail pages.
 
-The temporary `/tr1` route renders the Turkish homepage before the latest visual refresh using `PreviousHomePageContent.tsx`, including the service illustrations and process icons. It bypasses locale redirection, is marked noindex and is omitted from the sitemap. `/tr` remains the current homepage.
+The temporary `/tr1` route renders an older Turkish homepage from `PreviousHomePageContent.tsx`. It predates the Atelier redesign and keeps its own layout, so it mixes the old composition with the current palette and fonts. It bypasses locale redirection, is marked noindex and is omitted from the sitemap. `/tr` remains the current homepage.

@@ -261,15 +261,15 @@ export async function triggerFileDownload(file: OrderFile): Promise<void> {
   <!-- Clean mathematical bezier curves · Closed paths · 0.01mm tolerance -->
   <defs>
     <linearGradient id="artlantixGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#18794E" />
-      <stop offset="100%" stop-color="#111111" />
+      <stop offset="0%" stop-color="#EB4A1E" />
+      <stop offset="100%" stop-color="#15171C" />
     </linearGradient>
   </defs>
-  <rect width="800" height="800" fill="#FAFAF8"/>
-  <circle cx="400" cy="400" r="280" fill="none" stroke="#111111" stroke-width="8"/>
-  <circle cx="400" cy="400" r="240" fill="none" stroke="#18794E" stroke-width="3" stroke-dasharray="8 6"/>
-  <path d="M 400 200 L 460 360 L 630 360 L 490 460 L 540 620 L 400 520 L 260 620 L 310 460 L 170 360 L 340 360 Z" fill="#111111" stroke="#18794E" stroke-width="4"/>
-  <text x="400" y="720" font-family="sans-serif" font-size="20" font-weight="700" letter-spacing="4" text-anchor="middle" fill="#111111">ARTLANTIX MASTER VECTOR</text>
+  <rect width="800" height="800" fill="#FBF8F1"/>
+  <circle cx="400" cy="400" r="280" fill="none" stroke="#15171C" stroke-width="8"/>
+  <circle cx="400" cy="400" r="240" fill="none" stroke="#2B59FF" stroke-width="3" stroke-dasharray="8 6"/>
+  <path d="M 400 200 L 460 360 L 630 360 L 490 460 L 540 620 L 400 520 L 260 620 L 310 460 L 170 360 L 340 360 Z" fill="#15171C" stroke="#EB4A1E" stroke-width="4"/>
+  <text x="400" y="720" font-family="sans-serif" font-size="20" font-weight="700" letter-spacing="4" text-anchor="middle" fill="#15171C">ARTLANTIX MASTER VECTOR</text>
 </svg>`;
   }
 

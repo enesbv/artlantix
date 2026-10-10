@@ -22,25 +22,25 @@ function RenderVectorContent({ isWireframe }: { isWireframe: boolean }) {
         {/* Outer Shield Geometry */}
         <path
           d="M 250 40 L 410 110 C 410 270 340 380 250 450 C 160 380 90 270 90 110 Z"
-          fill="#141414"
-          stroke="#141414"
+          fill="var(--color-ink)"
+          stroke="var(--color-ink)"
           strokeWidth="2"
         />
         {/* Inner Inset Hairline */}
         <path
           d="M 250 65 L 390 125 C 390 260 330 355 250 420 C 170 355 110 260 110 125 Z"
-          fill="#F9F8F6"
-          stroke="#18794E"
+          fill="var(--color-paper)"
+          stroke="var(--color-signal)"
           strokeWidth="3"
         />
         {/* Geometric Falcon Crest Wings & Beak */}
         <path
           d="M 250 140 L 330 200 L 290 220 L 350 270 L 250 250 L 150 270 L 210 220 L 170 200 Z"
-          fill="#141414"
+          fill="var(--color-ink)"
         />
         <path
           d="M 250 210 L 275 260 L 250 310 L 225 260 Z"
-          fill="#18794E"
+          fill="var(--color-signal)"
         />
         {/* Architectural Circle Guide */}
         <circle
@@ -48,7 +48,7 @@ function RenderVectorContent({ isWireframe }: { isWireframe: boolean }) {
           cy="235"
           r="115"
           fill="none"
-          stroke="#18794E"
+          stroke="var(--color-guide)"
           strokeWidth="2"
           strokeDasharray="5 4"
         />
@@ -60,7 +60,7 @@ function RenderVectorContent({ isWireframe }: { isWireframe: boolean }) {
           fontWeight="800"
           fontSize="22"
           letterSpacing="5"
-          fill="#141414"
+          fill="var(--color-ink)"
           textAnchor="middle"
         >
           ARTLANTIX
@@ -72,7 +72,7 @@ function RenderVectorContent({ isWireframe }: { isWireframe: boolean }) {
           fontWeight="600"
           fontSize="10"
           letterSpacing="3"
-          fill="#18794E"
+          fill="var(--color-signal)"
           textAnchor="middle"
         >
           STUDIO · PRO
@@ -83,7 +83,7 @@ function RenderVectorContent({ isWireframe }: { isWireframe: boolean }) {
       {isWireframe && (
         <g className="animate-in fade-in duration-200">
           {/* Vector Outlines */}
-          <g stroke="#18794E" strokeWidth="1.5" fill="none">
+          <g stroke="var(--color-guide)" strokeWidth="1.5" fill="none">
             <path d="M 250 40 L 410 110 C 410 270 340 380 250 450 C 160 380 90 270 90 110 Z" />
             <path d="M 250 65 L 390 125 C 390 260 330 355 250 420 C 170 355 110 260 110 125 Z" />
             <path d="M 250 140 L 330 200 L 290 220 L 350 270 L 250 250 L 150 270 L 210 220 L 170 200 Z" />
@@ -91,7 +91,7 @@ function RenderVectorContent({ isWireframe }: { isWireframe: boolean }) {
           </g>
 
           {/* Bezier Nodes (Squares) and Tangent Handles */}
-          <g fill="#18794E" stroke="#FFFFFF" strokeWidth="1.5">
+          <g fill="var(--color-guide)" stroke="var(--color-paper-2)" strokeWidth="1.5">
             <rect x="246" y="36" width="8" height="8" />
             <rect x="406" y="106" width="8" height="8" />
             <rect x="246" y="446" width="8" height="8" />
@@ -102,10 +102,10 @@ function RenderVectorContent({ isWireframe }: { isWireframe: boolean }) {
             <rect x="146" y="266" width="8" height="8" />
             <rect x="166" y="196" width="8" height="8" />
             {/* Tangent guide lines */}
-            <line x1="410" y1="110" x2="435" y2="195" stroke="#18794E" strokeWidth="1" strokeDasharray="2 2" />
-            <circle cx="435" cy="195" r="3.5" fill="#FFFFFF" stroke="#18794E" strokeWidth="1.5" />
-            <line x1="90" y1="110" x2="65" y2="195" stroke="#18794E" strokeWidth="1" strokeDasharray="2 2" />
-            <circle cx="65" cy="195" r="3.5" fill="#FFFFFF" stroke="#18794E" strokeWidth="1.5" />
+            <line x1="410" y1="110" x2="435" y2="195" stroke="var(--color-guide)" strokeWidth="1" strokeDasharray="2 2" />
+            <circle cx="435" cy="195" r="3.5" fill="var(--color-paper-2)" stroke="var(--color-guide)" strokeWidth="1.5" />
+            <line x1="90" y1="110" x2="65" y2="195" stroke="var(--color-guide)" strokeWidth="1" strokeDasharray="2 2" />
+            <circle cx="65" cy="195" r="3.5" fill="var(--color-paper-2)" stroke="var(--color-guide)" strokeWidth="1.5" />
           </g>
         </g>
       )}
@@ -176,7 +176,7 @@ function RenderRasterContent() {
         className="absolute inset-0 pointer-events-none opacity-[0.06]"
         style={{
           backgroundImage:
-            'radial-gradient(#141414 0.75px, transparent 0.75px), radial-gradient(#141414 0.75px, #F0EDE6 0.75px)',
+            'radial-gradient(var(--color-ink) 0.75px, transparent 0.75px), radial-gradient(var(--color-ink) 0.75px, var(--color-paper) 0.75px)',
           backgroundSize: '8px 8px',
           backgroundPosition: '0 0, 4px 4px',
         }}
@@ -240,102 +240,97 @@ export default function BeforeAfterSlider({
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#DDE5DE] bg-white shadow-[0_24px_70px_-40px_rgba(16,42,32,0.25)] sm:rounded-3xl">
-      <div className="flex flex-col justify-between gap-4 border-b border-[#E7EDE7] px-5 py-4 sm:px-7 sm:py-5 md:flex-row md:items-center">
+    <figure className="m-0 border border-ink bg-paper-2 shadow-[0_30px_60px_-34px_rgb(21_23_28/0.5)]">
+      <figcaption className="flex flex-col justify-between gap-4 border-b border-ink px-4 py-3.5 sm:px-5 md:flex-row md:items-center">
         <div className="min-w-0">
-          <h3 className="text-base font-semibold tracking-tight text-[#102A20] sm:text-lg">{title || copy.title}</h3>
+          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em]"><span aria-hidden="true" className="h-2 w-2 shrink-0 bg-signal" />{copy.demo}</p>
+          <h3 className="mt-1.5 font-display text-xl font-bold leading-tight tracking-[-0.02em] sm:text-2xl">{title || copy.title}</h3>
         </div>
-        <div className="flex shrink-0 gap-1 self-start rounded-xl bg-[#F0F3EF] p-1" role="group" aria-label={copy.comparison}>
-          {[{ value: true, label: copy.nodes, Icon: ScanLine }, { value: false, label: copy.artwork, Icon: Layers2 }].map(({ value, label, Icon }) => (
+        <div className="flex shrink-0 self-start border border-ink" role="group" aria-label={copy.comparison}>
+          {[{ value: true, label: copy.nodes, Icon: ScanLine }, { value: false, label: copy.artwork, Icon: Layers2 }].map(({ value, label, Icon }, index) => (
             <button
               key={label}
               type="button"
               aria-pressed={isWireframe === value}
               onClick={() => setIsWireframe(value)}
-              className={`inline-flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#18794E] sm:px-4 ${isWireframe === value ? 'bg-[#102A20] text-white shadow-sm' : 'text-[#5E6C62] hover:bg-white hover:text-[#102A20]'}`}
+              className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold transition-colors ${index > 0 ? 'border-l border-ink' : ''} ${isWireframe === value ? 'bg-ink text-paper' : 'text-ink hover:bg-paper-3'}`}
             >
               <Icon className="h-3.5 w-3.5" aria-hidden="true" />{label}
             </button>
           ))}
         </div>
-      </div>
+      </figcaption>
 
-      <div className="p-2 sm:p-3">
-        <div
-          ref={containerRef}
-          role="slider"
-          tabIndex={0}
-          aria-label={copy.comparison}
-          aria-valuemin={2}
-          aria-valuemax={98}
-          aria-valuenow={Math.round(sliderPosition)}
-          aria-valuetext={`${copy.position}: ${Math.round(sliderPosition)}%`}
-          onPointerDown={(event) => {
-            if (!event.isPrimary || event.button !== 0) return;
-            event.currentTarget.focus({ preventScroll: true });
-            event.currentTarget.setPointerCapture(event.pointerId);
-            setIsDragging(true);
-            handleMove(event.clientX);
-          }}
-          onPointerMove={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) handleMove(event.clientX);
-          }}
-          onPointerUp={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-            setIsDragging(false);
-          }}
-          onPointerCancel={() => setIsDragging(false)}
-          onLostPointerCapture={() => setIsDragging(false)}
-          onKeyDown={(event) => {
-            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
-            event.preventDefault();
-            setSliderPosition((value) => event.key === 'Home' ? 2 : event.key === 'End' ? 98 : Math.min(98, Math.max(2, value + (['ArrowRight', 'ArrowUp'].includes(event.key) ? 2 : -2))));
-          }}
-          className="relative h-[340px] w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-xl bg-[#F5F7F2] outline-none focus-visible:ring-2 focus-visible:ring-[#18794E] focus-visible:ring-offset-2 sm:h-[420px] lg:h-[480px]"
-        >
-          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <div className="absolute inset-0 opacity-[0.35]" style={{ backgroundImage: 'linear-gradient(#DCE4D9 1px, transparent 1px), linear-gradient(90deg, #DCE4D9 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-            <div className="relative flex h-full w-full items-center justify-center px-6 py-10 sm:px-10">
-              <RenderVectorContent isWireframe={isWireframe} />
-            </div>
+      <div
+        ref={containerRef}
+        role="slider"
+        tabIndex={0}
+        aria-label={copy.comparison}
+        aria-valuemin={2}
+        aria-valuemax={98}
+        aria-valuenow={Math.round(sliderPosition)}
+        aria-valuetext={`${copy.position}: ${Math.round(sliderPosition)}%`}
+        onPointerDown={(event) => {
+          if (!event.isPrimary || event.button !== 0) return;
+          event.currentTarget.focus({ preventScroll: true });
+          event.currentTarget.setPointerCapture(event.pointerId);
+          setIsDragging(true);
+          handleMove(event.clientX);
+        }}
+        onPointerMove={(event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) handleMove(event.clientX);
+        }}
+        onPointerUp={(event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+          setIsDragging(false);
+        }}
+        onPointerCancel={() => setIsDragging(false)}
+        onLostPointerCapture={() => setIsDragging(false)}
+        onKeyDown={(event) => {
+          if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+          event.preventDefault();
+          setSliderPosition((value) => event.key === 'Home' ? 2 : event.key === 'End' ? 98 : Math.min(98, Math.max(2, value + (['ArrowRight', 'ArrowUp'].includes(event.key) ? 2 : -2))));
+        }}
+        className="relative h-[340px] w-full cursor-ew-resize touch-pan-y select-none overflow-hidden bg-paper focus-visible:outline-offset-[-5px] sm:h-[420px] lg:h-[480px]"
+      >
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(var(--color-rule) 1px, transparent 1px), linear-gradient(90deg, var(--color-rule) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+          <div className="relative flex h-full w-full items-center justify-center px-6 py-10 sm:px-10">
+            <RenderVectorContent isWireframe={isWireframe} />
           </div>
+        </div>
 
-          <div className="pointer-events-none absolute inset-0 bg-[#EEECE6]" style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }} aria-hidden="true">
-            <div className="absolute inset-0">
-              <RenderRasterContent />
-            </div>
+        <div className="pointer-events-none absolute inset-0 bg-paper-3" style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }} aria-hidden="true">
+          <div className="absolute inset-0">
+            <RenderRasterContent />
           </div>
+        </div>
 
-          <div className="pointer-events-none absolute inset-x-4 top-5 flex items-start justify-between gap-4 sm:inset-x-6" aria-hidden="true">
-            <div>
-              <span className="inline-flex rounded-md border border-black/10 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-[#5D625B]">{copy.before}</span>
-            </div>
-            <div className="text-right">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-[#B4DFC4] bg-[#E9F9EE] px-2.5 py-1 text-[11px] font-semibold text-[#115C3B]"><Check className="h-3 w-3" />{copy.after}</span>
-            </div>
+        <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-4 sm:inset-x-4 sm:top-4" aria-hidden="true">
+          <span className="border border-rule-strong bg-paper-2/90 px-2 py-1 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-ink-2">{copy.before}</span>
+          <span className="inline-flex items-center gap-1.5 border border-ink bg-ink px-2 py-1 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-paper"><Check className="h-3 w-3" />{copy.after}</span>
+        </div>
+
+        <div className="pointer-events-none absolute inset-y-0 z-10 w-px -translate-x-1/2 bg-ink" style={{ left: `${sliderPosition}%` }} aria-hidden="true">
+          <span className="absolute -left-[4px] top-14 h-[9px] w-[9px] border border-ink bg-signal" />
+          <span className="absolute -left-[4px] bottom-4 h-[9px] w-[9px] border border-ink bg-signal" />
+          <div className={`absolute left-1/2 top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center border border-ink bg-paper-2 text-ink shadow-[3px_3px_0_0_var(--color-ink)] transition-transform ${isDragging ? 'scale-105' : ''}`}>
+            <ChevronLeft className="h-4 w-4 shrink-0" /><ChevronRight className="h-4 w-4 shrink-0" />
           </div>
-
-          <div className="pointer-events-none absolute inset-y-0 z-10 w-px bg-[#18794E]/65" style={{ left: `${sliderPosition}%` }} aria-hidden="true">
-            <div className={`absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[5px] border-white bg-[#18794E] text-white shadow-[0_3px_18px_rgba(16,42,32,0.22)] transition-transform ${isDragging ? 'scale-110' : ''}`}>
-              <ChevronLeft className="h-4 w-4 shrink-0" /><ChevronRight className="h-4 w-4 shrink-0" />
-            </div>
-          </div>
-
         </div>
       </div>
 
-      <div className="grid divide-y divide-[#E0E8E0] border-t border-[#E7EDE7] bg-[#F7FAF6] px-5 py-1 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-2 sm:py-5">
+      <div className="grid border-t border-ink sm:grid-cols-3">
         {copy.features.map(([heading, description], index) => (
-          <div key={heading} className="flex gap-3 py-4 sm:px-5 sm:py-0">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#D6E5D9] bg-white text-[10px] font-semibold tabular-nums text-[#18794E]">0{index + 1}</span>
+          <div key={heading} className={`flex gap-3 px-4 py-4 sm:px-5 ${index > 0 ? 'border-t border-ink sm:border-l sm:border-t-0' : ''}`}>
+            <span className="pt-0.5 font-display text-sm font-semibold tabular-nums text-signal-ink">0{index + 1}</span>
             <div>
-              <p className="text-sm font-semibold text-[#183D28]">{heading}</p>
-              <p className="mt-1 text-xs leading-5 text-[#71806F]">{description}</p>
+              <p className="text-sm font-semibold text-ink">{heading}</p>
+              <p className="mt-1 text-xs leading-5 text-ink-3">{description}</p>
             </div>
           </div>
         ))}
       </div>
-
-    </div>
+    </figure>
   );
 }

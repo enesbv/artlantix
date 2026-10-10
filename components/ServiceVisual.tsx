@@ -44,6 +44,16 @@ export default function ServiceVisual({ slug, className = '' }: { slug: string; 
       <circle cx="245" cy="67" r="3" fill="var(--color-guide)" stroke="none" />
       <g fill="var(--color-guide)" stroke="none"><rect x="85" y="98" width="8" height="8" /><rect x="117" y="35" width="8" height="8" /><rect x="225" y="59" width="8" height="8" /></g>
     </>,
+    'embroidery-ready-vector': <>
+      <circle cx="108" cy="76" r="54" fill="var(--color-paper-3)" strokeWidth="3" />
+      <circle cx="108" cy="76" r="45" stroke="var(--color-ink-3)" strokeWidth="1.5" strokeDasharray="2 4" />
+      <path d="M96 20h24v-9H96Z" fill="var(--color-ink)" strokeWidth="2" />
+      <path d="m108 40 8 22 24 1-19 15 7 23-20-13-20 13 7-23-19-15 24-1Z" fill="var(--color-signal-tint)" stroke="var(--color-signal)" strokeWidth="2.5" strokeDasharray="5 4" />
+      <path d="M186 44h92M186 62h92M186 80h92" stroke="var(--color-ink-3)" strokeWidth="2" strokeDasharray="6 5" />
+      <path d="M202 120 252 36" stroke="var(--color-ink)" strokeWidth="3" />
+      <ellipse cx="253" cy="42" rx="3" ry="6" transform="rotate(30 253 42)" fill="var(--color-paper-2)" strokeWidth="2" />
+      <g fill="var(--color-guide)" stroke="none"><rect x="182" y="40" width="8" height="8" /><rect x="274" y="76" width="8" height="8" /><circle cx="202" cy="120" r="4" /></g>
+    </>,
   };
   return (
     <div className={`relative overflow-hidden bg-paper-2 ${className}`}>
