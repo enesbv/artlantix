@@ -4,15 +4,23 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { ArrowRight, FileCheck, Layers, LogOut, Menu, X } from 'lucide-react';
+import { ArrowRight, LogOut, Menu, X } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { Lockup } from '@/components/brand/Brand';
+import { container } from '@/components/ui/styles';
 import { getCurrentUser, signOutUser } from '@/lib/services/auth';
+import { homeCopy } from '@/lib/home-copy';
 import { UserProfile } from '@/lib/types';
 import { localizedPath, normalizeMarketingLocale } from '@/lib/marketing';
+
+// Underline that grows from the left on hover and focus, in the same orange as the hero swash.
+const linkClass =
+  'relative py-2 text-[14px] font-medium text-ink-2 transition-colors hover:text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:origin-left after:scale-x-0 after:bg-signal after:transition-transform after:duration-300 hover:after:scale-x-100 focus-visible:after:scale-x-100';
 
 export default function Navbar() {
   const t = useTranslations('nav');
   const lang = normalizeMarketingLocale(useLocale());
+  const nav = homeCopy[lang].nav;
   const [user, setUser] = useState<UserProfile | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
@@ -21,6 +29,19 @@ export default function Navbar() {
   useEffect(() => {
     getCurrentUser().then(setUser);
   }, [pathname]);
+
+  // While the full-screen menu is open the page behind it must not scroll, and Escape closes it.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setMobileOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [mobileOpen]);
 
   const publicLinks = [
     { href: `${localizedPath(lang, '/')}#work`, label: t('showcase') },
@@ -32,100 +53,111 @@ export default function Navbar() {
     { href: localizedPath(lang, '/business'), label: t('business') },
   ];
 
+  const accountHref = user ? (user.is_admin ? '/admin/orders' : '/dashboard') : '/login';
+  const accountLabel = user ? (user.is_admin ? t('productionQueue') : t('myOrders')) : t('signIn');
+
   const signOut = async () => {
     await signOutUser();
     setUser(null);
+    setMobileOpen(false);
     router.push(localizedPath(lang, '/'));
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#DAD8D2] bg-[#F9F8F6]/95 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href={localizedPath(lang, '/')} className="group flex items-center gap-3">
-          <strong className="block text-lg leading-none tracking-tight text-[#102A20]">Artlantix</strong>
-        </Link>
-        <nav className="hidden items-center gap-6 text-xs font-semibold text-[#5E625F] lg:flex">
-          {publicLinks.map((item) => (
-            <Link key={item.href} href={item.href} className="transition hover:text-[#18794E]">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="hidden items-center gap-3 lg:flex">
-          <LanguageSwitcher />
-
-          {user ? (
-            <>
-              <Link
-                href={user.is_admin ? '/admin/orders' : '/dashboard'}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#102A20]"
-              >
-                {user.is_admin ? (
-                  <FileCheck className="h-4 w-4 text-[#18794E]" />
-                ) : (
-                  <Layers className="h-4 w-4" />
-                )}
-                {user.is_admin ? t('productionQueue') : t('myOrders')}
-              </Link>
-              <button onClick={signOut} title={t('signOut')} className="text-[#5E625F] hover:text-[#102A20]">
-                <LogOut className="h-4 w-4" />
-              </button>
-            </>
-          ) : (
-            <Link href="/login" className="text-xs font-bold text-[#102A20] hover:text-[#18794E]">
-              {t('signIn')}
-            </Link>
-          )}
-
-          <Link
-            href={localizedPath(lang, '/quote')}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#18794E] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#115C3B]"
-          >
-            {t('getQuote')}
-            <ArrowRight className="h-3.5 w-3.5" />
+    <>
+      <a href="#main" className="sr-only z-[60] bg-ink px-4 py-2 text-sm font-semibold text-paper focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
+        {nav.skip}
+      </a>
+      <header className="sticky top-0 z-50 border-b border-rule bg-paper/85 backdrop-blur-md">
+        <div className={`${container} flex h-16 items-center justify-between gap-6`}>
+          <Link href={localizedPath(lang, '/')} className="shrink-0 text-ink">
+            <Lockup />
           </Link>
-        </div>
 
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={t('toggleMenu')}
-          className="rounded-lg p-2 text-[#102A20] lg:hidden"
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
-
-      {mobileOpen && (
-        <div className="border-t border-[#DAD8D2] bg-white px-4 py-5 lg:hidden">
-          <nav className="flex flex-col gap-4 text-sm font-bold text-[#102A20]">
-            <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-4">
-              <span>{t('language')}</span>
-              <LanguageSwitcher />
-            </div>
+          <nav aria-label="Main" className="hidden items-center gap-6 xl:flex">
             {publicLinks.map((item) => (
-              <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}>
+              <Link key={item.href} href={item.href} className={linkClass}>
                 {item.label}
               </Link>
             ))}
-            <div className="mt-1 border-t border-[#EAE8E3] pt-4">
-              {user ? (
-                <Link href={user.is_admin ? '/admin/orders' : '/dashboard'} onClick={() => setMobileOpen(false)}>
-                  {user.is_admin ? t('productionQueue') : t('myOrders')}
+          </nav>
+
+          <div className="hidden items-center gap-5 xl:flex">
+            <LanguageSwitcher />
+            <Link href={accountHref} className={linkClass}>{accountLabel}</Link>
+            {user && (
+              <button type="button" onClick={signOut} title={t('signOut')} aria-label={t('signOut')} className="-ml-2 p-1.5 text-ink-2 transition-colors hover:text-ink">
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
+            <Link
+              href={localizedPath(lang, '/quote')}
+              className="group inline-flex items-center gap-2.5 rounded-full bg-ink py-2 pl-5 pr-2 text-[14px] font-semibold text-paper transition-colors duration-200 hover:bg-signal hover:text-ink"
+            >
+              {nav.quote}
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-paper text-ink transition-transform duration-300 group-hover:translate-x-0.5">
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-label={mobileOpen ? nav.close : nav.menu}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
+            className="-mr-2 grid h-11 w-11 place-items-center text-ink xl:hidden"
+          >
+            {mobileOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+          </button>
+        </div>
+      </header>
+
+      {mobileOpen && (
+        <div id="mobile-menu" className="fixed inset-x-0 bottom-0 top-[65px] z-40 overflow-y-auto bg-paper xl:hidden">
+          <div className={`${container} pb-10 pt-4`}>
+            <nav aria-label="Main" className="flex flex-col">
+              {publicLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between border-b border-ink/80 py-4 font-display text-[1.75rem] font-bold tracking-[-0.02em]"
+                >
+                  {item.label}
+                  <ArrowRight className="h-5 w-5 text-ink-3" aria-hidden="true" />
                 </Link>
-              ) : (
-                <Link href="/login" onClick={() => setMobileOpen(false)}>{t('signIn')}</Link>
-              )}
+              ))}
+            </nav>
+
+            <div className="mt-8 flex items-center justify-between gap-4">
+              <LanguageSwitcher />
+              <div className="flex items-center gap-4">
+                <Link href={accountHref} onClick={() => setMobileOpen(false)} className="text-[15px] font-semibold underline decoration-signal decoration-2 underline-offset-[6px]">
+                  {accountLabel}
+                </Link>
+                {user && (
+                  <button type="button" onClick={signOut} aria-label={t('signOut')} className="p-1.5 text-ink-2">
+                    <LogOut className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
             </div>
+
             <Link
               href={localizedPath(lang, '/quote')}
               onClick={() => setMobileOpen(false)}
-              className="mt-1 rounded-xl bg-[#18794E] px-5 py-3 text-center text-white"
+              className="group mt-8 flex items-center justify-between rounded-full bg-ink py-2.5 pl-7 pr-2.5 text-base font-semibold text-paper"
             >
-              {t('getQuote')}
+              {nav.quote}
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-signal text-ink">
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </span>
             </Link>
-          </nav>
+          </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
