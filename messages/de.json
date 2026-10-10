@@ -10,7 +10,7 @@
     "forBusiness": "Für Unternehmen",
     "faq": "FAQ",
     "signIn": "Anmelden",
-    "getQuote": "Sofort-Angebot",
+    "getQuote": "Angebot anfordern",
     "myOrders": "Meine Aufträge",
     "productionQueue": "Produktions-Warteschlange",
     "portal": "Kundenportal",
@@ -305,6 +305,15 @@
       "saved": "Ihr Angebotsentwurf wurde automatisch in diesem Browser gespeichert.",
       "clear": "Entwurf löschen"
     },
+    "receipt": {
+      "title": "Ihre Auftragsanfrage ist eingegangen",
+      "body": "Bewahren Sie Ihre Auftragsnummer auf. Hier verfolgen Sie Ihre Zeichnung.",
+      "numberLabel": "Auftragsnummer",
+      "queued": "Die E-Mail mit Ihrer Auftragsnummer wurde zum Versand angenommen.",
+      "unavailable": "Der E-Mail-Versand ist noch nicht aktiv. Bitte notieren Sie Ihre Auftragsnummer.",
+      "failed": "Ihr Auftrag ist gespeichert, die E-Mail konnte jedoch nicht gesendet werden. Notieren Sie Ihre Nummer und senden Sie keine zweite Anfrage.",
+      "track": "Auftrag verfolgen"
+    },
     "ui": {
       "aiLogo": "KI-Logoentwurf",
       "lowRes": "Niedrig aufgelöste Vorlage",
@@ -366,7 +375,10 @@
       "privateFiles": "Dateien bleiben im Kundenportal privat",
       "progress": "Angebotsfortschritt",
       "uploadFirst": "Laden Sie vor dem Fortfahren Ihre Vorlage hoch.",
-      "projectFirst": "Geben Sie vor dem Fortfahren einen Projektnamen ein."
+      "projectFirst": "Geben Sie vor dem Fortfahren einen Projektnamen ein.",
+      "inspecting": "Vorlage wird geprüft …",
+      "uploadFailed": "Die Datei konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.",
+      "submitFailed": "Der Auftrag konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
     }
   }
 }

@@ -305,6 +305,15 @@
       "saved": "Your quote draft was saved automatically in this browser.",
       "clear": "Clear draft"
     },
+    "receipt": {
+      "title": "Your order request is received",
+      "body": "Keep your order number to track your artwork.",
+      "numberLabel": "Order number",
+      "queued": "Your order-number email was accepted for sending.",
+      "unavailable": "Email sending is not enabled yet. Please save your order number.",
+      "failed": "Your order is saved, but the email could not be sent. Save your number and do not submit another order.",
+      "track": "Track my order"
+    },
     "ui": {
       "aiLogo": "AI concept logo",
       "lowRes": "Low-resolution artwork",
@@ -366,7 +375,10 @@
       "privateFiles": "Files stay private in the client portal",
       "progress": "Quote progress",
       "uploadFirst": "Upload your artwork before continuing.",
-      "projectFirst": "Enter a project name before continuing."
+      "projectFirst": "Enter a project name before continuing.",
+      "inspecting": "Inspecting artwork…",
+      "uploadFailed": "The file could not be uploaded. Please try again.",
+      "submitFailed": "The order could not be submitted. Please try again."
     }
   }
 }

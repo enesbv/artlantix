@@ -346,7 +346,7 @@ export default function QuotePageContent() {
           setProjectName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
         }
       } catch (error) {
-        setFormError(error instanceof Error ? error.message : 'Upload failed.');
+        setFormError(error instanceof Error ? error.message : tQuote('ui.uploadFailed'));
       } finally {
         setIsUploading(false);
       }
@@ -367,7 +367,7 @@ export default function QuotePageContent() {
           setProjectName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
         }
       } catch (error) {
-        setFormError(error instanceof Error ? error.message : 'Upload failed.');
+        setFormError(error instanceof Error ? error.message : tQuote('ui.uploadFailed'));
       } finally {
         setIsUploading(false);
       }
@@ -379,7 +379,7 @@ export default function QuotePageContent() {
     e.preventDefault();
     if (submitLock.current || submittedOrder) return;
     if (!uploadedFile || isUploading) {
-      setFormError('Please upload your artwork before submitting.');
+      setFormError(tQuote('ui.uploadFirst'));
       setCurrentStep(1);
       return;
     }
@@ -445,7 +445,7 @@ export default function QuotePageContent() {
         setReceiptStatus(result.status === 'queued' ? 'queued' : result.status === 'unavailable' ? 'unavailable' : 'failed');
       } catch { setReceiptStatus('failed'); }
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Order submission failed. Please try again.');
+      setFormError(err instanceof Error ? err.message : tQuote('ui.submitFailed'));
     } finally {
       submitLock.current = false;
       setIsSubmitting(false);
@@ -453,25 +453,21 @@ export default function QuotePageContent() {
   };
 
   if (submittedOrder) {
-    const tr = locale === 'tr';
-    const de = locale === 'de';
     return (
       <div className="min-h-screen bg-paper"><Navbar />
         <main className="mx-auto max-w-xl px-4 py-16">
           <div className="border border-ink bg-paper-2 p-7 text-center shadow-[0_30px_60px_-36px_rgb(21_23_28/0.45)] sm:p-10">
             <CheckCircle2 className="mx-auto h-14 w-14 text-signal-ink" />
-            <h1 className="mt-6 font-display text-[1.9rem] font-bold tracking-[-0.03em] text-ink">{tr ? 'Sipariş talebini aldık' : de ? 'Dein Auftrag ist eingegangen' : 'Your order request is received'}</h1>
-            <p className="mt-3 text-sm text-ink-3">{tr ? 'Sipariş numaranı sakla. Çizimini buradan takip edebilirsin.' : de ? 'Bewahre deine Auftragsnummer auf.' : 'Keep your order number to track your artwork.'}</p>
+            <h1 className="mt-6 font-display text-[1.9rem] font-bold tracking-[-0.03em] text-ink">{tQuote('receipt.title')}</h1>
+            <p className="mt-3 text-sm text-ink-3">{tQuote('receipt.body')}</p>
             <div className="mt-7 border border-signal-line bg-signal-tint p-5">
-              <p className="text-xs text-ink-3">{tr ? 'Sipariş numarası' : de ? 'Auftragsnummer' : 'Order number'}</p>
+              <p className="text-xs text-ink-3">{tQuote('receipt.numberLabel')}</p>
               <p className="mt-2 break-all text-base font-semibold text-signal-ink">{submittedOrder.order_number}</p>
             </div>
             <p role="status" className="mt-5 text-xs leading-6 text-ink-3">
-              {receiptStatus === 'queued' ? (tr ? 'Sipariş numaranı içeren e-posta gönderim için kabul edildi.' : de ? 'Die E-Mail wurde zum Versand angenommen.' : 'Your order-number email was accepted for sending.') :
-                receiptStatus === 'unavailable' ? (tr ? 'E-posta gönderimi henüz etkin değil. Sipariş numaranı kaydet.' : de ? 'E-Mail-Versand ist nicht aktiv. Speichere deine Nummer.' : 'Email sending is not enabled. Save your order number.') :
-                (tr ? 'Sipariş kaydedildi, ancak e-posta gönderilemedi. Numaranı kaydet; tekrar sipariş verme.' : de ? 'Auftrag gespeichert, E-Mail fehlgeschlagen. Bestelle nicht erneut.' : 'Your order is saved, but the email could not be sent. Do not submit another order.')}
+              {tQuote(`receipt.${receiptStatus === 'queued' ? 'queued' : receiptStatus === 'unavailable' ? 'unavailable' : 'failed'}`)}
             </p>
-            <Link href="/dashboard" className="group mt-7 inline-flex items-center justify-center gap-3 rounded-full bg-ink py-2.5 pl-6 pr-2.5 text-[15px] font-semibold text-paper transition-colors hover:bg-signal hover:text-ink">{tr ? 'Siparişimi takip et' : de ? 'Auftrag verfolgen' : 'Track my order'}<span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-paper text-ink transition-transform duration-300 group-hover:translate-x-0.5"><ArrowRight className="h-4 w-4" /></span></Link>
+            <Link href="/dashboard" className="group mt-7 inline-flex items-center justify-center gap-3 rounded-full bg-ink py-2.5 pl-6 pr-2.5 text-[15px] font-semibold text-paper transition-colors hover:bg-signal hover:text-ink">{tQuote('receipt.track')}<span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-paper text-ink transition-transform duration-300 group-hover:translate-x-0.5"><ArrowRight className="h-4 w-4" /></span></Link>
           </div>
         </main>
       </div>
@@ -483,10 +479,10 @@ export default function QuotePageContent() {
       <Navbar />
 
       <main className="mx-auto max-w-6xl px-4 py-10 pb-28 sm:px-6 sm:py-16 lg:px-8">
-        {formError && <p role="alert" className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">{formError}</p>}
+        {formError && <p role="alert" className="mb-6 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">{formError}</p>}
         {draftNotice && (
-          <div role="status" className="mb-6 flex items-center justify-between gap-4 rounded-lg border border-ok-line bg-ok-tint p-4 text-sm text-ok-ink">
-            <span>{tQuote(`draft.${draftNotice}`)}</span>
+          <div role="status" className="mb-6 flex items-center justify-between gap-4 border border-rule-strong bg-paper-2 px-4 py-3 text-[13px] text-ink-2">
+            <span className="flex items-center gap-2.5"><span aria-hidden="true" className="h-2 w-2 shrink-0 bg-signal" />{tQuote(`draft.${draftNotice}`)}</span>
             <button type="button" onClick={() => { clearQuoteDraft(); setDraftNotice(null); }} className="font-semibold underline">{tQuote('draft.clear')}</button>
           </div>
         )}
@@ -548,13 +544,13 @@ export default function QuotePageContent() {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-8 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-rule bg-paper p-12 text-center hover:border-ink cursor-pointer transition-colors"
+                className="mt-8 flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-rule-strong bg-paper p-12 text-center transition-colors hover:border-ink hover:bg-signal-tint/35"
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-paper-2 shadow-xs text-signal-ink">
+                <div className="flex h-14 w-14 items-center justify-center border border-ink bg-paper-2 text-signal-ink">
                   <UploadCloud className="h-7 w-7" />
                 </div>
                 <div className="mt-4 text-sm font-semibold text-ink">
-                  {isUploading ? 'Inspecting raster artwork...' : tQuote('dropzone')}
+                  {isUploading ? tQuote('ui.inspecting') : tQuote('dropzone')}
                 </div>
                 <p className="mt-1 text-xs text-ink-3">{tQuote('dropzoneSub')}</p>
                 <input
@@ -768,7 +764,7 @@ export default function QuotePageContent() {
                 <label className="block text-sm font-bold text-ink">
                   {tQuote('paymentTitle')}
                 </label>
-                <div role="status" className="mt-3 rounded-xl border border-ok-line bg-ok-tint p-4 text-sm text-ok-ink">
+                <div role="status" className="mt-3 border border-rule-strong bg-paper-3 p-4 text-sm text-ink-2">
                   <div className="flex items-start gap-3">
                     <Lock className="mt-0.5 h-4 w-4 shrink-0 text-signal-ink" />
                     <div>

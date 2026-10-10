@@ -10,7 +10,7 @@
     "forBusiness": "Kurumsal",
     "faq": "SSS",
     "signIn": "Giriş Yap",
-    "getQuote": "Hemen Fiyat Al",
+    "getQuote": "Teklif isteyin",
     "myOrders": "Siparişlerim",
     "productionQueue": "Üretim Masası",
     "portal": "Müşteri Portalı",
@@ -305,6 +305,15 @@
       "saved": "Teklif taslağı bu tarayıcıya otomatik kaydedildi.",
       "clear": "Taslağı sil"
     },
+    "receipt": {
+      "title": "Sipariş talebinizi aldık",
+      "body": "Sipariş numaranızı saklayın. Çiziminizi buradan takip edebilirsiniz.",
+      "numberLabel": "Sipariş numarası",
+      "queued": "Sipariş numaranızı içeren e-posta gönderim için kabul edildi.",
+      "unavailable": "E-posta gönderimi henüz etkin değil. Lütfen sipariş numaranızı kaydedin.",
+      "failed": "Siparişiniz kaydedildi, ancak e-posta gönderilemedi. Numaranızı kaydedin ve ikinci bir sipariş oluşturmayın.",
+      "track": "Siparişimi takip et"
+    },
     "ui": {
       "aiLogo": "Yapay zekâ logo taslağı",
       "lowRes": "Düşük çözünürlüklü görsel",
@@ -366,7 +375,10 @@
       "privateFiles": "Dosyalar müşteri portalında gizli kalır",
       "progress": "Teklif ilerlemesi",
       "uploadFirst": "Devam etmeden önce görselinizi yükleyin.",
-      "projectFirst": "Devam etmeden önce proje adını yazın."
+      "projectFirst": "Devam etmeden önce proje adını yazın.",
+      "inspecting": "Görsel inceleniyor …",
+      "uploadFailed": "Dosya yüklenemedi. Lütfen tekrar deneyin.",
+      "submitFailed": "Sipariş gönderilemedi. Lütfen tekrar deneyin."
     }
   }
 }
